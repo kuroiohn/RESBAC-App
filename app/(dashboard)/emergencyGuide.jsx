@@ -1,0 +1,129 @@
+import { ScrollView, StyleSheet, Image, View } from 'react-native'
+
+import Spacer from "../../components/Spacer"
+import ThemedText from "../../components/ThemedText"
+import ThemedView from "../../components/ThemedView"
+
+//goodshi imports
+import EmergencyContactsPic from "../../assets/ECPic.png"
+import DuringFlood from "../../assets/DuringFlood.png"
+import DuringFire from "../../assets/DuringFire.png"
+import Earthquake from "../../assets/Earthquake.png"
+
+import Water from "../../assets/Water.png"
+import Flashlight from "../../assets/Flashlight.png"
+import Medications from "../../assets/Medications.png"
+import Identification from "../../assets/Identification.png"
+import Food from "../../assets/Food.png"
+import Clothing from "../../assets/Clothing.png"
+import Money from "../../assets/Money.png"
+import Batteries from "../../assets/Batteries.png"
+
+import HBES from "../../assets/HBES.png"
+import PES from "../../assets/PES.png"
+import CES from "../../assets/CES.png"
+import CIS from "../../assets/CIS.png"
+
+const EmergencyGuide = () => {
+  return (
+    <ScrollView contentContainerStyle={styles.container}>
+      <ThemedView>
+
+      <Image source={EmergencyContactsPic} />
+
+      <ThemedText style={styles.textLeft}>
+        Emergency Guides
+      </ThemedText>
+
+      <View style={styles.row}>
+        <Image source={DuringFlood} />
+        <Image source={DuringFire} />
+        <Image source={Earthquake} />
+      </View>
+
+      <ThemedText style={styles.textBlue}>
+        What to pack in a Go-Bag?
+      </ThemedText>
+
+      <View style={styles.row}>
+        <Image source={Water} />
+        <Image source={Flashlight} />
+        <Image source={Medications} />
+        <Image source={Identification} />
+      </View>
+
+      <View style={styles.row}>
+        <Image source={Food} />
+        <Image source={Clothing} />
+        <Image source={Money} />
+        <Image source={Batteries} />
+      </View>
+
+      <ThemedText style={styles.textLeft}>
+        Evacuation Centers
+      </ThemedText>
+
+      <Image source={HBES} style={styles.g1}/>
+      <Image source={PES} style={styles.g1}/>
+      <Image source={CIS} style={styles.g1}/>
+      <Image source={CES} style={styles.g1}/>
+
+    </ThemedView>
+    </ScrollView>
+    
+  )
+}
+
+export default EmergencyGuide
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: '#fafafa',
+    transform: [{ scale: 1.0 }],
+  },
+
+  heading: {
+    fontWeight: "bold",
+    fontSize: 18,
+    textAlign: "center",
+  },
+
+  image: {
+    resizeMode: 'contain',
+    marginTop: 20,
+  },
+
+  row: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  gap: 5,
+  marginBottom: 5,
+  },
+
+  textLeft: {
+  textAlign: 'left',
+  alignSelf: 'stretch',
+  marginLeft: 0,
+  fontSize: 19,
+  marginTop: 10,
+  marginBottom: 5,
+  },
+
+  textBlue: {
+  textAlign: 'left',
+  alignSelf: 'stretch',
+  marginLeft: 0,
+  fontSize: 12,
+  marginTop: 10,
+  marginBottom: 5,
+  color: '#0060ff',
+  fontWeight: "bold",
+  },
+
+  g1: {
+    marginBottom: 10,
+  }
+})

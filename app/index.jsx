@@ -25,8 +25,8 @@ const Home = () => {
             </Link>
 
             <Spacer />
-            <Link href="/emergencyGuide">
-                <ThemedText>Emergency Guide</ThemedText>
+            <Link href="/register">
+                <ThemedText>Register?</ThemedText>
             </Link>
 
             <Spacer />

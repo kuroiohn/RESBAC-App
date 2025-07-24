@@ -1,15 +1,17 @@
 import { Pressable, StyleSheet } from 'react-native'
 import { Colors } from '../constants/Colors'
 
-function ThemedButton({ style, ...props }) {
-
+function ThemedButton({ style, children, ...props }) {
   return (
-    <Pressable 
-      style={({ pressed }) => [styles.btn, pressed && styles.pressed, style]} 
+    <Pressable
+      style={({ pressed }) => [styles.btn, pressed && styles.pressed, style]}
       {...props}
-    />
+    >
+      {children} /*!!!! */
+    </Pressable>
   )
 }
+
 const styles = StyleSheet.create({
   btn: {
     backgroundColor: Colors.primary,

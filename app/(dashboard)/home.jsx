@@ -9,8 +9,10 @@ import Evacuated from "../../assets/EvacuatedFrame.png"
 import AlertLevel from "../../assets/AlertLevel.png"
 import EvacCenters from "../../assets/EvacCenters.png"
 import PickUpLocs from "../../assets/PickUpLocs.png"
+import { useUser } from '../../hooks/useUser'
 
 const Home = () => {
+  const { logout } = useUser()
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
       <ThemedView style={styles.container}>

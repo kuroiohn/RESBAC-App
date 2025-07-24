@@ -32,6 +32,11 @@ const Login = () => {
         </ThemedButton>
 
         <Spacer height={100} />
+        <Link href="/mpin">
+                <ThemedText>MPIN</ThemedText>
+            </Link>
+
+        <Spacer height={100} />
         <Link href='/register'>
             <ThemedText style = {{textAlign: 'center'}}>
                 Register instead

@@ -25,104 +25,103 @@ import CES from "../../assets/CES.png"
 import CIS from "../../assets/CIS.png"
 
 const EmergencyGuide = () => {
+
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <ThemedView>
+    <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <ThemedView style={styles.container}>
 
-      <Image source={EmergencyContactsPic} />
+        <Image source={EmergencyContactsPic} />
 
-      <ThemedText style={styles.textLeft}>
-        Emergency Guides
-      </ThemedText>
+        <ThemedText style={styles.textLeft}>
+          Emergency Guides
+        </ThemedText>
 
-      <View style={styles.row}>
-        <Image source={DuringFlood} />
-        <Image source={DuringFire} />
-        <Image source={Earthquake} />
-      </View>
+        <View style={styles.row}>
+          <Image source={DuringFlood} />
+          <Image source={DuringFire} />
+          <Image source={Earthquake} />
+        </View>
 
-      <ThemedText style={styles.textBlue}>
-        What to pack in a Go-Bag?
-      </ThemedText>
+        <ThemedText style={styles.textBlue}>
+          What to pack in a Go-Bag?
+        </ThemedText>
 
-      <View style={styles.row}>
-        <Image source={Water} />
-        <Image source={Flashlight} />
-        <Image source={Medications} />
-        <Image source={Identification} />
-      </View>
+        <View style={styles.row}>
+          <Image source={Water} />
+          <Image source={Flashlight} />
+          <Image source={Medications} />
+          <Image source={Identification} />
+        </View>
 
-      <View style={styles.row}>
-        <Image source={Food} />
-        <Image source={Clothing} />
-        <Image source={Money} />
-        <Image source={Batteries} />
-      </View>
+        <View style={styles.row}>
+          <Image source={Food} />
+          <Image source={Clothing} />
+          <Image source={Money} />
+          <Image source={Batteries} />
+        </View>
 
-      <ThemedText style={styles.textLeft}>
-        Evacuation Centers
-      </ThemedText>
+        <ThemedText style={styles.textLeft}>
+          Evacuation Centers
+        </ThemedText>
 
-      <Image source={HBES} style={styles.g1}/>
-      <Image source={PES} style={styles.g1}/>
-      <Image source={CIS} style={styles.g1}/>
-      <Image source={CES} style={styles.g1}/>
+        <Image source={HBES} style={styles.g1}/>
+        <Image source={PES} style={styles.g1}/>
+        <Image source={CIS} style={styles.g1}/>
+        <Image source={CES} style={styles.g1}/>
 
-    </ThemedView>
+      </ThemedView>
     </ScrollView>
-    
   )
 }
 
 export default EmergencyGuide
 
 const styles = StyleSheet.create({
+  scrollContainer: {
+    paddingVertical: 20,
+    paddingHorizontal: 10,
+    backgroundColor: '#fafafa',
+    overflow: 'hidden',
+  },
   container: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: '#fafafa',
     transform: [{ scale: 1.0 }],
   },
-
   heading: {
     fontWeight: "bold",
     fontSize: 18,
     textAlign: "center",
   },
-
   image: {
     resizeMode: 'contain',
     marginTop: 20,
   },
-
   row: {
   flexDirection: 'row',
   justifyContent: 'space-between',
   gap: 5,
   marginBottom: 5,
   },
-
   textLeft: {
   textAlign: 'left',
   alignSelf: 'stretch',
-  marginLeft: 0,
+  marginLeft: 50,
   fontSize: 19,
   marginTop: 10,
   marginBottom: 5,
   },
-
   textBlue: {
   textAlign: 'left',
   alignSelf: 'stretch',
-  marginLeft: 0,
+  marginLeft: 50,
   fontSize: 12,
   marginTop: 10,
   marginBottom: 5,
   color: '#0060ff',
   fontWeight: "bold",
   },
-
   g1: {
     marginBottom: 10,
   }

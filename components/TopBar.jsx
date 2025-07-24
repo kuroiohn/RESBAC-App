@@ -1,5 +1,6 @@
 import { View, Text, Image, StyleSheet } from 'react-native'
 import Logo from '../assets/RESBACLogo.png'
+import ProfilePic from '../assets/ProfilePic.png'
 
 const TopBar = () => {
   return (
@@ -8,10 +9,7 @@ const TopBar = () => {
         <Image source={Logo} style={styles.logo} />
         <Text style={styles.title}>RESBAC</Text>
       </View>
-      <Image
-        source={{ uri: 'https://via.placeholder.com/40' }}
-        style={styles.profile}
-      />
+      <Image source={ProfilePic} style={styles.profile}/>
     </View>
   )
 }
@@ -37,6 +35,7 @@ const styles = StyleSheet.create({
     width: 30,
     height: 33,
     marginRight: 8,
+    marginLeft: 8,
   },
   title: {
     fontSize: 19,
@@ -46,5 +45,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
+    marginLeft: 214,
   },
 })

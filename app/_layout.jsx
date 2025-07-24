@@ -9,16 +9,16 @@ const RootLayout = () => {
 
   return (
     <>
-    <StatusBar value="auto" />
-    <Stack screenoptions={{
-      headerStyle: { backgroundColor: theme.navBackground },
-      headerTintColor: theme.title,
-    }}>
-      <Stack.Screen name="(auth)" options={{ headerShown: true }}/>
-      <Stack.Screen name="(dashboard)" options={{ headerShown: true }}/>
-      <Stack.Screen name="index" options={{ title: 'Onboarding' }} />
-      <Stack.Screen name="emergencyGuide" options={{ title: 'Emergency Guide' }} />
-    </Stack>
+      <StatusBar value="auto" />
+      <Stack screenoptions={{
+        headerStyle: { backgroundColor: theme.navBackground },
+        headerTintColor: theme.title,
+      }}>
+        <Stack.Screen name="(auth)" options={{ headerShown: true }}/>
+        <Stack.Screen name="(dashboard)" options={{ headerShown: true }}/>
+        <Stack.Screen name="index" options={{ title: 'Onboarding' }} />
+        <Stack.Screen name="emergencyGuide" options={{ title: 'Emergency Guide' }} />
+      </Stack>
     </>
   )
 }

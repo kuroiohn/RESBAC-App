@@ -8,7 +8,6 @@ import ThemedButton from '../../components/ThemedButton'
 import Spacer from '../../components/Spacer'
 
 const Register = () => {
-
   const handleSubmit = () => {
     console.log('register form submitted')
   }

@@ -1,24 +1,24 @@
-import { TextInput, useColorScheme } from 'react-native'
-import { Colors } from '../constants/Colors'
+import { TextInput, useColorScheme } from 'react-native';
+import { Colors } from '../constants/Colors';
 
 const ThemedTextInput = ({ style, ...props }) => {
-  const colorScheme = useColorScheme()
-  const theme = Colors[colorScheme] ?? Colors.light
+  const colorScheme = useColorScheme();
+  const theme = Colors[colorScheme] ?? Colors.light;
 
   return (
     <TextInput
-    style={[ 
+      style={[
         {
-            backgroundColor: theme.inputBackground,
-            color: theme.text,
-            padding: 20,
-            borderRadius: 5
+          backgroundColor: theme.inputBackground,
+          color: theme.text,
+          padding: 20,
+          borderRadius: 5,
         },
-        style
-    ]}
-    {...props}
+        style,
+      ]}
+      {...props}
     />
-  )
-}
+  );
+};
 
-export default ThemedTextInput
+export default ThemedTextInput;

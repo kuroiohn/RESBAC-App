@@ -7,9 +7,15 @@ function ThemedButton({ style, children, ...props }) {
       style={({ pressed }) => [styles.btn, pressed && styles.pressed, style]}
       {...props}
     >
-      {children} /*!!!! */
+      {/* Wrap children in <Text> if it's a string */}
+      {/* finally!! naayos ang error about <Text> */}
+      {typeof children === 'string' ? (
+        <Text style={styles.text}>{children}</Text>
+      ) : (
+        children
+      )}
     </Pressable>
-  )
+  );
 }
 
 const styles = StyleSheet.create({

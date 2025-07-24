@@ -15,7 +15,7 @@ const Home = () => {
   const { logout } = useUser()
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
-      <ThemedView style={styles.container}>
+      <ThemedView style={styles.container} safe = {true}>
 
         <ThemedText title={true} style={styles.heading}>
           Request Rescue?

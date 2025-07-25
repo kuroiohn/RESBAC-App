@@ -16,13 +16,14 @@ const Register = () => {
   const [password, setPassword] = useState('')
   const [error, setError] = useState(null)
 
-  const { register } = useUser()
+  const { user, register } = useUser()
 
   const handleSubmit = async () => {
     setError(null)
 
     try {
         await register(email, password)
+        console.log('current user is: ', user)
     } catch (error) {
         setError(error.message)
     }

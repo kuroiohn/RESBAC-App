@@ -2,15 +2,18 @@ import { View, Text, Image, StyleSheet } from 'react-native'
 import Logo from '../assets/RESBACLogo.png'
 import ProfilePic from '../assets/ProfilePic.png'
 
+//themed components
+import ThemedView from '../components/ThemedView'
+
 const TopBar = () => {
   return (
-    <View style={styles.container}>
+    <ThemedView style={styles.container} safe = {true}>
       <View style={styles.left}>
         <Image source={Logo} style={styles.logo} />
         <Text style={styles.title}>RESBAC</Text>
       </View>
       <Image source={ProfilePic} style={styles.profile}/>
-    </View>
+    </ThemedView>
   )
 }
 
@@ -25,7 +28,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fafafa',
     elevation: 4, // for shadow on Android
     zIndex: 999,
-    marginTop: 0,
+    marginTop: 20,
   },
   left: {
     flexDirection: 'row',

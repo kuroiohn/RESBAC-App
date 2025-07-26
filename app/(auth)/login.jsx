@@ -1,4 +1,4 @@
-import { Keyboard, StyleSheet, Text, TouchableWithoutFeedback } from 'react-native'
+import { ActivityIndicator, Keyboard, StyleSheet, Text, TouchableWithoutFeedback } from 'react-native'
 import { Link } from 'expo-router'
 import { Colors } from '../../constants/Colors'
 import { useState } from 'react'
@@ -11,6 +11,7 @@ import ThemedText from '../../components/ThemedText'
 import ThemedButton from '../../components/ThemedButton'
 import ThemedTextInput from '../../components/ThemedTextInput'
 import Spacer from '../../components/Spacer'
+import ThemedLoader from '../../components/ThemedLoader'
 
 const Login = () => {
   const [email, setEmail] = useState('')
@@ -66,12 +67,10 @@ const Login = () => {
             <Spacer />
             {error && <Text style={styles.error}>{error}</Text>}
 
-            <Spacer height={100} />
             <Link href="/mpin">
                     <ThemedText>MPIN</ThemedText>
                 </Link>
 
-            <Spacer height={100} />
             <Link href='/register'>
                 <ThemedText style = {{textAlign: 'center'}}>
                     Register instead

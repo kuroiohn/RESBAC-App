@@ -6,33 +6,36 @@ import ThemedView from '../components/ThemedView'
 import ThemedLogo from '../components/ThemedLogo'
 import Spacer from "../components/Spacer"
 import ThemedText from "../components/ThemedText"
+import WelcomeHeader from '../components/WelcomeHeader'
+import ThemedButton from "../components/ThemedButton"
+import ImageButton from "../components/ImageButton"
 
 const Home = () => {
 
     return(
         <ThemedView style={styles.container}>
+            <WelcomeHeader/>
 
-            <ThemedLogo />
             <Spacer height = {20} />
 
-            <ThemedText style={styles.title}>Welcome to</ThemedText>
-            <ThemedText style={styles.title2}>RESBAC</ThemedText>
-            <Text style={styles.title3}>Your safety is our priority</Text>
-
             <Spacer />
-            <Link href="/login">
-                <ThemedText>Login</ThemedText>
+            <Link href="/login" asChild>
+                <ThemedButton>
+                <Text style={{ color: '#f2f2f2' }}>Login</Text>
+            </ThemedButton>
             </Link>
 
-            <Spacer />
-            <Link href="/register">
-                <ThemedText>Register?</ThemedText>
+            <Link href="/register" asChild>
+                <ThemedButton>
+                <Text style={{ color: '#f2f2f2' }}>Register</Text>
+            </ThemedButton>
             </Link>
 
-            <Spacer />
-            <Link href="/home">
-                <ThemedText>Go to Dashboard</ThemedText>
+            <Spacer height={10} />
+            <Link href="/emergencyGuide" asChild>
+                <ImageButton />
             </Link>
+            <Spacer height={10} />
 
         </ThemedView>
     )

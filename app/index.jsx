@@ -32,10 +32,13 @@ const Home = () => {
             </Link>
 
             <Spacer height={10} />
-            <Link href="/emergencyGuide" asChild>
+            <Link href="/emergencyGuideGuest" asChild>
                 <ImageButton />
             </Link>
-            <Spacer height={10} />
+
+            <ThemedText style={styles.title3} >
+                Click here to go to the Emergency Guide Section
+            </ThemedText>
 
         </ThemedView>
     )
@@ -58,6 +61,9 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     },
     title3: {
+        fontSize: 11,
         color: '#959595',
+        textAlign: 'left',
+        marginRight: 70,
     }
 })

@@ -1,34 +1,33 @@
 import { ScrollView, StyleSheet, Image, View } from 'react-native'
 
-import Spacer from "../components/Spacer"
-import ThemedText from "../components/ThemedText"
-import ThemedView from "../components/ThemedView"
+import Spacer from "../../components/Spacer"
+import ThemedText from "../../components/ThemedText"
+import ThemedView from "../../components/ThemedView"
 
 //goodshi imports
-import EmergencyContactsPic from "../assets/ECPic.png"
-import DuringFlood from "../assets/DuringFlood.png"
-import DuringFire from "../assets/DuringFire.png"
-import Earthquake from "../assets/Earthquake.png"
+import EmergencyContactsPic from "../../assets/ECPic.png"
+import DuringFlood from "../../assets/DuringFlood.png"
+import DuringFire from "../../assets/DuringFire.png"
+import Earthquake from "../../assets/Earthquake.png"
 
-import Water from "../assets/Water.png"
-import Flashlight from "../assets/Flashlight.png"
-import Medications from "../assets/Medications.png"
-import Identification from "../assets/Identification.png"
-import Food from "../assets/Food.png"
-import Clothing from "../assets/Clothing.png"
-import Money from "../assets/Money.png"
-import Batteries from "../assets/Batteries.png"
+import Water from "../../assets/Water.png"
+import Flashlight from "../../assets/Flashlight.png"
+import Medications from "../../assets/Medications.png"
+import Identification from "../../assets/Identification.png"
+import Food from "../../assets/Food.png"
+import Clothing from "../../assets/Clothing.png"
+import Money from "../../assets/Money.png"
+import Batteries from "../../assets/Batteries.png"
 
-import HBES from "../assets/HBES.png"
-import PES from "../assets/PES.png"
-import CES from "../assets/CES.png"
-import CIS from "../assets/CIS.png"
-import GuestOnly from '../components/auth/GuestOnly'
+import HBES from "../../assets/HBES.png"
+import PES from "../../assets/PES.png"
+import CES from "../../assets/CES.png"
+import CIS from "../../assets/CIS.png"
+import GuestOnly from '../../components/auth/GuestOnly'
 
-const EmergencyGuide = () => {
+const EmergencyGuideContent = () => {
 
   return (
-    <GuestOnly>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <ThemedView style={styles.container}>
 
@@ -73,11 +72,10 @@ const EmergencyGuide = () => {
 
         </ThemedView>
       </ScrollView>
-    </GuestOnly>
   )
 }
 
-export default EmergencyGuide
+export default EmergencyGuideContent
 
 const styles = StyleSheet.create({
   scrollContainer: {

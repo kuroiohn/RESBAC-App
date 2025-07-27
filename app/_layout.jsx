@@ -19,6 +19,7 @@ export default function RootLayout() {
         <Stack.Screen name="(dashboard)" options={{ headerShown: false }}/>
         <Stack.Screen name="index" options={{ title: 'Onboarding' }} />
         <Stack.Screen name="emergencyGuide" options={{ title: 'Emergency Guide' }} />
+        <Stack.Screen name="emergencyGuideGuest" options={{ headerShown: false }} />
         
       </Stack>
     </UserProvider>

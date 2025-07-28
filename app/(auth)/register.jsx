@@ -26,6 +26,7 @@ const Register = () => {
 
   const { user, register } = useUser()
 
+  //iinclude sa actual register page na may button.
   const handleSubmit = async () => {
     setError(null)
 
@@ -109,13 +110,9 @@ const Register = () => {
                     secureTextEntry
                 />
 
-                <ThemedButton onPress={handleSubmit}>
-                    <Text style={{ color: '#f2f2f2' }}>Register</Text>
-                </ThemedButton>
-
                 <BackNextButtons
-                    onBack={() => router.push('/')} // ← Replace with actual route
-                    onNext={() => router.push('./nextPage')}     // ← Replace with actual route
+                    onBack={() => router.push('/')}
+                    onNext={() => router.push('./upload-id')}
                 />
 
                 <Spacer />

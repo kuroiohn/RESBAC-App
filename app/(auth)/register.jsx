@@ -3,6 +3,8 @@ import { Link } from 'expo-router'
 import { useState } from 'react'
 import { Colors } from '../../constants/Colors'
 import DatePickerInput from '../../components/DatePickerInput'
+import { useRouter } from 'expo-router'
+
 
 //themed components
 import ThemedView from '../../components/ThemedView'
@@ -12,11 +14,13 @@ import ThemedTextInput from '../../components/ThemedTextInput'
 import Spacer from '../../components/Spacer'
 import { useUser } from '../../hooks/useUser'
 import ThemedLogo from '../../components/ThemedLogo'
+import BackNextButtons from '../../components/buttons/BackNextButtons'
 
 const Register = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState(null)
+  const router = useRouter()
 
   const [dob, setDob] = useState(null)
 
@@ -108,6 +112,11 @@ const Register = () => {
                 <ThemedButton onPress={handleSubmit}>
                     <Text style={{ color: '#f2f2f2' }}>Register</Text>
                 </ThemedButton>
+
+                <BackNextButtons
+                    onBack={() => router.push('/')} // ← Replace with actual route
+                    onNext={() => router.push('./nextPage')}     // ← Replace with actual route
+                />
 
                 <Spacer />
                 {error && <Text style={styles.error}>{error}</Text>}

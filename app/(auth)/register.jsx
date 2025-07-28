@@ -1,7 +1,8 @@
-import { ScrollView, StyleSheet, Text, TouchableWithoutFeedback, Keyboard } from 'react-native'
+import { Platform, Pressable, ScrollView, StyleSheet, Text, TouchableWithoutFeedback, Keyboard } from 'react-native'
 import { Link } from 'expo-router'
 import { useState } from 'react'
 import { Colors } from '../../constants/Colors'
+import DatePickerInput from '../../components/DatePickerInput'
 
 //themed components
 import ThemedView from '../../components/ThemedView'
@@ -16,6 +17,8 @@ const Register = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState(null)
+
+  const [dob, setDob] = useState(null)
 
   const { user, register } = useUser()
 
@@ -35,7 +38,7 @@ const Register = () => {
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <ThemedView style = {styles.container}>
 
-                <Spacer height={80} />
+                <Spacer height={44} />
                 <ThemedLogo/>
 
                 <ThemedText style={styles.title2}>RESBAC</ThemedText>
@@ -56,11 +59,11 @@ const Register = () => {
                     (First Name, Middle Name, Last Name)
                 </Text>
 
-                <ThemedTextInput 
-                    style = {{ width: '80%', marginBottom: 20 }}
-                    placeholder="Date of Birth"
-                    //value={name}
-                />
+                    <DatePickerInput
+                        value={dob}
+                        onChange={setDob}
+                        placeholder="Date of Birth"
+                    />
 
                 <ThemedTextInput 
                     style = {{ width: '80%', marginBottom: 20 }}

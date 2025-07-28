@@ -64,18 +64,21 @@ const Login = () => {
                 <Text style={{ color: '#f2f2f2' }}>Login</Text>
             </ThemedButton>
 
+            <Text style={styles.title4} >
+                Don't have an Account?{' '}
+                <Link href="/register" asChild>
+                    <Text style={{ color: '#0060ff', fontWeight: '600' }}>
+                    Register instead
+                    </Text>
+                </Link>
+            </Text>
+
             <Spacer />
             {error && <Text style={styles.error}>{error}</Text>}
 
             <Link href="/mpin">
                     <ThemedText>MPIN</ThemedText>
                 </Link>
-
-            <Link href='/register'>
-                <ThemedText style = {{textAlign: 'center'}}>
-                    Register instead
-                </ThemedText>
-            </Link>
 
         </ThemedView>
     </TouchableWithoutFeedback>
@@ -103,6 +106,11 @@ const styles = StyleSheet.create({
     title3: {
         color: '#919191',
         fontSize: 15,
+    },
+    title4: {
+        color: '#161616',
+        fontSize: 11,
+        marginRight: 111,
     },
     btn: {
         backgroundColor: Colors.primary,

@@ -1,12 +1,4 @@
-import {
-  StyleSheet,
-  Text,
-  View,
-  Animated,
-  Easing,
-  Pressable,
-  Alert,
-} from 'react-native'
+import { StyleSheet, Text, View, Animated, Easing, Pressable, Alert, } from 'react-native'
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'expo-router'
 import { Colors } from '../../constants/Colors'

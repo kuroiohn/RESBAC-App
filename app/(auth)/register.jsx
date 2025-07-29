@@ -15,6 +15,7 @@ import Spacer from '../../components/Spacer'
 import { useUser } from '../../hooks/useUser'
 import ThemedLogo from '../../components/ThemedLogo'
 import BackNextButtons from '../../components/buttons/BackNextButtons'
+import TitleText from '../../components/TitleText'
 
 const Register = () => {
   const [email, setEmail] = useState('')
@@ -26,7 +27,6 @@ const Register = () => {
 
   const { user, register } = useUser()
 
-  //iinclude sa actual register page na may button.
   const handleSubmit = async () => {
     setError(null)
 
@@ -41,16 +41,16 @@ const Register = () => {
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <ThemedView style = {styles.container}>
+            <ThemedView style = {styles.container} safe={true}>
 
                 <Spacer height={44} />
                 <ThemedLogo/>
 
-                <ThemedText style={styles.title2}>RESBAC</ThemedText>
+                <TitleText type="title1">RESBAC</TitleText>
 
-                <ThemedText style={styles.title3}>
+                <TitleText type="title3">
                     Sign in to start your session
-                </ThemedText>
+                </TitleText>
 
                 <Spacer/>
 
@@ -60,9 +60,9 @@ const Register = () => {
                     //value={name}
                 />
 
-                <Text style = {styles.title4}>
+                <TitleText type="title4">
                     (First Name, Middle Name, Last Name)
-                </Text>
+                </TitleText>
 
                     <DatePickerInput
                         value={dob}
@@ -112,13 +112,13 @@ const Register = () => {
 
                 <BackNextButtons
                     onBack={() => router.push('/')}
-                    onNext={() => router.push('./upload-id')}
+                    onNext={() => router.push('./uploadID')}
                 />
 
                 <Spacer />
                 {error && <Text style={styles.error}>{error}</Text>}
 
-                <Link href='/login'>
+                <Link href='/login' asChild>
                     <ThemedText style = {{textAlign: 'center'}}>
                         Login instead
                     </ThemedText>
@@ -143,27 +143,6 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-    },
-    title: {
-        textAlign: 'center',
-        fontSize: 19,
-        marginBottom: 30
-    },
-    title2: {
-        color: '#161616',
-        fontSize: 50,
-        fontWeight: 'bold',
-    },
-    title3: {
-        color: '#919191',
-        fontSize: 15,
-    },
-    title4: {
-        color: '#6e7477',
-        fontSize: 11,
-        marginLeft: 111,
-        fontStyle: 'italic',
-        marginBottom: 20,
     },
     error: {
             color: Colors.warning,

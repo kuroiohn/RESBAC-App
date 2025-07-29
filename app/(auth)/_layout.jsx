@@ -1,5 +1,3 @@
-// for layout ng files under auth folder (login, mpin, register, etc.)
-
 import { Stack } from "expo-router"
 import { StatusBar } from "react-native"
 import { useUser } from "../../hooks/useUser"
@@ -11,7 +9,7 @@ export default function AuthLayout() {
   console.log(user)
   
   return (
-    <GuestOnly> {/* comes from GuestOnly component */}
+    <GuestOnly>
       <StatusBar style="auto" />
       <Stack 
         screenOptions={{ headerShown: false, animation: "none" }} 

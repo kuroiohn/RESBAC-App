@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { TouchableOpacity, Image, StyleSheet } from 'react-native'
 
 import Logo from '../assets/EmerGuideBtn.png'

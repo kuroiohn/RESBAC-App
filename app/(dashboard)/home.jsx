@@ -3,8 +3,8 @@ import { StyleSheet, Image, View, ScrollView } from 'react-native'
 import Spacer from "../../components/Spacer"
 import ThemedText from "../../components/ThemedText"
 import ThemedView from "../../components/ThemedView"
+import CallButton from '../../components/CallBtn'
 
-import CallButton from "../../assets/CallBtn.png"
 import Evacuated from "../../assets/EvacuatedFrame.png"
 import AlertLevel from "../../assets/AlertLevel.png"
 import EvacCenters from "../../assets/EvacCenters.png"
@@ -29,7 +29,7 @@ const Home = () => {
         </ThemedText>
 
         <Spacer />
-        <Image source={CallButton} />
+        <CallButton onPress={() => console.log('Calling...')} />
         <Spacer />
         <Image source={Evacuated} />
 

@@ -65,7 +65,7 @@ const Login = () => {
                 <Text style={{ color: '#f2f2f2' }}>Login</Text>
             </ThemedButton>
 
-            <TitleText type="title4">
+            <TitleText type="title4" style={{marginRight: 111}}>
                 Don't have an Account?{' '}
                 <Link href="/register" asChild>
                     <Text style={{ color: '#0060ff', fontWeight: '600' }}>

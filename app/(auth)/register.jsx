@@ -9,7 +9,6 @@ import { useRouter } from 'expo-router'
 //themed components
 import ThemedView from '../../components/ThemedView'
 import ThemedText from '../../components/ThemedText'
-import ThemedButton from '../../components/ThemedButton'
 import ThemedTextInput from '../../components/ThemedTextInput'
 import Spacer from '../../components/Spacer'
 import { useUser } from '../../hooks/useUser'
@@ -60,7 +59,12 @@ const Register = () => {
                     //value={name}
                 />
 
-                <TitleText type="title4">
+                <TitleText type="title4" 
+                style={{ 
+                  marginLeft: 111, 
+                  fontStyle: 'italic',
+                  marginBottom: 20,
+                }}>
                     (First Name, Middle Name, Last Name)
                 </TitleText>
 

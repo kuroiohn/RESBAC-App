@@ -1,4 +1,5 @@
 import { StyleSheet, Image, View, ScrollView } from 'react-native'
+import LottieView from 'lottie-react-native'
 
 import Spacer from "../../components/Spacer"
 import ThemedText from "../../components/ThemedText"
@@ -28,9 +29,9 @@ const Home = () => {
           reach you shortly.
         </ThemedText>
 
-        <Spacer />
-        <CallButton onPress={() => console.log('Calling...')} />
-        <Spacer />
+        <Spacer/>
+        <CallButton />
+        <Spacer/>
         <Image source={Evacuated} />
 
         <ThemedText style={styles.textLeft}>

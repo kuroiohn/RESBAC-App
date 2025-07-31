@@ -109,8 +109,8 @@ export default function uploadID() {
         </View>
 
         <BackNextButtons
-          onBack={() => router.push('./register')}
-          onNext={() => router.push('./regisComplete')}
+            onBack={() => router.back()} // Go back
+            onNext={() => router.push('./regisComplete')}
         />
       </ThemedView>
     </ScrollView>

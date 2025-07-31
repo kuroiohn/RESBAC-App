@@ -5,16 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="15c3f356-9517-4468-976c-ba15dbb1e46b" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/components/CheckboxComponent.jsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/components/GenderSelector.jsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/components/RadioComponent.jsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/(auth)/register.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(auth)/register.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/(auth)/uploadID.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(auth)/uploadID.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/(auth)/vulnerable.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(auth)/vulnerable.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/DatePickerInput.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/DatePickerInput.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -71,7 +62,7 @@
       <updated>1753857944983</updated>
       <workItem from="1753857946744" duration="12482000" />
       <workItem from="1753879973356" duration="8982000" />
-      <workItem from="1753983674332" duration="18914000" />
+      <workItem from="1753983674332" duration="19668000" />
     </task>
     <servers />
   </component>

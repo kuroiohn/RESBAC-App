@@ -2,8 +2,8 @@ import { Platform, Pressable, ScrollView, StyleSheet, Text, TouchableWithoutFeed
 import { Link } from 'expo-router'
 import { useState } from 'react'
 import { Colors } from '../../constants/Colors'
-import DatePickerInput from '../../components/DatePickerInput'
 import { useRouter } from 'expo-router'
+import { useUser } from '../../hooks/useUser'
 
 
 //themed components
@@ -11,10 +11,10 @@ import ThemedView from '../../components/ThemedView'
 import ThemedText from '../../components/ThemedText'
 import ThemedTextInput from '../../components/ThemedTextInput'
 import Spacer from '../../components/Spacer'
-import { useUser } from '../../hooks/useUser'
+import DatePickerInput from '../../components/DatePickerInput'
 import ThemedLogo from '../../components/ThemedLogo'
-import BackNextButtons from '../../components/buttons/BackNextButtons'
 import TitleText from '../../components/TitleText'
+import BackNextButtons from '../../components/buttons/BackNextButtons'
 
 const Register = () => {
   const [email, setEmail] = useState('')

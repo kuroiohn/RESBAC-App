@@ -1,105 +1,222 @@
-import { useState } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Pressable } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 
-export default function EvacuationStatusCard() {
-  const [step, setStep] = useState('initial');
+const EvacuationStatusCard = () => {
+  const [step, setStep] = useState(0);
+  const [isPressed, setIsPressed] = useState(false);
 
   const handlePress = () => {
-    if (step === 'initial') setStep('confirm');
-    else if (step === 'confirm') setStep('final');
+    if (step < 2) setStep(step + 1);
   };
 
-  const getText = () => {
-    if (step === 'initial') return 'Have you already evacuated?';
-    if (step === 'confirm') return 'Are you sure you have already evacuated?';
-    return 'Good to know! Stay in your evacuation area and wait for further announcements.';
+  const getButtonLabel = () => {
+    if (step === 0) return 'Mark yourself as Safe';
+    if (step === 1) return 'Yes, I am sure';
+    return 'Marked as Safe';
   };
 
-  const getButtonText = () => {
-    if (step === 'initial') return 'Mark yourself as Safe';
-    if (step === 'confirm') return 'Yes, I am sure';
-    return 'Marked as Safe ✓';
+  const renderText = () => {
+    if (step === 0) {
+      return (
+        <Text style={styles.step0Text} numberOfLines={1}>
+          Have you already evacuated?
+        </Text>
+      );
+    }
+    if (step === 1) {
+      return (
+        <Text style={[styles.stepText, styles.bold]}>
+          Are you sure you have already evacuated?
+        </Text>
+      );
+    }
+    return (
+      <Text style={styles.step2Text}>
+        Good to know! Stay in your evacuation area and wait for further announcements.
+      </Text>
+    );
   };
 
-  const getImage = () => {
-    if (step === 'final') return require('../assets/shield.png');
-    return require('../assets/bell.png');
+
+  const renderImage = () => {
+    return (
+      <Image
+        source={
+          step < 2
+            ? require('../assets/bell.png')
+            : require('../assets/shield.png')
+        }
+        style={styles.image}
+        resizeMode="contain"
+      />
+    );
+  };
+
+  const renderButton = () => {
+    const label = getButtonLabel();
+
+    // Step 2 (final): green button with check icon, centered
+    if (step === 2) {
+      return (
+        <View style={styles.finalButton}>
+          <Text style={styles.buttonTextCentered}>
+            {label}
+          </Text>
+          <Ionicons name="checkmark" size={18} color="white" style={styles.iconRight} />
+        </View>
+      );
+    }
+
+    // Step 1: solid button with gradient only on press
+    if (step === 1) {
+      return (
+        <Pressable
+          onPressIn={() => setIsPressed(true)}
+          onPressOut={() => {
+            setIsPressed(false);
+            handlePress();
+          }}
+        >
+          {isPressed ? (
+            <LinearGradient
+              colors={['#409A7A', '#163429']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.button}
+            >
+              <Text style={styles.buttonText}>{label}</Text>
+            </LinearGradient>
+          ) : (
+            <View style={[styles.button, { backgroundColor: '#409A7A' }]}>
+              <Text style={styles.buttonText}>{label}</Text>
+            </View>
+          )}
+        </Pressable>
+      );
+    }
+
+    // Step 0: default green gradient button
+    return (
+      <TouchableOpacity onPress={handlePress}>
+        <LinearGradient
+          colors={['#409A7A', '#409A7A']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.button}
+        >
+          <Text style={styles.buttonText}>{label}</Text>
+        </LinearGradient>
+      </TouchableOpacity>
+    );
   };
 
   return (
-    <LinearGradient colors={['#0060FF', '#003A99']} style={styles.border}>
-      <View style={styles.container}>
-        <View style={styles.textContainer}>
-          <Text style={[styles.text, step === 'confirm' && styles.bold]}>
-            {getText()}
-          </Text>
-
-          <TouchableOpacity onPress={handlePress} activeOpacity={0.8}>
-            {step === 'confirm' ? (
-              <LinearGradient colors={['green', '#163429']} style={styles.button}>
-                <Text style={styles.buttonText}>{getButtonText()}</Text>
-              </LinearGradient>
-            ) : (
-              <View style={styles.buttonStatic}>
-                <Text style={styles.buttonText}>{getButtonText()}</Text>
-              </View>
-            )}
-          </TouchableOpacity>
+    <LinearGradient
+      colors={['#0060FF', 'rgba(0, 58, 153, 0)']}
+      start={{ x: 0.5, y: 0 }}
+      end={{ x: 0.5, y: 1 }}
+      style={styles.borderWrapper}
+    >
+      <View style={styles.innerCard}>
+        <View style={styles.contentRow}>
+          <View style={styles.textArea}>
+            {renderText()}
+            {renderButton()}
+          </View>
+          <View style={styles.imageWrapper}>{renderImage()}</View>
         </View>
-
-        <Image source={getImage()} style={styles.image} resizeMode="contain" />
       </View>
     </LinearGradient>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  border: {
+  borderWrapper: {
     width: '85%',
-    borderRadius: 10,
     padding: 2,
+    borderRadius: 12,
   },
-  container: {
+  innerCard: {
     backgroundColor: '#FAFAFA',
-    height: 95,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
     borderRadius: 10,
-    alignItems: 'center',
-    paddingLeft: 20,
-    paddingRight: 0, // no padding on right
   },
-  textContainer: {
+  contentRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  textArea: {
     flex: 1,
-    paddingRight: 10,
+    paddingRight: 24, // more space from the image
   },
   text: {
     fontSize: 16,
-    marginBottom: 12,
+    marginBottom: 10,
+    color: '#000',
+  },
+    step0Text: {
+    fontSize: 14,
+    marginBottom: 5,
+    color: '#000',
+  },
+  stepText: {
+    fontSize: 16,
+    marginBottom: 5, // <-- smaller margin for step 1
+    color: '#000',
+  },
+  step2Text: {
+    fontSize: 13,      // <-- smaller text size
+    lineHeight: 14,    // <-- tighter vertical padding
+    marginBottom: 5,   // <-- smaller spacing below
     color: '#000',
   },
   bold: {
     fontWeight: 'bold',
   },
-  buttonStatic: {
-    backgroundColor: '#409A7A',
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-  },
-  buttonText: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
   button: {
     paddingVertical: 10,
     paddingHorizontal: 16,
-    borderRadius: 8,
+    borderRadius: 6,
+    alignSelf: 'flex-start',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: '#fff',
+    fontWeight: '500',
+    fontSize: 14,
+  },
+  buttonTextCentered: {
+    color: '#fff',
+    fontWeight: '500',
+    fontSize: 14,
+    marginRight: 6,
+  },
+  finalButton: {
+    backgroundColor: '#409A7A',
+    borderRadius: 6,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+  },
+  iconRight: {
+    marginLeft: 4,
+  },
+  imageWrapper: {
+    width: 60,
+    height: 60,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   image: {
-    width: 80,
-    height: 80,
+    width: '100%',
+    height: '100%',
   },
 });
+
+export default EvacuationStatusCard;

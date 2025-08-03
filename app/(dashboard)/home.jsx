@@ -5,6 +5,7 @@ import Spacer from "../../components/Spacer"
 import ThemedText from "../../components/ThemedText"
 import ThemedView from "../../components/ThemedView"
 import CallButton from '../../components/CallBtn'
+import MarkSafeBtn from '../../components/MarkSafeBtn'
 
 import Evacuated from "../../assets/EvacuatedFrame.png"
 import AlertLevel from "../../assets/AlertLevel.png"
@@ -18,6 +19,7 @@ const Home = () => {
     <ScrollView contentContainerStyle={styles.scrollContainer}>
       <ThemedView style={styles.container}>
 
+        {/* Heading */}
         <ThemedText title={true} style={styles.heading}>
           Request Rescue?
         </ThemedText>
@@ -29,10 +31,13 @@ const Home = () => {
           reach you shortly.
         </ThemedText>
 
+        {/* Call Button */}
         <Spacer/>
         <CallButton />
         <Spacer/>
-        <Image source={Evacuated} />
+
+        { /* Evacuated? */ }
+        <MarkSafeBtn />
 
         <ThemedText style={styles.textLeft}>
           Alerts

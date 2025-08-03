@@ -12,6 +12,7 @@ const DashboardLayout = () => {
   return (
     <UserOnly>
       <Tabs 
+          initialRouteName="home" // dito magddirect after login
           screenOptions = {{
               header: () => <TopBar />, 
               tabBarStyle: {

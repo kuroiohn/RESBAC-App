@@ -13,7 +13,7 @@ import {
 import DateTimePicker from '@react-native-community/datetimepicker'
 import ThemedTextInput from './ThemedTextInput'
 
-const DatePickerInput = ({ value, onChange, placeholder = 'Select date' }) => {
+const DatePickerInput = ({ value, onChange, placeholder = 'Select date', disabled}) => {
   const [showModal, setShowModal] = useState(false)
   const [tempDate, setTempDate] = useState(value || new Date())
 
@@ -40,7 +40,14 @@ const DatePickerInput = ({ value, onChange, placeholder = 'Select date' }) => {
 
   return (
     <>
-      <Pressable onPress={() => setShowModal(true)} style={styles.inputWrapper}>
+      <Pressable
+          onPress={() => setShowModal(true)}
+          disabled={disabled}
+          style={[
+            styles.inputWrapper,
+            disabled && styles.disabledInputWrapper, // Correct conditional style
+          ]}
+      >
         <ThemedTextInput
           style={styles.input}
           placeholder={placeholder}
@@ -152,5 +159,11 @@ datePickerWrapper: {
     fontSize: 16,
     color: '#0060ff',
     fontWeight: 'bold',
+  },
+  disabledInputWrapper: {
+    backgroundColor: '#eee',
+  },
+  disabledInput: {
+    color: '#a0a0a0', // A lighter text color
   },
 })

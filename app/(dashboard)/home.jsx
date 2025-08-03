@@ -12,6 +12,7 @@ import EvacCenters from "../../assets/EvacCenters.png"
 import PickUpLocs from "../../assets/PickUpLocs.png"
 import { useUser } from '../../hooks/useUser'
 import AlertCard from '../../components/AlertCard'
+import EvacuationCenterCard from '../../components/EvacuationCenterCard'
 
 const Home = () => {
   const { logout } = useUser()
@@ -49,10 +50,7 @@ const Home = () => {
           Emergency Guide
         </ThemedText>
 
-        <View style={styles.row}>
-          <Image source={EvacCenters} />
-          <Image source={PickUpLocs} />
-        </View>
+        <EvacuationCenterCard/>
 
       </ThemedView>
     </ScrollView>

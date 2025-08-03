@@ -23,12 +23,12 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingVertical: 10,
     backgroundColor: '#fafafa',
-    elevation: 4, // for shadow on Android
+    elevation: 4,
     zIndex: 999,
-    marginTop: 20,
+    height: 130,
   },
   left: {
     flexDirection: 'row',
@@ -43,6 +43,9 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 19,
     fontWeight: 'bold',
+    textAlignVertical: 'center',
+    includeFontPadding: false, // Android only, prevents font baseline padding
+
   },
   profile: {
     width: 40,

@@ -134,7 +134,7 @@ const EvacuationStatusCard = () => {
 
 const styles = StyleSheet.create({
   borderWrapper: {
-    width: '85%',
+    width: '88%',
     padding: 2,
     borderRadius: 12,
   },
@@ -143,6 +143,15 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 10,
+
+    // Shadow for iOS
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 2,
+
+    // Shadow for Android
+    elevation: 2,
   },
   contentRow: {
     flexDirection: 'row',
@@ -169,7 +178,7 @@ const styles = StyleSheet.create({
   },
   step2Text: {
     fontSize: 13,      // <-- smaller text size
-    lineHeight: 14,    // <-- tighter vertical padding
+    lineHeight: 17,    // <-- tighter vertical padding
     marginBottom: 5,   // <-- smaller spacing below
     color: '#000',
   },

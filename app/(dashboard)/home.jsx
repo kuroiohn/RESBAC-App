@@ -7,11 +7,11 @@ import ThemedView from "../../components/ThemedView"
 import CallButton from '../../components/CallBtn'
 import MarkSafeBtn from '../../components/MarkSafeBtn'
 
-import Evacuated from "../../assets/EvacuatedFrame.png"
 import AlertLevel from "../../assets/AlertLevel.png"
 import EvacCenters from "../../assets/EvacCenters.png"
 import PickUpLocs from "../../assets/PickUpLocs.png"
 import { useUser } from '../../hooks/useUser'
+import AlertCard from '../../components/AlertCard'
 
 const Home = () => {
   const { logout } = useUser()
@@ -43,7 +43,7 @@ const Home = () => {
           Alerts
         </ThemedText>
 
-        <Image source={AlertLevel} />
+        <AlertCard />
 
         <ThemedText style={styles.textLeft}>
           Emergency Guide
@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
   textLeft: {
   textAlign: 'left',
   alignSelf: 'stretch',
-  marginLeft: 50,
+  marginLeft: 30,
   fontSize: 19,
   marginTop: 10,
   marginBottom: 5,

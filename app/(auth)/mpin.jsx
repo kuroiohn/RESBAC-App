@@ -2,6 +2,7 @@ import { StyleSheet, Text, View, Animated, Easing, Pressable, Alert, } from 'rea
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'expo-router'
 import { Colors } from '../../constants/Colors'
+import { API_URL } from '@env'
 
 // themed components
 import ThemedLogo from '../../components/ThemedLogo'
@@ -67,7 +68,7 @@ const MPin = () => {
 
   return (
     <ThemedView style={styles.container}>
-
+      
       <ThemedLogo />
       <Spacer height={20} />
 
@@ -106,6 +107,7 @@ const MPin = () => {
         {renderKey('0', () => handleKeyPress('0'))}
         {renderKey('✔️', handleSubmit, true)}
       </View>
+        
     </ThemedView>
   )
 }

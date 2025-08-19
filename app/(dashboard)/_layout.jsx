@@ -10,7 +10,7 @@ const DashboardLayout = () => {
   const theme = Colors[colorScheme] ?? Colors.light
 
   return (
-    <UserOnly>
+    //<UserOnly>
       <Tabs 
           initialRouteName="home" // dito magddirect after login
           screenOptions = {{
@@ -70,7 +70,7 @@ const DashboardLayout = () => {
       />
 
       </Tabs>
-    </UserOnly>
+    //</UserOnly>
   )
 }
 

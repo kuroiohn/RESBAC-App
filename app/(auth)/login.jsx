@@ -1,5 +1,5 @@
 import { ActivityIndicator, Keyboard, StyleSheet, Text, TouchableWithoutFeedback } from 'react-native'
-import { Link } from 'expo-router'
+import { Link,useRouter } from 'expo-router'
 import { Colors } from '../../constants/Colors'
 import { useState } from 'react'
 import { useUser } from '../../hooks/useUser'
@@ -20,13 +20,14 @@ const Login = () => {
   const [error, setError] = useState(null)
 
   const { login } = useUser()
+  const router = useRouter();
 
   const handleSubmit = async () => {
-    setError(null)
+    //setError(null)
 
     try {
-        await login(email, password)
-        router.replace('/dashboard')  // diretso sa home after logging in
+        //await login(email, password)
+        router.replace({pathname:'/(dashboard)/home'})  // diretso sa home after logging in        
     } catch (error) {
         setError(error.message)
     }

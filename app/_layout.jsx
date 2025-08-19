@@ -3,12 +3,16 @@ import { Stack } from 'expo-router'
 import { Colors } from "../constants/Colors"
 import { StatusBar } from 'expo-status-bar'
 import { UserProvider } from '../contexts/UserContext'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+
+const queryClient = new QueryClient()
 
 export default function RootLayout() {
   const colorScheme = useColorScheme()
   const theme = Colors[colorScheme] ?? Colors.light
 
   return (
+    <QueryClientProvider client={queryClient}>
     <UserProvider>
       <StatusBar value="auto" />
       <Stack screenOptions={{
@@ -23,5 +27,6 @@ export default function RootLayout() {
         
       </Stack>
     </UserProvider>
+    </QueryClientProvider>
   )
 }

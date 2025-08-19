@@ -2,9 +2,50 @@ import { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import supabase from '../contexts/supabaseClient'
+import { useQuery,useQueryClient } from '@tanstack/react-query'
 
 const AlertCard = ({ alertLevel = 1 }) => {
+  const queryClient = useQueryClient(); 
   const [time, setTime] = useState(new Date());
+
+  // reads from supabase
+  const fetchData = async () => {
+    const {data,error} = await supabase
+    .from('alerts')
+    .select()
+
+    if(error){
+      console.error("Fetch error in supabase: ", error)
+    }
+    console.log("Successful fetch",  data);
+    return data
+  }
+  const {data: alertData,isPending,isError,error, refetch} = useQuery({
+    queryKey: ["alerts"],
+    queryFn: fetchData,
+  })
+
+  // Subscribe to realtime changes
+  useEffect(() => {
+    const channel = supabase
+      .channel('alerts-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'alerts' },
+        (payload) => {
+          console.log("Realtime change received:", payload);
+
+          // Ask react-query to refetch alerts when a row is inserted/updated/deleted
+          queryClient.invalidateQueries(["alerts"]);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
 
   // Update clock every second
   useEffect(() => {
@@ -12,18 +53,30 @@ const AlertCard = ({ alertLevel = 1 }) => {
     return () => clearInterval(timer);
   }, []);
 
-  const formattedTime = time.toLocaleTimeString([], {
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: true,
-  });
+  const formattedTime = (timestamp) => {
+    const cleanDate = timestamp.substring(0,19).replace(" ","T")
+    const date = new Date(timestamp)
+    
+    if(!timestamp || isNaN(date)) return "No time!"
+    return date.toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true,
+      //timeZone: 'UTC'
+    });
+  }
 
-  const formattedDate = time.toLocaleDateString('en-US', {
+  const formattedDate = (timestamp) => { 
+    const cleanDate = timestamp.substring(0,19).replace(" ","T")
+    const date = new Date(timestamp)
+    
+     return date.toLocaleDateString('en-US', {
     month: '2-digit',
     day: '2-digit',
     year: 'numeric',
   });
+}
 
   const getWaterLevel = () => {
     switch (alertLevel) {
@@ -41,7 +94,12 @@ const AlertCard = ({ alertLevel = 1 }) => {
   const waterLevel = getWaterLevel();
 
   return (
-    <LinearGradient
+    <>
+    { 
+      alertData?.map(
+        alert =>
+        alert.isActive && (
+    <LinearGradient key={alert.id}
       colors={['#0060FF', 'rgba(0, 58, 153, 0)']}
       start={{ x: 0.5, y: 0 }}
       end={{ x: 0.5, y: 1 }}
@@ -50,7 +108,7 @@ const AlertCard = ({ alertLevel = 1 }) => {
       <View style={styles.innerCard}>
         {/* Top right date + icon */}
         <View style={styles.dateRow}>
-          <Text style={styles.dateText}>{formattedDate}</Text>
+          <Text style={styles.dateText}>{formattedDate(alert.created_at)}</Text>
           <Ionicons name="calendar-outline" size={18} color="#333" style={{ marginLeft: 6 }} />
         </View>
 
@@ -61,19 +119,26 @@ const AlertCard = ({ alertLevel = 1 }) => {
             style={styles.image}
           />
           <View style={styles.statusColumn}>
-            <Text style={styles.alertLevel}>Alert Level {alertLevel}</Text>
-            <Text style={styles.timeText}>{formattedTime}</Text>
+            <Text style={styles.alertLevel}> Alert {alert.alertTitle} </Text>
+            {/*<Text style={styles.timeText}>{formattedTime}</Text>*/}
+            <Text style={styles.timeText}>Date: {formattedTime(alert.created_at)}</Text>
+            {alert.alertType == "Fire" && 
+            <Text style={styles.meterText}>Location: {alert.alertLocation}</Text> }
             <Text style={styles.meterText}>{waterLevel} meters</Text>
           </View>
         </View>
 
         {/* Message */}
         <Text style={styles.message}>
-          Water level has reached {waterLevel} meters. Please stay alert and prepare for possible
-          evacuation. Monitor updates and secure important belongings.
+          {alert.alertDescription}
         </Text>
+
       </View>
     </LinearGradient>
+        )
+      )
+    }
+    </>
   );
 };
 

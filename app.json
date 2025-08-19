@@ -1,6 +1,6 @@
 {
   "expo": {
-    "scheme": "RESBACApp", 
+    "scheme": "RESBACApp",
     "name": "RESBAC.1",
     "slug": "RESBAC.1",
     "version": "1.0.0",
@@ -25,6 +25,9 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      "expo-router"
+    ]
   }
 }

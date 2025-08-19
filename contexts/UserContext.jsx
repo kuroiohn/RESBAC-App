@@ -1,43 +1,66 @@
 import { createContext, useEffect, useState } from 'react'
-import { account } from '../lib/appwrite'
-import { ID } from 'react-native-appwrite'
-
+import { supabase } from '../lib/supabase'
 
 export const UserContext = createContext()
 
 export function UserProvider({ children }) {
-    const[user, setUser] = useState(null)
+    const [user, setUser] = useState(null)
     const [authChecked, setAuthChecked] = useState(false)
 
     async function login(email, password) {
         try {
-            await account.createEmailPasswordSession(email, password)
-            const response = await account.get()
-            setUser(response)
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email,
+                password,
+            })
+            
+            if (error) throw error
+            
+            setUser(data.user)
+            return data
         } catch (error) {
-            throw Error (error.message)
+            throw Error(error.message)
         }
     }
 
     async function register(email, password) {
         try {
-            await account.create(ID.unique(), email, password)
-            await login(email, password)
+            console.log('Attempting registration with:', email)
+            
+            const { data, error } = await supabase.auth.signUp({
+                email,
+                password,
+            })
+
+            console.log('Supabase response:', data)
+            console.log('Supabase error:', error)
+            
+            if (error) throw error
+            
+            setUser(data.user)
+            return data
         } catch (error) {
-            throw Error (error.message)
+            console.error('Registration error:', error)
+            throw Error(error.message)
         }
     }
 
     async function logout() {
-        await account.deleteSession("current")
-        setUser(null)
+        try {
+            const { error } = await supabase.auth.signOut()
+            if (error) throw error
+            setUser(null)
+        } catch (error) {
+            throw Error(error.message)
+        }
     }
 
     async function getInitialUserValue() {
         try {
-            const response = await account.get()
-            setUser(response)
-        } catch (error) { 
+            const { data: { user } } = await supabase.auth.getUser()
+            setUser(user)
+        } catch (error) {
+            console.error('Error getting user:', error)
             setUser(null)
         } finally {
             setAuthChecked(true)
@@ -46,12 +69,24 @@ export function UserProvider({ children }) {
 
     useEffect(() => {
         getInitialUserValue()
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+            (event, session) => {
+                setUser(session?.user ?? null)
+            }
+        )
+
+        return () => subscription.unsubscribe()
     }, [])
 
     return (
-        <UserContext.Provider value={{ user, login, register, logout,
+        <UserContext.Provider value={{ 
+            user, 
+            login, 
+            register, 
+            logout,
             authChecked
-         }}>
+        }}>
             {children}
         </UserContext.Provider>
     )

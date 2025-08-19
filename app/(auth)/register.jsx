@@ -116,28 +116,51 @@ const Register = () => {
     }
     // handles the logic for the user agreement if agreed ot not
     const handleNext = () => {
+        console.log('handleNext called with data:', { name, email, password })
+        
         // Validation logic
         if (!isAgreed) {
             setError("Please agree to the terms and conditions to proceed.");
             return;
         }
 
-        // Now, let's re-add the old form validation check here.
         if (!validateForm()) {
             setError("Please fix the errors in the form");
             return;
         }
 
-        // If validation passes, then navigate.
+        // DON'T create account yet - just collect and pass data
+        console.log('Collecting basic registration data...')
+
+        const basicUserData = {
+            // Basic info
+            name,
+            email,
+            password,
+            contactNumber,
+            address,
+            location,
+            sex,
+            dob,
+            // Metadata
+            step: 'basic',
+            timestamp: new Date().toISOString()
+        };
+
+        console.log('Basic user data collected:', basicUserData)
+
+        // Navigate to vulnerable screen with data
         router.push({
             pathname: './vulnerable',
-            //passes the value to validate if needed to be ask about pregnancy
-            params: {sex: sex}
+            params: { 
+                userData: JSON.stringify(basicUserData)
+            }
         });
-    };
+    }
 
     //Validates form, registers user, and navigates to ID upload page, but wasn't able to use this
     const handleSubmit = async () => {
+        console.log('handleSubmit called!')
         // Reset any previous error messages
         setError(null)
 
@@ -245,7 +268,7 @@ const Register = () => {
                                 placeholder="Email"
                                 keyboardType="email-address"
                                 onChangeText= {text => {
-                                    setEmail(text);
+                                    setEmail(text.trim()); // Remove spaces automatically
                                     clearFieldError('email');
                                 }}
                                 value={email}

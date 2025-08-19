@@ -9,16 +9,24 @@ import {
   ScrollView
 } from 'react-native'
 import * as ImagePicker from 'expo-image-picker'
-import { useRouter } from 'expo-router'
+import { useRouter, useLocalSearchParams } from 'expo-router'
 import ThemedView from '../../components/ThemedView'
 import ThemedLogo from '../../components/ThemedLogo'
 import ThemedText from '../../components/ThemedText'
 import Spacer from '../../components/Spacer'
 import BackNextButtons from '../../components/buttons/BackNextButtons'
+import { useUser } from '../../hooks/useUser'
 
 export default function uploadID() {
   const [image, setImage] = useState(null)
+  const [isCreating, setIsCreating] = useState(false)
   const router = useRouter()
+  const { userData } = useLocalSearchParams()
+  const { register } = useUser()
+
+  // Parse all the collected user data
+  const completeUserData = userData ? JSON.parse(userData) : {}
+  console.log('Complete user data in uploadID:', completeUserData)
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -37,26 +45,75 @@ export default function uploadID() {
   }
 
   const validateFile = (file) => {
-  const allowedExtensions = ['jpeg', 'jpg', 'png', 'heic', 'heif']
-  const maxSizeMB = 5
-  const sizeMB = file.fileSize ? file.fileSize / 1024 / 1024 : 0
+    const allowedExtensions = ['jpeg', 'jpg', 'png', 'heic', 'heif']
+    const maxSizeMB = 5
+    const sizeMB = file.fileSize ? file.fileSize / 1024 / 1024 : 0
 
-  const uri = file.uri || ''
-  const ext = uri.split('.').pop().toLowerCase()
+    const uri = file.uri || ''
+    const ext = uri.split('.').pop().toLowerCase()
 
-  if (!allowedExtensions.includes(ext)) {
-    Alert.alert('Invalid File', 'Only JPEG, PNG, and HEIC images are allowed.')
-    return false
+    if (!allowedExtensions.includes(ext)) {
+      Alert.alert('Invalid File', 'Only JPEG, PNG, and HEIC images are allowed.')
+      return false
+    }
+
+    if (sizeMB > maxSizeMB) {
+      Alert.alert('File Too Large', 'Maximum file size is 5MB.')
+      return false
+    }
+
+    return true
   }
 
-  if (sizeMB > maxSizeMB) {
-    Alert.alert('File Too Large', 'Maximum file size is 5MB.')
-    return false
+  const handleNext = async () => {
+    if (!image) {
+      Alert.alert('Missing ID', 'Please upload a valid ID before proceeding.')
+      return
+    }
+
+    if (!completeUserData.email || !completeUserData.password) {
+      Alert.alert('Error', 'Missing registration data. Please start over.')
+      return
+    }
+
+    setIsCreating(true)
+
+    try {
+      console.log('Creating Supabase account...')
+      
+      // Create the Supabase account with email/password
+      const cleanEmail = completeUserData.email.trim()
+      await register(cleanEmail, completeUserData.password)
+      
+      console.log('Account created successfully!')
+      
+      // Add the uploaded ID to the complete user data
+      const finalUserData = {
+        ...completeUserData,
+        uploadedID: image,
+        step: 'complete',
+        completedAt: new Date().toISOString()
+      }
+      
+      console.log('Final user data:', finalUserData)
+      
+      // TODO: Save complete profile to your database here
+      // You can add database saving logic here if needed
+      
+      // Skip completion screen and go to dashboard
+      console.log('Registration complete! Redirecting to dashboard...')
+      router.replace('/dashboard')
+      
+    } catch (error) {
+      console.error('Registration error:', error)
+      Alert.alert(
+        'Registration Failed', 
+        error.message || 'Failed to create account. Please try again.'
+      )
+    } finally {
+      setIsCreating(false)
+    }
   }
-
-  return true
-}
-
 
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
@@ -69,12 +126,18 @@ export default function uploadID() {
         </ThemedText>
         <Spacer/>
 
+        {/* DEBUG: Show received data */}
+        {completeUserData.name && (
+          <Text style={{textAlign: 'center', color: 'green', marginBottom: 10}}>
+            Final step for: {completeUserData.name}
+          </Text>
+        )}
+
         <View style={{ width: '100%', alignItems: 'flex-start' }}>
           <Text style={[styles.title, { textAlign: 'left', marginLeft: 15 }]}>
             Upload a photo of <Text style={styles.bold}>Valid ID</Text>
           </Text>
         </View>
-
 
         <View style={styles.uploadBox}>
           {image ? (
@@ -94,23 +157,25 @@ export default function uploadID() {
         </Text>
 
         <View style={{ width: '100%', alignItems: 'flex-start' }}>
-        <Text style={styles.idListHeader}>These can be any of the following:</Text>
-        <Text style={styles.idList}>
-          - Philippine National ID (PhilID){'\n'}
-          - Passport{'\n'}
-          - Driver's License{'\n'}
-          - Social Security System (SSS){'\n'}
-          - Unified Multi-Purpose ID (UMID){'\n'}
-          - PhilHealth ID{'\n'}
-          - Voter's ID{'\n'}
-          - Professional Regulation Commission (PRC) ID{'\n'}
-          - Postal ID
-        </Text>
+          <Text style={styles.idListHeader}>These can be any of the following:</Text>
+          <Text style={styles.idList}>
+            - Philippine National ID (PhilID){'\n'}
+            - Passport{'\n'}
+            - Driver's License{'\n'}
+            - Social Security System (SSS){'\n'}
+            - Unified Multi-Purpose ID (UMID){'\n'}
+            - PhilHealth ID{'\n'}
+            - Voter's ID{'\n'}
+            - Professional Regulation Commission (PRC) ID{'\n'}
+            - Postal ID
+          </Text>
         </View>
 
         <BackNextButtons
-            onBack={() => router.back()} // Go back
-            onNext={() => router.push('./regisComplete')}
+          onBack={() => router.back()} 
+          onNext={handleNext}
+          nextDisabled={isCreating}
+          nextText={isCreating ? "Creating Account..." : "Complete Registration"}
         />
       </ThemedView>
     </ScrollView>
@@ -118,6 +183,9 @@ export default function uploadID() {
 }
 
 const styles = StyleSheet.create({
+  scrollContainer: {
+    paddingVertical: 20,
+  },
   container: {
     flex: 1,
     padding: 24,
@@ -153,23 +221,21 @@ const styles = StyleSheet.create({
     resizeMode: 'cover',
   },
   browseButton: {
-  borderWidth: 1.5,
-  borderColor: '#0060ff',      // blue stroke
-  paddingVertical: 12,
-  paddingHorizontal: 24,
-  borderRadius: 8,
-  alignItems: 'center',
-  alignSelf: 'center',
-  marginBottom: 16,
-  backgroundColor: 'transparent', // no fill
-},
-
-browseText: {
-  color: '#0060ff',            // blue text
-  fontWeight: '600',
-  fontSize: 16,
-},
-
+    borderWidth: 1.5,
+    borderColor: '#0060ff',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    alignItems: 'center',
+    alignSelf: 'center',
+    marginBottom: 16,
+    backgroundColor: 'transparent',
+  },
+  browseText: {
+    color: '#0060ff',
+    fontWeight: '600',
+    fontSize: 16,
+  },
   supportedText: {
     fontSize: 14,
     color: '#666',

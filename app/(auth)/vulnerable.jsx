@@ -11,14 +11,18 @@ import TitleText from "../../components/TitleText";
 import RadioGroup from "../../components/RadioComponent";
 import ThemedTextInput from "../../components/ThemedTextInput";
 import { Dropdown } from 'react-native-element-dropdown';
-import CheckboxComponent from "../../components/CheckboxComponent"; // Import Dropdown
+import CheckboxComponent from "../../components/CheckboxComponent";
 
 const Vulnerable = () => {
     const router = useRouter()
-    const { sex } = useLocalSearchParams();
+    const { userData } = useLocalSearchParams();
+
+    // Parse incoming data from register screen
+    const existingUserData = userData ? JSON.parse(userData) : {}
+    console.log('Received user data in vulnerable screen:', existingUserData)
 
     //form field state variables for guardian
-    const [hasGuardian, setHasGuardian] = useState(null); //yes or no
+    const [hasGuardian, setHasGuardian] = useState(null);
     const [guardianName, setGuardianName] = useState('');
     const [guardianContact, setGuardianContact] = useState('');
     const [guardianRelation, setGuardianRelation] = useState('');
@@ -27,7 +31,7 @@ const Vulnerable = () => {
 
     //form field state variables for disabilities
     const [physicalDisability, setPhysicalDisability] = useState([]);
-    const [otherphysicalDisability, setOtherPhysicalDisability] = useState('');
+    const [otherPhysicalDisability, setOtherPhysicalDisability] = useState('');
     const [psychologicalDisability, setPsychologicalDisability] = useState('');
     const [sensoryDisability, setSensoryDisability] = useState([]);
     const [otherSensoryDisability, setOtherSensoryDisability] = useState('');
@@ -66,7 +70,7 @@ const Vulnerable = () => {
         {label: 'Requires evacuation with assistance', value: 'requiresAssistance'},
     ]
 
-    // New function to handle selections for Physical disabilities
+    // Function to handle selections for Physical disabilities
     const togglePhysicalDisability = (disability) => {
         if (physicalDisability.includes(disability)) {
             setPhysicalDisability(physicalDisability.filter(item => item !== disability));
@@ -75,7 +79,7 @@ const Vulnerable = () => {
         }
     };
 
-    // New function to handle selections for Sensory disabilities
+    // Function to handle selections for Sensory disabilities
     const toggleSensoryDisability = (disability) => {
         if (sensoryDisability.includes(disability)) {
             setSensoryDisability(sensoryDisability.filter(item => item !== disability));
@@ -84,7 +88,7 @@ const Vulnerable = () => {
         }
     };
 
-    // New function to handle selections for Health conditions
+    // Function to handle selections for Health conditions
     const toggleHealthCondition = (condition) => {
         if (healthCondition.includes(condition)) {
             setHealthCondition(healthCondition.filter(item => item !== condition));
@@ -93,28 +97,57 @@ const Vulnerable = () => {
         }
     };
 
-
     const handleNext = () => {
-        // Here you would add validation for this page's fields
-        // Then navigate to the next page
-        // For now, we'll just navigate
-        router.push('./uploadID');
+        console.log('Collecting vulnerability data...')
+
+        // Get sex from userData (should be available from register screen)
+        const userSex = existingUserData.sex
+
+        // Combine existing data with vulnerability data
+        const completeUserData = {
+            ...existingUserData,
+            // Vulnerability data
+            vulnerability: {
+                hasGuardian,
+                guardianInfo: hasGuardian === 'yes' ? {
+                    name: guardianName,
+                    contact: guardianContact,
+                    relationship: guardianRelation,
+                    address: guardianAddress
+                } : null,
+                householdCount,
+                physicalDisability,
+                otherPhysicalDisability,
+                psychologicalDisability,
+                sensoryDisability,
+                otherSensoryDisability,
+                pregnancy: userSex === 'Female' ? pregnancy : null,
+                dueDate: pregnancy === 'yes' ? dueDate : null,
+                healthCondition,
+                mobilityStatus
+            },
+            step: 'vulnerability'
+        }
+        
+        console.log('Complete user data with vulnerability:', completeUserData)
+        
+        // Navigate to upload screen with all data
+        router.push({
+            pathname: './uploadID',
+            params: {
+                userData: JSON.stringify(completeUserData)
+            }
+        });
     };
 
     //renders vulnerability assessment form
     return (
         <ScrollView contentContainerStyle={styles.scrollContainer}>
-            {/* TouchableWithoutFeedback dismisses keyboard when tapping outside inputs */}
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                {/* Main container with themed styling */}
                 <ThemedView style={styles.container} safe={true}>
-                    {/* Top spacing */}
                     <Spacer height={44} />
-                    {/* App logo */}
                     <ThemedLogo/>
-                    {/* App title */}
                     <TitleText type="title1">RESBAC</TitleText>
-                    {/* Form header text */}
                     <TitleText type="title3">
                         Assessing your Vulnerability
                     </TitleText>
@@ -122,6 +155,13 @@ const Vulnerable = () => {
                         This will serve as your emergency details. {"\n"}Please fill-out all of the required details.
                     </TitleText>
                     <Spacer/>
+
+                     {/* DEBUG: Show received data */}
+                    {existingUserData.name && (
+                        <TitleText type="title4" style={{textAlign: 'center', color: 'green'}}>
+                            Data for: {existingUserData.name}
+                        </TitleText>
+                    )}
 
                     {/*start of the form*/}
                     {/*Set guardian information*/}
@@ -139,41 +179,25 @@ const Vulnerable = () => {
                                 style={{ width: '80%', marginBottom: 5 }}
                                 placeholder="Guardian Name"
                                 value={guardianName}
-                                onChangeText={text => {
-                                    setGuardianName(text);
-                                }}
+                                onChangeText={setGuardianName}
                             />
                             <ThemedTextInput
                                 style={{ width: '80%', marginBottom: 5 }}
                                 placeholder="Guardian Contact Number"
                                 value={guardianContact}
-                                onChangeText={text => {
-                                    setGuardianContact(text);
-                                }}
+                                onChangeText={setGuardianContact}
                             />
                             <ThemedTextInput
                                 style={{ width: '80%', marginBottom: 5 }}
-                                placeholder="Guardian Relation"
-                                value={guardianRelation}
-                                onChangeText={text => {
-                                    setGuardianRelation(text);
-                                }}
-                            />
-                            <ThemedTextInput
-                                style={{width: '80%', marginBottom: 5}}
                                 placeholder="Relationship"
                                 value={guardianRelation}
-                                onChangeText={text => {
-                                    setGuardianRelation(text);
-                                }}
+                                onChangeText={setGuardianRelation}
                             />
                             <ThemedTextInput
                                 style={{width: '80%', marginBottom: 5}}
                                 placeholder="Guardian Address"
                                 value={guardianAddress}
-                                onChangeText={text => {
-                                    setGuardianAddress(text);
-                                }}
+                                onChangeText={setGuardianAddress}
                             />
                         </>
                     )}
@@ -218,7 +242,7 @@ const Vulnerable = () => {
                         <ThemedTextInput
                             style={{width: '80%', marginBottom: 5}}
                             placeholder="Please specify"
-                            value={otherphysicalDisability}
+                            value={otherPhysicalDisability}
                             onChangeText={setOtherPhysicalDisability}
                         />
                     )}
@@ -268,9 +292,8 @@ const Vulnerable = () => {
                         />
                     )}
 
-
                     {/* Pregnancy - should only appear if sex selected is female */}
-                    {sex === 'Female' && (
+                    {existingUserData.sex === 'Female' && (
                         <View style={styles.pregnancyContainer}>
                             <RadioGroup
                                 label="Is the individual pregnant?"
@@ -283,6 +306,7 @@ const Vulnerable = () => {
                                     style={{width: '80%', alignSelf: 'center'}}
                                     placeholder="Month Due Date"
                                     value={dueDate}
+                                    onChangeText={setDueDate}
                                 />
                             )}
                         </View>
@@ -319,11 +343,10 @@ const Vulnerable = () => {
                         />
                     </View>
 
-
                     {/* Back and Next navigation buttons */}
                     <BackNextButtons
-                        onBack={() => router.back()} // Go back
-                        onNext= {() => router.push('./uploadID')} // Go to the vulnerable information
+                        onBack={() => router.back()}
+                        onNext={handleNext} // Use our handleNext function that passes data
                     />
                 </ThemedView>
             </TouchableWithoutFeedback>
@@ -332,60 +355,46 @@ const Vulnerable = () => {
 }
 export default Vulnerable
 
-/**
- * Styles for the registration form components
- */
 const styles = StyleSheet.create({
-    // Styles for the ScrollView container
     scrollContainer: {
         paddingVertical: 20,
         paddingHorizontal: 10,
-        backgroundColor: '#fafafa', // Light background color
-        overflow: 'hidden', // Prevent content from overflowing
+        backgroundColor: '#fafafa',
+        overflow: 'hidden',
     },
-
-    // Styles for the main container view
     container: {
-        flex: 1, // Take up all available space
-        justifyContent: 'center', // Center content vertically
-        alignItems: 'center', // Center content horizontally
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
-
     pregnancyContainer: {
         width: '100%',
         alignSelf: 'center',
         marginBottom: 5,
         fontWeight: 'bold',
     },
-
-    // Style for the category headers (e.g., Physical, Psychological)
     categoryHeader: {
         width: '80%',
         alignSelf: 'center',
         fontSize: 15,
-        //fontWeight: 'bold',
         marginBottom: 5,
     },
-
-    // Styles for the general error message
     error: {
-        color: Colors.warning, // Red text for error
+        color: Colors.warning,
         padding: 10,
-        backgroundColor: '#f5c1c8', // Light red background
-        borderColor: Colors.warning, // Red border
+        backgroundColor: '#f5c1c8',
+        borderColor: Colors.warning,
         borderWidth: 1,
-        borderRadius: 5, // Rounded corners
-        marginHorizontal: 10, // Horizontal margin
+        borderRadius: 5,
+        marginHorizontal: 10,
     },
-
-    // Styles for individual field error messages
     fieldError: {
-        color: Colors.warning, // Red text for error
-        fontSize: 12, // Smaller font size
+        color: Colors.warning,
+        fontSize: 12,
         marginBottom: 10,
-        marginTop: -5, // Negative top margin to position closer to field
-        alignSelf: 'flex-start', // Align to the left
-        marginLeft: '10%', // Match the left alignment of input fields
+        marginTop: -5,
+        alignSelf: 'flex-start',
+        marginLeft: '10%',
     },
     dropdownContainer: {
         width: '80%',

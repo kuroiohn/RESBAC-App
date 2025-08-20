@@ -1,20 +1,85 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, Pressable } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 
+import supabase from '../contexts/supabaseClient'
+import { useQuery,useQueryClient } from '@tanstack/react-query'
+
 const EvacuationStatusCard = () => {
   const [step, setStep] = useState(0);
   const [isPressed, setIsPressed] = useState(false);
+  const [mark,setMark] = useState(false);
 
+  // reads from supabase
+  const fetchData = async () => {
+    // Get the current logged-in user
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
+      console.error("Error fetching auth user:", userError);
+      throw new Error("No active session / user");
+    }
+
+    const {data,error} = await supabase
+    .from('user')
+    .select('*')
+    .eq('userID', user.id)
+    .single()
+
+    if(error){
+      console.error("Fetch error in supabase: ", error)
+    }
+    console.log("Successful fetch",  data);
+    return data
+  }
+  const {data: userData,isPending,isError,error, refetch} = useQuery({
+    queryKey: ["user"],
+    queryFn: fetchData,
+  })
+
+  const updateMarkAsSafe = async () => {
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+    if (userError) {
+      console.error("Error fetching auth user: ", userError);
+    }
+
+    const {data,error} = await supabase
+    .from('user')
+    .update({markAsSafe: true})
+    .eq("userID",user.id)
+
+    console.log("Row(s) found:", data, error);
+
+    if(error) {
+      console.error("Error in updating mark as safe", error);
+    }
+  }
+
+  useEffect(() => {
+    if(userData){
+      setMark(userData.markAsSafe);
+    }    
+  },[userData])
+
+  console.log(mark);
+  console.log(step);
+  
   const handlePress = () => {
+  if (step === 1) {
+    // when the user confirms
+    setMark(true); // or setMark(!mark) if you want toggle behavior
+    console.log("Hello",mark);
+    updateMarkAsSafe();
+  }
+
     if (step < 2) setStep(step + 1);
   };
 
   const getButtonLabel = () => {
     if (step === 0) return 'Mark yourself as Safe';
     if (step === 1) return 'Yes, I am sure';
-    return 'Marked as Safe';
+    if (mark) return 'Marked as Safe';
   };
 
   const renderText = () => {
@@ -25,7 +90,7 @@ const EvacuationStatusCard = () => {
         </Text>
       );
     }
-    if (step === 1) {
+    if (mark === false) {
       return (
         <Text style={[styles.stepText, styles.bold]}>
           Are you sure you have already evacuated?
@@ -44,7 +109,7 @@ const EvacuationStatusCard = () => {
     return (
       <Image
         source={
-          step < 2
+          mark === false
             ? require('../assets/bell.png')
             : require('../assets/shield.png')
         }
@@ -58,7 +123,7 @@ const EvacuationStatusCard = () => {
     const label = getButtonLabel();
 
     // Step 2 (final): green button with check icon, centered
-    if (step === 2) {
+    if (mark === true) {
       return (
         <View style={styles.finalButton}>
           <Text style={styles.buttonTextCentered}>
@@ -70,7 +135,7 @@ const EvacuationStatusCard = () => {
     }
 
     // Step 1: solid button with gradient only on press
-    if (step === 1) {
+    if (mark === true) {
       return (
         <Pressable
           onPressIn={() => setIsPressed(true)}
@@ -78,6 +143,7 @@ const EvacuationStatusCard = () => {
             setIsPressed(false);
             handlePress();
           }}
+          onPress={() => handlePress()}
         >
           {isPressed ? (
             <LinearGradient

@@ -119,12 +119,21 @@ const AlertCard = ({ alertLevel = 1 }) => {
             style={styles.image}
           />
           <View style={styles.statusColumn}>
-            <Text style={styles.alertLevel}> Alert {alert.alertTitle} </Text>
+            <Text style={styles.alertLevel}> {alert.alertTitle} </Text>
             {/*<Text style={styles.timeText}>{formattedTime}</Text>*/}
             <Text style={styles.timeText}>Date: {formattedTime(alert.created_at)}</Text>
             {alert.alertType == "Fire" && 
             <Text style={styles.meterText}>Location: {alert.alertLocation}</Text> }
-            <Text style={styles.meterText}>{waterLevel} meters</Text>
+            
+            {/* if flooding only */}
+            {
+              alert.alertType === 'Flood' && (
+                <>
+                  <Text style={styles.meterText}> Alert {alertLevel} </Text>
+                  <Text style={styles.meterText}>{waterLevel} meters</Text>
+                </>
+              )
+            }
           </View>
         </View>
 

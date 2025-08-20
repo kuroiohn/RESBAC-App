@@ -26,7 +26,7 @@ const Login = () => {
     //setError(null)
 
     try {
-        //await login(email, password)
+        await login(email, password)
         router.replace({pathname:'/(dashboard)/home'})  // diretso sa home after logging in        
     } catch (error) {
         setError(error.message)

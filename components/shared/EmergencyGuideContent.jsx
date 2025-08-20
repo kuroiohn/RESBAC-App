@@ -25,7 +25,29 @@ import CES from "../../assets/CES.png"
 import CIS from "../../assets/CIS.png"
 import GuestOnly from '../../components/auth/GuestOnly'
 
+import { useState } from 'react'
+import { useQuery,useQueryClient } from '@tanstack/react-query'
+import supabase from '../../contexts/supabaseClient'
+
 const EmergencyGuideContent = () => {
+
+  // reads from supabase
+  const fetchData = async () => {
+    const {data,error} = await supabase
+    .from('evacuationCenter')
+    .select()
+
+    if(error){
+      console.error("Fetch error in supabase: ", error)
+    }
+    console.log("Successful fetch",  data);
+    return data
+  }
+  // use data here to map the values and read
+  const {data: evacData,isPending,isError,error, refetch} = useQuery({
+    queryKey: ["evacuationCenter"],
+    queryFn: fetchData,
+  })
 
   return (
       <ScrollView contentContainerStyle={styles.scrollContainer}>
@@ -65,10 +87,25 @@ const EmergencyGuideContent = () => {
             Evacuation Centers
           </ThemedText>
 
-          <Image source={HBES} style={styles.g1}/>
+          {/* enclose this in the component */}
+          {
+            evacData?.map( evac => (
+              <View key={evac.id}>
+                <Image source={{uri:evac.evacImage}} style={{ width: 200, height: 200 }}/>
+                <ThemedText style={styles.dateText}>
+                  {evac.evacName}
+                </ThemedText>
+                <ThemedText style={styles.dateText}>
+                  {evac.evacAddress}
+                </ThemedText>
+              </View>
+            ))
+          }
+
+          {/* <Image source={HBES} style={styles.g1}/>
           <Image source={PES} style={styles.g1}/>
           <Image source={CIS} style={styles.g1}/>
-          <Image source={CES} style={styles.g1}/>
+          <Image source={CES} style={styles.g1}/> */}
 
         </ThemedView>
       </ScrollView>

@@ -1,5 +1,5 @@
 import { createContext, useEffect, useState } from 'react'
-import { supabase } from '../lib/supabase'
+import supabase from '../contexts/supabaseClient'
 
 export const UserContext = createContext()
 

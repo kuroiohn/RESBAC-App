@@ -6,7 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import supabase from '../contexts/supabaseClient'
 import { useQuery,useQueryClient } from '@tanstack/react-query'
 
-const EvacuationStatusCard = () => {
+const EvacuationStatusCard = ({ style, ...props }) => {
   const [step, setStep] = useState(0);
   const [isPressed, setIsPressed] = useState(false);
   const [mark,setMark] = useState(false);

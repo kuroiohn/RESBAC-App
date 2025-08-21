@@ -1,57 +1,115 @@
-import { StyleSheet, Image, View, ScrollView } from 'react-native'
-import LottieView from 'lottie-react-native'
+import { ScrollView, Animated, TouchableOpacity, Text, StyleSheet } from "react-native"
+import React, { useState, useRef } from "react"
 
 import Spacer from "../../components/Spacer"
 import ThemedText from "../../components/ThemedText"
 import ThemedView from "../../components/ThemedView"
 import CallButton from '../../components/CallBtn'
 import MarkSafeBtn from '../../components/MarkSafeBtn'
-
-import AlertLevel from "../../assets/AlertLevel.png"
-import EvacCenters from "../../assets/EvacCenters.png"
-import PickUpLocs from "../../assets/PickUpLocs.png"
-import { useUser } from '../../hooks/useUser'
 import AlertCard from '../../components/AlertCard'
 import EvacuationCenterCard from '../../components/EvacuationCenterCard'
 
 const Home = () => {
-  const { logout } = useUser()
+  const [animating, setAnimating] = useState(false)
+  const [callRequested, setCallRequested] = useState(false)
+  const fadeAnim = useRef(new Animated.Value(0)).current
+
+  const handleAnimationStart = () => {
+    setAnimating(true)
+    setCallRequested(false)
+    fadeAnim.setValue(0) // reset fade each time
+  }
+
+  const handleAnimationFinish = () => {
+    setAnimating(false)
+    setCallRequested(true)
+
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 500,
+      useNativeDriver: true,
+    }).start()
+  }
+
+  const handleCancel = () => {
+    Animated.timing(fadeAnim, {
+      toValue: 0,
+      duration: 500,
+      useNativeDriver: true,
+    }).start(() => {
+      setAnimating(false)
+      setCallRequested(false)
+    })
+  }
+
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
       <ThemedView style={styles.container}>
-
-        {/* Heading */}
         <ThemedText title={true} style={styles.heading}>
-          Request Rescue?
+          {callRequested ? "Help is on the way" : "Request Rescue?"}
         </ThemedText>
 
-        <ThemedText>
-          Press the button below and help will
-        </ThemedText>
-        <ThemedText>
-          reach you shortly.
-        </ThemedText>
+        {/* Initial state */}
+        {!animating && !callRequested && (
+          <>
+            <ThemedText>Press the button below and help will</ThemedText>
+            <ThemedText>reach you shortly.</ThemedText>
 
-        {/* Call Button */}
-        <Spacer/>
-        <CallButton />
-        <Spacer/>
+            <Spacer/>
+            <CallButton
+              onAnimationStart={handleAnimationStart}
+              onAnimationFinish={handleAnimationFinish}
+            />
+            <Spacer/>
 
-        { /* Evacuated? */ }
-        <MarkSafeBtn />
+            <MarkSafeBtn />
 
-        <ThemedText style={styles.textLeft}>
-          Alerts
-        </ThemedText>
+            {/* Alerts + Guide only in initial state */}
+            <Spacer/>
+            <ThemedText style={styles.textLeft}>Alerts</ThemedText>
+            <AlertCard />
 
-        <AlertCard />
+            <ThemedText style={styles.textLeft}>Emergency Guide</ThemedText>
+            <EvacuationCenterCard/>
+          </>
+        )}
 
-        <ThemedText style={styles.textLeft}>
-          Emergency Guide
-        </ThemedText>
+        {/* Animating state */}
+        {animating && !callRequested && (
+          <>
+            <ThemedText style={{ marginTop: 20, fontWeight: "bold" }}>
+              Calling for help...
+            </ThemedText>
+            <Spacer/>
+            <CallButton
+              onAnimationStart={handleAnimationStart}
+              onAnimationFinish={handleAnimationFinish}
+            />
+          </>
+        )}
 
-        <EvacuationCenterCard/>
+        {/* After request */}
+        {callRequested && !animating && (
+          <Animated.View style={{ opacity: fadeAnim, alignItems: "center" }}>
+            <ThemedText style={{ marginVertical: 10, textAlign: "center" }}>
+              Please stand by, or look for a safe {"\n"}
+              place to stay until rescue has arrived.
+            </ThemedText>
+            <Spacer/>
+            <CallButton 
+              onAnimationStart={handleAnimationStart} 
+              onAnimationFinish={handleAnimationFinish} 
+            /> 
 
+            <Spacer/>
+            <TouchableOpacity onPress={handleCancel} style={styles.cancelBtn}>
+              <Text style={styles.cancelBtnText}>Cancel Request</Text>
+            </TouchableOpacity>
+            <Spacer/>
+
+            <MarkSafeBtn />
+          </Animated.View>
+        )}
       </ThemedView>
     </ScrollView>
   )
@@ -59,12 +117,12 @@ const Home = () => {
 
 export default Home
 
-
 const styles = StyleSheet.create({
   scrollContainer: {
     paddingVertical: 20,
     paddingHorizontal: 10,
     backgroundColor: '#fafafa',
+    flexGrow: 1,
   },
   container: {
     flex: 1,
@@ -77,17 +135,23 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   textLeft: {
-  textAlign: 'left',
-  alignSelf: 'stretch',
-  marginLeft: 30,
-  fontSize: 19,
-  marginTop: 10,
-  marginBottom: 5,
+    textAlign: 'left',
+    alignSelf: 'stretch',
+    marginLeft: 30,
+    fontSize: 19,
+    marginTop: 10,
+    marginBottom: 5,
   },
-  row: {
-  flexDirection: 'row',
-  justifyContent: 'space-between',
-  gap: 5,
-  marginBottom: 5,
+  cancelBtn: {
+    backgroundColor: "#0060ff",
+    padding: 12,
+    borderRadius: 8,
+    alignItems: "center",
+    width: 200,
+    height: 40,
   },
+  cancelBtnText: {
+    color: "white",
+    fontWeight: "bold"
+  }
 })

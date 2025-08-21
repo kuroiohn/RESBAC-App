@@ -1,18 +1,27 @@
-import { View, Text, Image, StyleSheet } from 'react-native'
+import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native'
 import Logo from '../assets/RESBACLogo.png'
 import ProfilePic from '../assets/ProfilePic.png'
 
 //themed components
 import ThemedView from '../components/ThemedView'
+import { useNavigation } from '@react-navigation/native' // import navigation hook
 
 const TopBar = () => {
+  const navigation = useNavigation(); // initialize navigation
+
+  const goToProfile = () => {
+    navigation.navigate('profile'); // navigate to Profile tab
+  }
+
   return (
-    <ThemedView style={styles.container} safe = {true}>
+    <ThemedView style={styles.container} safe={true}>
       <View style={styles.left}>
         <Image source={Logo} style={styles.logo} />
         <Text style={styles.title}>RESBAC</Text>
       </View>
-      <Image source={ProfilePic} style={styles.profile}/>
+      <TouchableOpacity onPress={goToProfile}>
+        <Image source={ProfilePic} style={styles.profile}/>
+      </TouchableOpacity>
     </ThemedView>
   )
 }
@@ -44,13 +53,11 @@ const styles = StyleSheet.create({
     fontSize: 19,
     fontWeight: 'bold',
     textAlignVertical: 'center',
-    includeFontPadding: false, // Android only, prevents font baseline padding
-
+    includeFontPadding: false,
   },
   profile: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    //marginLeft: 214,
   },
 })

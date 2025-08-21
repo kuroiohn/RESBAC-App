@@ -3,13 +3,12 @@ import { Platform, Pressable, ScrollView, StyleSheet, Text, TouchableWithoutFeed
 // Navigation components from Expo
 import { Link } from 'expo-router'
 import { useRouter } from 'expo-router'
-// React hooks for state management
-import { useState } from 'react'
 // App constants and custom components
 import { Colors } from '../../constants/Colors'
 import DatePickerInput from '../../components/DatePickerInput'
 //adding checkbox
 import { Checkbox } from 'react-native-paper';
+import { useState, useEffect } from 'react'
 
 // Custom themed components for consistent UI appearance
 import ThemedView from '../../components/ThemedView'
@@ -29,6 +28,11 @@ import GenderSelector from "../../components/GenderSelector";
  */
 const Register = () => {
     // Form field state variables
+    const { logout } = useUser()
+    useEffect(() => {
+        // Clear any existing session when registration screen loads
+        logout()
+    }, [])
     const [name, setName] = useState('') // User's full name
     const [email, setEmail] = useState('') // User's email address (used for authentication)
     const [contactNumber, setContactNumber] = useState('') // User's contact phone number
@@ -183,11 +187,6 @@ const Register = () => {
                 sex,
                 password
             }
-
-            // Register user with email and password using the useUser hook
-            // Note: This only registers with email/password for authentication
-            // The complete user profile data is passed to the next screen
-            await register(email, password)
 
             // Navigate to uploadID page with userData as a parameter
             // We stringify the userData object to pass it as a URL parameter

@@ -16,6 +16,7 @@ import ThemedText from '../../components/ThemedText'
 import Spacer from '../../components/Spacer'
 import BackNextButtons from '../../components/buttons/BackNextButtons'
 import { useUser } from '../../hooks/useUser'
+import supabase from '../../contexts/supabaseClient'
 
 export default function uploadID() {
   const [image, setImage] = useState(null)
@@ -83,9 +84,135 @@ export default function uploadID() {
       
       // Create the Supabase account with email/password
       const cleanEmail = completeUserData.email.trim()
-      await register(cleanEmail, completeUserData.password)
+      const authResult = await register(cleanEmail, completeUserData.password)
       
       console.log('Account created successfully!')
+      
+      console.log('Saving profile data to database...')
+      
+      // Create address record
+      const { data: addressData, error: addressError } = await supabase
+        .from('address')
+        .insert({
+          streetName: completeUserData.address || 'Unknown Street',
+          brgyName: 'Unknown Barangay', // Extract from address if possible
+          cityName: completeUserData.location || 'Unknown City',
+          geolocationCoords: '0,0' // Placeholder coordinates
+        })
+        .select()
+        .single()
+
+      if (addressError) {
+        console.error('Error creating address:', addressError)
+        throw new Error('Failed to create address record')
+      }
+
+      console.log('Address created:', addressData)
+
+      // Create guardian record if guardian exists
+      let guardianData = null
+      if (completeUserData.vulnerability?.hasGuardian === 'yes' && completeUserData.vulnerability?.guardianInfo) {
+        const guardian = completeUserData.vulnerability.guardianInfo
+        const { data: guardianResult, error: guardianError } = await supabase
+          .from('guardian')
+          .insert({
+            fullName: guardian.name || 'Unknown Guardian',
+            relationship: guardian.relationship || 'Unknown',
+            guardianContact: guardian.contact || '0000000000',
+            guardianAddress: guardian.address || 'Unknown Address'
+          })
+          .select()
+          .single()
+
+        if (guardianError) {
+          console.error('Error creating guardian:', guardianError)
+        } else {
+          guardianData = guardianResult
+          console.log('Guardian created:', guardianData)
+        }
+      }
+
+      // Create vulnerability list record
+      const { data: vulnerabilityListData, error: vulListError } = await supabase
+        .from('vulnerabilityList')
+        .insert({
+          elderly: false, // Calculate based on age
+          pregnantInfant: completeUserData.vulnerability?.pregnancy === 'yes' ? ['pregnant'] : [],
+          physicalPWD: completeUserData.vulnerability?.physicalDisability || [],
+          psychPWD: completeUserData.vulnerability?.psychologicalDisability ? [completeUserData.vulnerability.psychologicalDisability] : [],
+          sensoryPWD: completeUserData.vulnerability?.sensoryDisability || [],
+          medDep: completeUserData.vulnerability?.healthCondition || [],
+          locationRiskLevel: 'Low' 
+        })
+        .select()
+        .single()
+
+      if (vulListError) {
+        console.error('Error creating vulnerability list:', vulListError)
+        throw new Error('Failed to create vulnerability list')
+      }
+
+      console.log('Vulnerability list created:', vulnerabilityListData)
+
+      // Create vulnerability record
+      const { data: vulnerabilityData, error: vulError } = await supabase
+        .from('vulnerability')
+        .insert({
+          vulListID: vulnerabilityListData.id
+        })
+        .select()
+        .single()
+
+      if (vulError) {
+        console.error('Error creating vulnerability:', vulError)
+        throw new Error('Failed to create vulnerability record')
+      }
+
+      console.log('Vulnerability created:', vulnerabilityData)
+
+      // Create verification record
+      const { data: verificationData, error: verificationError } = await supabase
+        .from('verification')
+        .insert({
+          isVerified: false,
+          proofFile: image // image path
+        })
+        .select()
+        .single()
+
+      if (verificationError) {
+        console.error('Error creating verification:', verificationError)
+        throw new Error('Failed to create verification record')
+      }
+
+      console.log('Verification created:', verificationData)
+
+      // create the user record
+      const nameParts = (completeUserData.name || '').split(' ')
+      const { error: userError } = await supabase
+        .from('user')
+        .insert({
+          userID: authResult.user.id,
+          firstName: nameParts[0] || 'Unknown',
+          middleName: nameParts[1] || '',
+          surname: nameParts.slice(2).join(' ') || 'User',
+          age: 25, 
+          mpin: Math.floor(1000 + Math.random() * 9000).toString(), // Default RANDOM MPIN - should be set by user later
+          userNumber: completeUserData.contactNumber || '0000000000',
+          householdSize: parseInt(completeUserData.vulnerability?.householdCount) || 1,
+          addressID: addressData.id,
+          hasGuardian: completeUserData.vulnerability?.hasGuardian === 'yes',
+          // guardianID: guardianData?.id || null, // temporarily
+          vulnerabilityID: vulnerabilityData.id,
+          verificationID: verificationData.id
+        })
+
+      if (userError) {
+        console.error('Error creating user:', userError)
+        throw new Error('Failed to create user record: ' + userError.message)
+      }
+
+      console.log('User profile saved successfully!')
       
       // Add the uploaded ID to the complete user data
       const finalUserData = {
@@ -97,12 +224,9 @@ export default function uploadID() {
       
       console.log('Final user data:', finalUserData)
       
-      // TODO: Save complete profile to your database here
-      // You can add database saving logic here if needed
-      
-      // Skip completion screen and go to dashboard
+      // Navigate to dashboard
       console.log('Registration complete! Redirecting to dashboard...')
-      router.replace('/dashboard')
+      router.push('/(dashboard)/home')
       
     } catch (error) {
       console.error('Registration error:', error)

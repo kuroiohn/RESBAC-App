@@ -21,6 +21,7 @@ import BackNextButtons from '../../components/buttons/BackNextButtons'
 // Custom hook for user authentication
 import { useUser } from '../../hooks/useUser'
 import GenderSelector from "../../components/GenderSelector";
+import supabase from '../../contexts/supabaseClient'
 
 /**
  * Registration component that handles user registration form
@@ -29,10 +30,28 @@ import GenderSelector from "../../components/GenderSelector";
 const Register = () => {
     // Form field state variables
     const { logout } = useUser()
+    
+    // Force clear any existing session when registration screen loads
     useEffect(() => {
-        // Clear any existing session when registration screen loads
-        logout()
+        const forceLogout = async () => {
+            try {
+                console.log('Forcing logout on registration screen')
+                // Clear from UserContext
+                await logout()
+                
+                // Force clear from Supabase directly with global scope
+                await supabase.auth.signOut({ scope: 'global' })
+                
+                console.log('Forced logout complete')
+            } catch (error) {
+                console.log('Error during forced logout:', error)
+                // Even if logout fails, continue with registration
+            }
+        }
+        
+        forceLogout()
     }, [])
+    
     const [name, setName] = useState('') // User's full name
     const [email, setEmail] = useState('') // User's email address (used for authentication)
     const [contactNumber, setContactNumber] = useState('') // User's contact phone number
@@ -118,6 +137,7 @@ const Register = () => {
         // Update the state
         setFormErrors(newErrors)
     }
+    
     // handles the logic for the user agreement if agreed ot not
     const handleNext = () => {
         console.log('handleNext called with data:', { name, email, password })
@@ -160,44 +180,6 @@ const Register = () => {
                 userData: JSON.stringify(basicUserData)
             }
         });
-    }
-
-    //Validates form, registers user, and navigates to ID upload page, but wasn't able to use this
-    const handleSubmit = async () => {
-        console.log('handleSubmit called!')
-        // Reset any previous error messages
-        setError(null)
-
-        // Validate all form fields before proceeding
-        if (!validateForm()) {
-            setError("Please fix the errors in the form")
-            return
-        }
-
-        try {
-            // Create userData object with all form fields
-            // This will be passed to the next screen (uploadID)
-            const userData = {
-                name,
-                dob,
-                email,
-                contactNumber,
-                address,
-                location,
-                sex,
-                password
-            }
-
-            // Navigate to uploadID page with userData as a parameter
-            // We stringify the userData object to pass it as a URL parameter
-            router.push({
-                pathname: './uploadID',
-                params: { userData: JSON.stringify(userData) }
-            })
-        } catch (error) {
-            // Display any registration errors to the user
-            setError(error.message)
-        }
     }
 
     /**

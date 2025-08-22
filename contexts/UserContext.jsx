@@ -32,7 +32,7 @@ export function UserProvider({ children }) {
             console.log('Attempting registration with:', email)
 
             // Make sure any previous session is cleared
-            await supabase.auth.signOut()
+            await supabase.auth.signOut({ scope: 'global' })
             
             // Create new auth account
             const { data, error } = await supabase.auth.signUp({
@@ -55,12 +55,14 @@ export function UserProvider({ children }) {
     async function logout() {
         try {
             console.log('Logging out user')
-            const { error } = await supabase.auth.signOut()
+            const { error } = await supabase.auth.signOut({ scope: 'global' })
             if (error) throw error
             setUser(null)
             console.log('Logout successful')
         } catch (error) {
             console.error('Logout error:', error)
+            // Force clear user state even if signOut fails
+            setUser(null)
             throw Error(error.message)
         }
     }
@@ -72,6 +74,8 @@ export function UserProvider({ children }) {
             
             if (error) {
                 console.error('Error getting initial user:', error)
+                // Force clear session if there's an error
+                await supabase.auth.signOut({ scope: 'global' })
                 setUser(null)
             } else {
                 console.log('Initial user found:', user?.id || 'none')

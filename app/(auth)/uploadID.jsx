@@ -87,17 +87,27 @@ export default function uploadID() {
       const authResult = await register(cleanEmail, completeUserData.password)
       
       console.log('Account created successfully!')
+      console.log('User ID:', authResult.user.id)
+      
+      // Verify authentication session is properly established
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+      console.log('Session check after registration:', session?.user?.id)
+      
+      if (!session?.user?.id) {
+        throw new Error('User not properly authenticated')
+      }
       
       console.log('Saving profile data to database...')
       
-      // Create address record
+      // Create address record - with explicit userID
       const { data: addressData, error: addressError } = await supabase
         .from('address')
         .insert({
           streetName: completeUserData.address || 'Unknown Street',
-          brgyName: 'Unknown Barangay', // Extract from address if possible
+          brgyName: 'Unknown Barangay',
           cityName: completeUserData.location || 'Unknown City',
-          geolocationCoords: '0,0' // Placeholder coordinates
+          geolocationCoords: '0,0',
+          userID: authResult.user.id
         })
         .select()
         .single()
@@ -109,40 +119,44 @@ export default function uploadID() {
 
       console.log('Address created:', addressData)
 
-      // Create guardian record if guardian exists
-      let guardianData = null
-      if (completeUserData.vulnerability?.hasGuardian === 'yes' && completeUserData.vulnerability?.guardianInfo) {
-        const guardian = completeUserData.vulnerability.guardianInfo
-        const { data: guardianResult, error: guardianError } = await supabase
-          .from('guardian')
-          .insert({
-            fullName: guardian.name || 'Unknown Guardian',
-            relationship: guardian.relationship || 'Unknown',
-            guardianContact: guardian.contact || '0000000000',
-            guardianAddress: guardian.address || 'Unknown Address'
-          })
-          .select()
-          .single()
+      // Create guardian record if guardian exists - with explicit userID
+      const guardianData = completeUserData.vulnerability?.hasGuardian === 'yes' && completeUserData.vulnerability?.guardianInfo 
+        ? await (async () => {
+            const guardian = completeUserData.vulnerability.guardianInfo
+            const { data: guardianResult, error: guardianError } = await supabase
+              .from('guardian')
+              .insert({
+                fullName: guardian.name || 'Unknown Guardian',
+                relationship: guardian.relationship || 'Unknown',
+                guardianContact: guardian.contact || '0000000000',
+                guardianAddress: guardian.address || 'Unknown Address',
+                userID: authResult.user.id
+              })
+              .select()
+              .single()
 
-        if (guardianError) {
-          console.error('Error creating guardian:', guardianError)
-        } else {
-          guardianData = guardianResult
-          console.log('Guardian created:', guardianData)
-        }
-      }
+            if (guardianError) {
+              console.error('Error creating guardian:', guardianError)
+              return null
+            } else {
+              console.log('Guardian created:', guardianResult)
+              return guardianResult
+            }
+          })()
+        : null
 
-      // Create vulnerability list record
+      // Create vulnerability list record - with explicit userID
       const { data: vulnerabilityListData, error: vulListError } = await supabase
         .from('vulnerabilityList')
         .insert({
-          elderly: false, // Calculate based on age
+          elderly: false,
           pregnantInfant: completeUserData.vulnerability?.pregnancy === 'yes' ? ['pregnant'] : [],
           physicalPWD: completeUserData.vulnerability?.physicalDisability || [],
           psychPWD: completeUserData.vulnerability?.psychologicalDisability ? [completeUserData.vulnerability.psychologicalDisability] : [],
           sensoryPWD: completeUserData.vulnerability?.sensoryDisability || [],
           medDep: completeUserData.vulnerability?.healthCondition || [],
-          locationRiskLevel: 'Low' 
+          locationRiskLevel: 'Low',
+          userID: authResult.user.id
         })
         .select()
         .single()
@@ -154,11 +168,12 @@ export default function uploadID() {
 
       console.log('Vulnerability list created:', vulnerabilityListData)
 
-      // Create vulnerability record
+      // Create vulnerability record - with explicit userID
       const { data: vulnerabilityData, error: vulError } = await supabase
         .from('vulnerability')
         .insert({
-          vulListID: vulnerabilityListData.id
+          vulListID: vulnerabilityListData.id,
+          userID: authResult.user.id
         })
         .select()
         .single()
@@ -170,12 +185,13 @@ export default function uploadID() {
 
       console.log('Vulnerability created:', vulnerabilityData)
 
-      // Create verification record
+      // Create verification record - with explicit userID
       const { data: verificationData, error: verificationError } = await supabase
         .from('verification')
         .insert({
           isVerified: false,
-          proofFile: image // image path
+          proofFile: image,
+          userID: authResult.user.id
         })
         .select()
         .single()
@@ -187,7 +203,7 @@ export default function uploadID() {
 
       console.log('Verification created:', verificationData)
 
-      // create the user record
+      // Create the user record - this one needs explicit userID
       const nameParts = (completeUserData.name || '').split(' ')
       const { error: userError } = await supabase
         .from('user')
@@ -197,12 +213,12 @@ export default function uploadID() {
           middleName: nameParts[1] || '',
           surname: nameParts.slice(2).join(' ') || 'User',
           age: 25, 
-          mpin: Math.floor(1000 + Math.random() * 9000).toString(), // Default RANDOM MPIN - should be set by user later
+          mpin: Math.floor(1000 + Math.random() * 9000).toString(),
           userNumber: completeUserData.contactNumber || '0000000000',
           householdSize: parseInt(completeUserData.vulnerability?.householdCount) || 1,
           addressID: addressData.id,
           hasGuardian: completeUserData.vulnerability?.hasGuardian === 'yes',
-          // guardianID: guardianData?.id || null, // temporarily
+          guardianID: guardianData?.id || null,
           vulnerabilityID: vulnerabilityData.id,
           verificationID: verificationData.id
         })

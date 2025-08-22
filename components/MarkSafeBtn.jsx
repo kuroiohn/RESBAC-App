@@ -57,13 +57,15 @@ const EvacuationStatusCard = ({ style, ...props }) => {
   }
 
   useEffect(() => {
+    if (userData.markAsSafe === true){
+      setStep(2)
+    }
     if(userData){
       setMark(userData.markAsSafe);
-    }    
+    }
   },[userData])
 
-  console.log(mark);
-  console.log(step);
+  console.log("markAsSafe:",mark, "Step: ",step);
   
   const handlePress = () => {
   if (step === 1) {
@@ -83,14 +85,14 @@ const EvacuationStatusCard = ({ style, ...props }) => {
   };
 
   const renderText = () => {
-    if (step === 0) {
+    if (step === 0 && mark === false) {
       return (
         <Text style={styles.step0Text} numberOfLines={1}>
           Have you already evacuated?
         </Text>
       );
     }
-    if (mark === false) {
+    if (mark === false && step === 1) {
       return (
         <Text style={[styles.stepText, styles.bold]}>
           Are you sure you have already evacuated?

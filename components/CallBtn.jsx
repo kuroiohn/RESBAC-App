@@ -1,10 +1,11 @@
-import { useRef } from 'react'
+import { useRef,useEffect, useState } from 'react'
 import LottieView from 'lottie-react-native'
 import { TouchableWithoutFeedback, StyleSheet, View, Linking, Alert } from 'react-native'
 
 const CallButton = ({ onAnimationStart, onAnimationFinish }) => {
   const animationRef = useRef(null)
   const phoneNumber = "09684319082"
+  const [isDisabled,setIsDisabled] = useState(false)
 
   const handleDial = async () => {
     const url = `tel:${phoneNumber}`
@@ -17,12 +18,15 @@ const CallButton = ({ onAnimationStart, onAnimationFinish }) => {
     }
   }
 
+  console.log(isDisabled);
+  
   return (
-    <TouchableWithoutFeedback
+    <TouchableWithoutFeedback disabled={isDisabled}
       onPressIn={() => {
         // Tell Home to switch to "Help is on the way" UI
         if (onAnimationStart) onAnimationStart()
-        animationRef.current?.reset()
+        //animationRef.current?.reset()
+        setIsDisabled(true)
         animationRef.current?.play()
       }}
     >

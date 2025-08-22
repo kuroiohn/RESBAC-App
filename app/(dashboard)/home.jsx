@@ -107,9 +107,11 @@ const Home = () => {
             </TouchableOpacity>
             <Spacer/>
 
-            <MarkSafeBtn />
           </Animated.View>
         )}
+        {!animating &&
+          <MarkSafeBtn />
+        }
       </ThemedView>
     </ScrollView>
   )

@@ -68,13 +68,15 @@ const Profile = () => {
         .from('user')
         .select('*')
         .eq('userID', authUser.id)
-        .single();
+        .maybeSingle();
 
       console.log('Query result:', data)
       console.log('Query error:', error)
 
       if (error) {
         console.error('Error fetching user profile:', error);
+        console.log("Error in profile");
+        
         // Use basic user data from auth if profile fetch fails
         const fallbackData = {
           fullName: authUser.user_metadata?.name || authUser.email?.split('@')[0] || "User",
@@ -98,6 +100,8 @@ const Profile = () => {
         setUserData(fallbackData);
         setEditedUser(fallbackData);
       } else {
+        console.log("fetch successful!");
+        
         // Map database fields to display format
         const fullName = `${data.firstName || ''} ${data.middleName || ''} ${data.surname || ''}`.trim();
         

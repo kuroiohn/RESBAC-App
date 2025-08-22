@@ -109,7 +109,7 @@ export default function uploadID() {
           geolocationCoords: '0,0',
           userID: authResult.user.id
         })
-        .select()
+        .select('*')
         .single()
 
       if (addressError) {
@@ -132,7 +132,7 @@ export default function uploadID() {
                 guardianAddress: guardian.address || 'Unknown Address',
                 userID: authResult.user.id
               })
-              .select()
+              .select('*')
               .single()
 
             if (guardianError) {
@@ -158,7 +158,7 @@ export default function uploadID() {
           locationRiskLevel: 'Low',
           userID: authResult.user.id
         })
-        .select()
+        .select('*')
         .single()
 
       if (vulListError) {
@@ -175,7 +175,7 @@ export default function uploadID() {
           vulListID: vulnerabilityListData.id,
           userID: authResult.user.id
         })
-        .select()
+        .select('*')
         .single()
 
       if (vulError) {
@@ -193,7 +193,7 @@ export default function uploadID() {
           proofFile: image,
           userID: authResult.user.id
         })
-        .select()
+        .select('*')
         .single()
 
       if (verificationError) {
@@ -222,6 +222,7 @@ export default function uploadID() {
           vulnerabilityID: vulnerabilityData.id,
           verificationID: verificationData.id
         })
+        .select('*')
 
       if (userError) {
         console.error('Error creating user:', userError)

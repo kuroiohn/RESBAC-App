@@ -168,12 +168,14 @@ export default function uploadID() {
 
       console.log('Vulnerability list created:', vulnerabilityListData)
 
+      console.log(authResult.user.id);
       // Create vulnerability record - with explicit userID
+      const {data:{user},error} = await supabase.auth.getUser()
       const { data: vulnerabilityData, error: vulError } = await supabase
         .from('vulnerability')
         .insert({
           vulListID: vulnerabilityListData.id,
-          userID: authResult.user.id
+          userID: user.id
         })
         .select('*')
         .single()
@@ -195,7 +197,7 @@ export default function uploadID() {
         })
         .select('*')
         .single()
-
+        
       if (verificationError) {
         console.error('Error creating verification:', verificationError)
         throw new Error('Failed to create verification record')

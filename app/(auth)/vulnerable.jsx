@@ -32,19 +32,29 @@ const Vulnerable = () => {
     //form field state variables for disabilities
     const [physicalDisability, setPhysicalDisability] = useState([]);
     const [otherPhysicalDisability, setOtherPhysicalDisability] = useState('');
-    const [psychologicalDisability, setPsychologicalDisability] = useState('');
+    const [psychologicalDisability, setPsychologicalDisability] = useState([]);
+    const [otherPsychologicalDisability, setOtherPsychologicalDisability] = useState('');
     const [sensoryDisability, setSensoryDisability] = useState([]);
     const [otherSensoryDisability, setOtherSensoryDisability] = useState('');
 
     //new state for pregnancy
     const [pregnancy, setPregnancy] = useState(null);
     const [dueDate, setDueDate] = useState('');
+    const [trimester, setTrimester] = useState('');
+    const [hasInfant, setHasInfant] = useState(null);
 
     //new state for health conditions
     const [healthCondition, setHealthCondition] = useState([]);
+    const [otherHealthCondition, setOtherHealthCondition] = useState('');
 
     //new state for mobility status in terms of evacuation
     const [mobilityStatus, setMobilityStatus] = useState(null);
+
+    // new state for asking if vulnerability is permanent or not
+    const [isPDPermanent, setIsPDPermanent] = useState(null);
+    const [isSDPermament, setIsSDPermanent] = useState(null);
+    const [isPSYPermament, setIsPSYPermament] = useState(null);
+    const [isMDPermament, setIsMDPermament] = useState(null);
 
     //new data for pregnancy options
     const pregnancyOptions = [
@@ -52,11 +62,23 @@ const Vulnerable = () => {
         {label: 'No', value: 'no'},
     ];
 
+    //new data for infant options
+    const infantOptions = [
+        {label: 'Yes', value: 'yes'},
+        {label: 'No', value: 'no'},
+    ]
+
     // Data for the radio buttons
     const guardianOptions = [
         { label: 'Yes', value: 'yes' },
         { label: 'No', value: 'no' },
     ];
+
+    // Data for permanent vulnerability [reusable for all state of permanent]
+    const permanentVulnerabilityOptions = [
+        { label: 'Yes', value: 'yes' },
+        { label: 'No', value: 'no' },
+    ]
 
     //data for the household count dropdown
     const householdData = Array.from({length: 10}, (_, i) => ({
@@ -78,6 +100,15 @@ const Vulnerable = () => {
             setPhysicalDisability([...physicalDisability, disability]);
         }
     };
+
+    //Function to handle selection for psychological disabilities
+    const togglePsychologicalDisability = (disability) => {
+        if (psychologicalDisability.includes(disability)) {
+            setPsychologicalDisability(psychologicalDisability.filter(item => item !== disability));
+        } else {
+            setPsychologicalDisability([...psychologicalDisability, disability]);
+        }
+    }
 
     // Function to handle selections for Sensory disabilities
     const toggleSensoryDisability = (disability) => {
@@ -128,9 +159,9 @@ const Vulnerable = () => {
             },
             step: 'vulnerability'
         }
-        
+
         console.log('Complete user data with vulnerability:', completeUserData)
-        
+
         // Navigate to upload screen with all data
         router.push({
             pathname: './uploadID',
@@ -163,10 +194,12 @@ const Vulnerable = () => {
                         </TitleText>
                     )}
 
+                    <TitleText type="title5">PRESENCE OF GUARDIAN</TitleText>
+
                     {/*start of the form*/}
                     {/*Set guardian information*/}
                     <RadioGroup
-                        label="Does this person have a guardian?"
+                        label="Do you currently live with a guardian?"
                         options={guardianOptions}
                         selectedValue={hasGuardian}
                         onValueChange={setHasGuardian}
@@ -221,18 +254,89 @@ const Vulnerable = () => {
                         />
                     </View>
 
+                    <TitleText type="title5"> VULNERABILITY</TitleText>
+                    <TitleText type="title5">Pregnant and Infant [women only]</TitleText>
+
+                    {/* Pregnancy - should only appear if sex selected is female */}
+                    {existingUserData.sex === 'Female' && (
+                        <View style={styles.pregnancyContainer}>
+                            <RadioGroup
+                                label="Are you currently pregnant?"
+                                options={pregnancyOptions}
+                                selectedValue={pregnancy}
+                                onValueChange={setPregnancy}
+                            />
+                            {pregnancy === 'yes' && (
+                                <>
+                                    <ThemedTextInput
+                                        style={{width: '80%', alignSelf: 'center'}}
+                                        placeholder="Month Due Date"
+                                        value={dueDate}
+                                        onChangeText={setDueDate}
+                                    />
+                                    <ThemedTextInput
+                                        style={{width: '80%', alignSelf: 'center'}}
+                                        placeholder="Current trimester"
+                                        value={trimester}
+                                        onChangeText={setTrimester}
+                                    />
+                                </>
+                            )}
+
+                            <RadioGroup
+                                label="Do you have an infant? [0-60months old]?"
+                                options={infantOptions}
+                                selectedValue={hasInfant}
+                                onValueChange={setHasInfant}
+                            />
+                        </View>
+
+                    )}
+
+                    <TitleText type="title5"> Person With Disability (PWD) </TitleText>
+                    <TitleText type="title3" style={styles.categoryHeader}>Check all that may apply</TitleText>
+
                     {/* Physical Disabilities */}
-                    <TitleText type="title3" style={styles.categoryHeader}>Does the individual have any disabilities</TitleText>
-                    <TitleText type="title3" style={styles.categoryHeader}>(check all that apply)</TitleText>
+                    <RadioGroup
+                        label = "Is your Physical Disability permanent?"
+                        options = {permanentVulnerabilityOptions}
+                        selectedValue = {isPDPermanent}
+                        onValueChange = {setIsPDPermanent}
+                    />
                     <TitleText type="title3" style={styles.categoryHeader}>Physical</TitleText>
                     <CheckboxComponent
-                        label="Mobility Impaired"
+                        label="Mobility Aid User"
                         isChecked={physicalDisability.includes('Mobility Impaired')}
                         onValueChange={() => togglePhysicalDisability('Mobility Impaired')}
                     />
-                    <ThemedText style={styles.inputHint}>
-                        (e.g., uses wheelchair, saklay)
-                    </ThemedText>
+                        <ThemedText style={styles.inputHint}>
+                            (e.g., uses wheelchair, saklay)
+                        </ThemedText>
+                    <CheckboxComponent
+                        label="Amputee"
+                        isChecked={physicalDisability.includes('Amputee')}
+                        onValueChange={() => togglePhysicalDisability('Amputee')}
+                    />
+                    <CheckboxComponent
+                        label="Paralysis"
+                        isChecked={physicalDisability.includes('Paralysis')}
+                        onValueChange={() => togglePhysicalDisability('Paralysis')}
+                    />
+                    <CheckboxComponent
+                        label="Cerebral Palsy"
+                        isChecked={physicalDisability.includes('Cerebral Palsy')}
+                        onValueChange={() => togglePhysicalDisability('Cerebral Palsy')}
+                    />
+                    <CheckboxComponent
+                        label="Epilepsy"
+                        isChecked={physicalDisability.includes('Epilepsy')}
+                        onValueChange={() => togglePhysicalDisability('Epilepsy')}
+                    />
+                    <CheckboxComponent
+                        label="Parkinson's Disease"
+                        isChecked={physicalDisability.includes("Parkinson's Disease")}
+                        onValueChange={() => togglePhysicalDisability("Parkinson's Disease")}
+                    />
                     <CheckboxComponent
                         label={"Others"}
                         isChecked={physicalDisability.includes('Others')}
@@ -248,35 +352,78 @@ const Vulnerable = () => {
                     )}
 
                     {/* Psychological Disabilities */}
-                    <TitleText type="title3" style={styles.categoryHeader}>Psychological</TitleText>
-                    <ThemedTextInput
-                        style={{width: '80%', marginBottom: 5}}
-                        placeholder="Please specify"
-                        value={psychologicalDisability}
-                        onChangeText={setPsychologicalDisability}
+                    <TitleText type="title5"> Psychological Disability (PWD) </TitleText>
+                    <TitleText type="title3" style={styles.categoryHeader}>Check all that may apply</TitleText>
+                    <RadioGroup
+                        label = "Is your Psychological Disability permanent?"
+                        options = {permanentVulnerabilityOptions}
+                        selectedValue = {isPSYPermament}
+                        onValueChange = {setIsPSYPermament}
                     />
+                    <TitleText type="title3" style={styles.categoryHeader}>Psychological</TitleText>
+                    <CheckboxComponent
+                        label="Autism Spectrum Disorder"
+                        isChecked={psychologicalDisability.includes('Autism Spectrum Disorder')}
+                        onValueChange={() => togglePsychologicalDisability('Autism Spectrum Disorder')}
+                    />
+                    <CheckboxComponent
+                        label="Down Syndrome"
+                        isChecked={psychologicalDisability.includes('Down Syndrome')}
+                        onValueChange={() => togglePsychologicalDisability('Down Syndrome')}
+                    />
+                    <CheckboxComponent
+                        label="Anxiety Disorder"
+                        isChecked={psychologicalDisability.includes('Anxiety Disorder')}
+                        onValueChange={() => togglePsychologicalDisability('Anxiety Disorder')}
+                    />
+                    <CheckboxComponent
+                        label="Schizophrenia"
+                        isChecked={psychologicalDisability.includes('Schizophrenia')}
+                        onValueChange={() => togglePsychologicalDisability('Schizophrenia')}
+                    />
+                    <CheckboxComponent
+                        label="Post Traumatic Stress Disorder (PSTD)"
+                        isChecked={psychologicalDisability.includes('Post Traumatic Stress Disorder')}
+                        onValueChange={() => togglePsychologicalDisability('Post Traumatic Stress Disorder')}
+                    />
+                    <CheckboxComponent
+                        label="Other"
+                        isChecked={psychologicalDisability.includes('Other')}
+                        onValueChange={() => togglePsychologicalDisability('Other')}
+                    />
+                    {psychologicalDisability.includes('Other') && (
+                        <ThemedTextInput
+                            style={{width: '80%', marginBottom: 5}}
+                            placeholder="Please specify"
+                            value={otherPsychologicalDisability}
+                            onChangeText={setOtherPsychologicalDisability}
+                        />
+                    )}
 
                     {/* Sensory Disabilities */}
+                    <TitleText type="title5"> Sensory Disability (PWD) </TitleText>
+                    <TitleText type="title3" style={styles.categoryHeader}>Check all that may apply</TitleText>
+                    <RadioGroup
+                        label = "Is your Sensory Disability permanent?"
+                        options = {permanentVulnerabilityOptions}
+                        selectedValue = {isSDPermament}
+                        onValueChange = {setIsSDPermanent}
+                    />
                     <TitleText type="title3" style={styles.categoryHeader}>Sensory</TitleText>
                     <CheckboxComponent
-                        label="Blind"
-                        isChecked={sensoryDisability.includes('Blind')}
-                        onValueChange={() => toggleSensoryDisability('Blind')}
+                        label="Blind or Visually Impaired"
+                        isChecked={sensoryDisability.includes('Blind or Visually Impaired')}
+                        onValueChange={() => toggleSensoryDisability('Blind or Visually Impaired')}
                     />
                     <CheckboxComponent
-                        label="Deaf"
-                        isChecked={sensoryDisability.includes('Deaf')}
-                        onValueChange={() => toggleSensoryDisability('Deaf')}
+                        label="Deaf or Hearing Impaired"
+                        isChecked={sensoryDisability.includes('Deaf or Hearing Impaired')}
+                        onValueChange={() => toggleSensoryDisability('Deaf or Hearing Impaired')}
                     />
                     <CheckboxComponent
-                        label="Non-verbal / Mute"
-                        isChecked={sensoryDisability.includes('Non-verbal / Mute')}
-                        onValueChange={() => toggleSensoryDisability('Non-verbal / Mute')}
-                    />
-                    <CheckboxComponent
-                        label="Speech Impaired"
-                        isChecked={sensoryDisability.includes('Speech Impaired')}
-                        onValueChange={() => toggleSensoryDisability('Speech Impaired')}
+                        label="Mute or Speech Impaired"
+                        isChecked={sensoryDisability.includes('Mute or Speech Impaired')}
+                        onValueChange={() => toggleSensoryDisability('Mute or Speech Impaired')}
                     />
                     <CheckboxComponent
                         label="Others"
@@ -292,30 +439,18 @@ const Vulnerable = () => {
                         />
                     )}
 
-                    {/* Pregnancy - should only appear if sex selected is female */}
-                    {existingUserData.sex === 'Female' && (
-                        <View style={styles.pregnancyContainer}>
-                            <RadioGroup
-                                label="Is the individual pregnant?"
-                                options={pregnancyOptions}
-                                selectedValue={pregnancy}
-                                onValueChange={setPregnancy}
-                            />
-                            {pregnancy === 'yes' && (
-                                <ThemedTextInput
-                                    style={{width: '80%', alignSelf: 'center'}}
-                                    placeholder="Month Due Date"
-                                    value={dueDate}
-                                    onChangeText={setDueDate}
-                                />
-                            )}
-                        </View>
-                    )}
-
                     {/* Health Conditions */}
-                    <TitleText type="title3" style={styles.categoryHeader}>Health Conditions</TitleText>
+                    <TitleText type="title5"> Medically Dependent </TitleText>
+                    <TitleText type="title3" style={styles.categoryHeader}>Check all that may apply</TitleText>
+                    <RadioGroup
+                        label = "Is your medical dependence permanent?"
+                        options = {permanentVulnerabilityOptions}
+                        selectedValue = {isMDPermament}
+                        onValueChange = {setIsMDPermament}
+                    />
+                    <TitleText type="title3" style={styles.categoryHeader}>Medically Dependent</TitleText>
                     <CheckboxComponent
-                        label="Chronic Illness (e.g., diabetes, asthma)"
+                        label="Chronic Illness (e.g., diabetes, asthma, heart disease, etc.)"
                         isChecked={healthCondition.includes('chronicIllness')}
                         onValueChange={() => toggleHealthCondition('chronicIllness')}
                     />
@@ -332,8 +467,25 @@ const Vulnerable = () => {
                         isChecked={healthCondition.includes('regularMedications')}
                         onValueChange={() => toggleHealthCondition('regularMedications')}
                     />
+                    <ThemedText style={styles.inputHint}>
+                        (e.g., insulin, etc.)
+                    </ThemedText>
+                    <CheckboxComponent
+                        label="others"
+                        isChecked={healthCondition.includes('others')}
+                        onValueChange={() => toggleHealthCondition('others')}
+                    />
+                    {healthCondition.includes('others') && (
+                        <ThemedTextInput
+                            style={{width: '80%', marginBottom: 5}}
+                            placeholder="Please specify"
+                            value={otherHealthCondition}
+                            onChangeText={setOtherHealthCondition()}
+                        />
+                    )}
 
                     {/* mobility status */}
+                    <TitleText type="title5"> Evacuation Capability </TitleText>
                     <View style={styles.pregnancyContainer}>
                         <RadioGroup
                             label="Mobility Status"

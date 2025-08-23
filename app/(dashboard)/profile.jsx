@@ -64,42 +64,11 @@ const Profile = () => {
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [passwords, setPasswords] = useState({ current: "", new: "", confirm: "" });
 
-  // useEffect(() => {
-  //   console.log('Profile useEffect triggered')
-  //   console.log('Current user from context:', user)
-    
-  //   const checkSession = async () => {
-  //       try {
-  //           const { data: { session }, error } = await supabase.auth.getSession()
-  //           console.log('Current session:', session)
-  //           console.log('Session error:', error)
-            
-  //           if (session && session.user) {
-  //               console.log('Session user ID:', session.user.id)
-  //               await fetchData()
-  //           } else {
-  //               console.log('No active session found')
-  //               setLoading(false)
-  //           }
-  //       } catch (error) {
-  //           console.error('Error checking session:', error)
-  //           setLoading(false)
-  //       }
-  //   }
-    
-  //   if (user) {
-  //       checkSession()
-  //   } else {
-  //       console.log('No user in context, not fetching profile')
-  //       setLoading(false)
-  //   }
-  // }, [user]);
-
   //reads from supabase
   
   const fetchUserData = async () => {
     // Get the current logged in user
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const { error: userError } = await supabase.auth.getUser();
     if (userError || !user) {
       console.error("Error fetching in getUser:", userError);
       throw new Error("No active session / user");
@@ -119,17 +88,19 @@ const Profile = () => {
     console.log("Successful fetch",  data);
     return {...data,
       email: user.email,
-      isVerified: data.verification?.isVerified
+      isVerified: data?.verification?.isVerified
     }
 
   }
   const {data: profileData,isPending,isError,error, refetch} = useQuery({
-    queryKey: ["user"],
+    queryKey: ["user", user?.id],
     queryFn: fetchUserData,
+    enabled: !!user
   })
   if(error){
     console.error("Error in fetching user table: ", error);
   }
+  console.log(profileData?.email);
 
   // checks if session exists thru isPending 
   useEffect(()=>{
@@ -158,11 +129,11 @@ const Profile = () => {
       })
     }
   },[profileData])
-  {console.log("ISVerified:",userData.isVerified)   }
+  {console.log("IsVerified:",profileData?.verification?.isVerified)   }
 
   const fetchAddressData = async () => {
     // Get the current logged in user
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const { error: userError } = await supabase.auth.getUser();
     if (userError || !user) {
       console.error("Error fetching auth user:", userError);
       throw new Error("No active session / user");
@@ -198,10 +169,12 @@ const Profile = () => {
       })
     }
   },[addressData])
+  console.log("hasGuardian: ", profileData?.hasGuardian);
+  
 
   const fetchGuardianData = async () => {
     // Get the current logged in user
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const { error: userError } = await supabase.auth.getUser();
     if (userError || !user) {
       console.error("Error fetching auth user:", userError);
       throw new Error("No active session / user");
@@ -211,7 +184,7 @@ const Profile = () => {
     .from('guardian')
     .select('*')
     .eq('userID', user.id)
-    //.single()
+    .single()
 
     if(error){
       console.error("Fetch error in guardian table: ", error)
@@ -220,9 +193,9 @@ const Profile = () => {
     return data
   }
   const {data: guardianData,error:guardianError} = useQuery({
-    queryKey: ["guardian"],
+    queryKey: ["guardian",profileData?.userID],
     queryFn: fetchGuardianData,
-    enabled: userData?.hasGuardian === true
+    enabled: !!profileData?.hasGuardian === true
   })
   if(guardianError){
     console.error("Error in fetching guardian table: ", addressError);
@@ -241,7 +214,7 @@ const Profile = () => {
 
   const fetchVulData = async () => {
     // Get the current logged in user
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const { error: userError } = await supabase.auth.getUser();
     if (userError || !user) {
       console.error("Error fetching auth user:", userError);
       throw new Error("No active session / user");
@@ -282,89 +255,6 @@ const Profile = () => {
   },[vulListData])
 
   console.log(userVul);
-  
-  // const fetchUserProfile = async (authUser = user) => {
-  //   if (!authUser) {
-  //     console.log('No auth user provided to fetchUserProfile')
-  //     setLoading(false);
-  //     return;
-  //   }
-
-  //   try {
-  //     console.log('Auth user ID:', authUser.id)
-  //     console.log('Querying database for userID:', authUser.id)
-
-  //     // Fetch user profile data without joins to avoid relationship errors
-  //     const { data, error } = await supabase
-  //       .from('user')
-  //       .select('*')
-  //       .eq('userID', authUser.id)
-  //       .maybeSingle();
-
-  //     console.log('Query result:', data)
-  //     console.log('Query error:', error)
-
-  //     if (error) {
-  //       console.error('Error fetching user profile:', error);
-  //       console.log("Error in profile");
-        
-  //       // Use basic user data from auth if profile fetch fails
-  //       const fallbackData = {
-  //         fullName: authUser.user_metadata?.name || authUser.email?.split('@')[0] || "User",
-  //         email: authUser.email,
-  //         photoUrl: profilePic,
-  //         verified: authUser.email_confirmed_at ? true : false,
-  //         created: new Date(authUser.created_at).toLocaleDateString(),
-  //         addressLine1: "",
-  //         addressLine2: "",
-  //         contactNumber: "",
-  //         age: "",
-  //         emergencyContact: "",
-  //         barangay: "",
-  //         vulnerability: "None",
-  //         guardianName: "",
-  //         guardianRelationship: "",
-  //         guardianContact: "",
-  //         guardianAddress: "",
-  //       };
-        
-  //       setUserData(fallbackData);
-  //       setEditedUser(fallbackData);
-  //     } else {
-  //       console.log("fetch successful!");
-        
-  //       // Map database fields to display format
-  //       const fullName = `${data.firstName || ''} ${data.middleName || ''} ${data.surname || ''}`.trim();
-        
-  //       const profileData = {
-  //         fullName: fullName || authUser.email?.split('@')[0] || "User",
-  //         email: authUser.email,
-  //         photoUrl: profilePic,
-  //         verified: authUser.email_confirmed_at ? true : false,
-  //         created: new Date(authUser.created_at).toLocaleDateString(),
-  //         addressLine1: "Address data available", // Placeholder since we're not joining
-  //         addressLine2: "",
-  //         contactNumber: data.userNumber || "",
-  //         age: data.age || "",
-  //         emergencyContact: "", // Not in current schema
-  //         barangay: "", // Would need to fetch from address table
-  //         vulnerability: "Data available", // Would need to fetch from vulnerability tables
-  //         guardianName: "", // Would need to fetch from guardian table
-  //         guardianRelationship: "",
-  //         guardianContact: "",
-  //         guardianAddress: "",
-  //       };
-        
-  //       setUserData(profileData);
-  //       setEditedUser(profileData);
-  //     }
-  //   } catch (error) {
-  //     console.error('Error in fetchUserProfile:', error);
-  //     setLoading(false);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
 
   const toggleEdit = () => {
     if (isEditing) {

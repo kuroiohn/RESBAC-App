@@ -78,6 +78,26 @@ const AlertCard = ({ alertLevel = 1 }) => {
   });
 }
 
+  // added august 24
+  const formatTitle = (title) => {
+    if (!title) return "";
+
+    // If the whole title is 12 chars or less → show on one line
+    if (title.length <= 12) return title;
+
+    // Otherwise split by spaces
+    const words = title.split(" ");
+
+    // If the first word itself exceeds 12 chars, force-break at 12
+    if (words[0].length > 12) {
+      return words[0].slice(0, 12) + "\n" + words[0].slice(12) + " " + words.slice(1).join(" ");
+    }
+
+    // Otherwise → first word on line 1, rest on line 2+
+    return words[0] + "\n" + words.slice(1).join(" ");
+  };
+
+
   const getWaterLevel = () => {
     switch (alertLevel) {
       case 1:
@@ -115,25 +135,27 @@ const AlertCard = ({ alertLevel = 1 }) => {
         {/* Image + Info Row */}
         <View style={styles.topRow}>
           <Image
-            source={require('../assets/storm-cloud.png')} // replace with your image
+            source={require('../assets/storm-cloud.png')}
             style={styles.image}
           />
           <View style={styles.statusColumn}>
-            <Text style={styles.alertLevel}> {alert.alertTitle} </Text>
+            <Text style={styles.alertLevel}>
+              {formatTitle(alert.alertTitle)}
+            </Text>
+
+
             {/*<Text style={styles.timeText}>{formattedTime}</Text>*/}
             <Text style={styles.timeText}>Date: {formattedTime(alert.created_at)}</Text>
             {alert.alertType == "Fire" && 
             <Text style={styles.meterText}>Location: {alert.alertLocation}</Text> }
             
             {/* if flooding only */}
-            {
-              alert.alertType === 'Flood' && (
-                <>
-                  <Text style={styles.meterText}> Alert {alertLevel} </Text>
-                  <Text style={styles.meterText}>{waterLevel} meters</Text>
-                </>
-              )
-            }
+            {alert.alertType === 'Flood' && (
+              <Text style={styles.meterText}>
+                Alert {alertLevel} • {waterLevel} meters
+              </Text>
+            )}
+
           </View>
         </View>
 
@@ -141,7 +163,7 @@ const AlertCard = ({ alertLevel = 1 }) => {
         <Text style={styles.message}>
           {alert.alertDescription}
         </Text>
-
+            
       </View>
     </LinearGradient>
         )
@@ -151,11 +173,14 @@ const AlertCard = ({ alertLevel = 1 }) => {
   );
 };
 
+export default AlertCard;
+
 const styles = StyleSheet.create({
   borderWrapper: {
     width: '88%',
-    padding: 2,
+    padding: 2, // para sa stroke
     borderRadius: 12,
+    marginBottom: 10, // adds space between stacked alerts
   },
   innerCard: {
     backgroundColor: '#FAFAFA',
@@ -221,5 +246,3 @@ const styles = StyleSheet.create({
     lineHeight: 17,
   },
 });
-
-export default AlertCard;

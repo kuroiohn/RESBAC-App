@@ -34,10 +34,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
+    paddingTop: 40,      // add space at the top
+    paddingBottom: 0,    // remove extra space at the bottom
     backgroundColor: '#fafafa',
     elevation: 4,
     zIndex: 999,
-    height: 130,
+    height: 100,
   },
   left: {
     flexDirection: 'row',
@@ -53,7 +55,7 @@ const styles = StyleSheet.create({
     fontSize: 19,
     fontWeight: 'bold',
     textAlignVertical: 'center',
-    includeFontPadding: false,
+    includeFontPadding: false, // removes extra font padding
   },
   profile: {
     width: 40,

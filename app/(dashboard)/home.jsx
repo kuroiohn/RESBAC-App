@@ -14,12 +14,14 @@ const Home = () => {
   const [callRequested, setCallRequested] = useState(false)
   const fadeAnim = useRef(new Animated.Value(0)).current
 
+  // pang animate
   const handleAnimationStart = () => {
     setAnimating(true)
     setCallRequested(false)
     fadeAnim.setValue(0) // reset fade each time
   }
 
+  // pang animate
   const handleAnimationFinish = () => {
     setAnimating(false)
     setCallRequested(true)
@@ -65,12 +67,31 @@ const Home = () => {
             <MarkSafeBtn />
 
             {/* Alerts + Guide only in initial state */}
-            <Spacer/>
             <ThemedText style={styles.textLeft}>Alerts</ThemedText>
             <AlertCard />
 
-            <ThemedText style={styles.textLeft}>Emergency Guide</ThemedText>
-            <EvacuationCenterCard/>
+            {/* Evacuation Centers horizontal scroll */}
+            <ThemedText style={styles.textLeft}>Evacuation Centers</ThemedText>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ paddingHorizontal: 20 }}
+            >
+              <EvacuationCenterCard style={{ marginRight: 16 }} />
+              <EvacuationCenterCard style={{ marginRight: 16 }} />
+              <EvacuationCenterCard />
+            </ScrollView>
+
+            <ThemedText style={styles.textLeft}>Pickup Locations</ThemedText>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ paddingHorizontal: 20 }}
+            >
+              <EvacuationCenterCard style={{ marginRight: 16 }} />
+              <EvacuationCenterCard style={{ marginRight: 16 }} />
+              <EvacuationCenterCard />
+            </ScrollView>
           </>
         )}
 
@@ -100,18 +121,16 @@ const Home = () => {
               onAnimationStart={handleAnimationStart} 
               onAnimationFinish={handleAnimationFinish} 
             /> 
-
             <Spacer/>
             <TouchableOpacity onPress={handleCancel} style={styles.cancelBtn}>
               <Text style={styles.cancelBtnText}>Cancel Request</Text>
             </TouchableOpacity>
             <Spacer/>
-
           </Animated.View>
         )}
-        {!animating &&
+        {!animating && callRequested && (
           <MarkSafeBtn />
-        }
+        )}
       </ThemedView>
     </ScrollView>
   )
@@ -155,5 +174,5 @@ const styles = StyleSheet.create({
   cancelBtnText: {
     color: "white",
     fontWeight: "bold"
-  }
+  },
 })

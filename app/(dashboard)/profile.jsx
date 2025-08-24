@@ -76,20 +76,32 @@ const Profile = () => {
 
     const {data,error} = await supabase
     .from('user')
-    .select(`*,
-      verification:verification(isVerified)`
-    )
+    .select('*')
     .eq('userID', user.id)
     .single()
 
+    setUserData({
+        firstName: data.firstName || "",
+        middleName: data.middleName || "",
+        surname: data.surname || "",
+        //dob: data.dob || "",
+        age: data.age || 0,
+        mpin: data.mpin || "",
+        userNumber: data.userNumber || "",
+        householdSize: data.householdSize || 0,
+        addressID: data.addressID || 0,
+        hasGuardian: data.hasGuardian || false,
+        guardianID: data.guardianID || 0,
+        vulnerabilityID: data.vulnerabilityID || 0,
+        verificationID: data.verificationID || 0,
+        userID: data.userID || "",
+        email: user.email
+      })
     if(error){
       console.error("Fetch error in user table: ", error)
     }
     console.log("Successful fetch",  data);
-    return {...data,
-      email: user.email,
-      isVerified: data?.verification?.isVerified
-    }
+    return data
 
   }
   const {data: profileData,isPending,isError,error, refetch} = useQuery({
@@ -100,7 +112,7 @@ const Profile = () => {
   if(error){
     console.error("Error in fetching user table: ", error);
   }
-  console.log(profileData?.email);
+  console.log("profiledata email ",profileData?.email);
 
   // checks if session exists thru isPending 
   useEffect(()=>{
@@ -124,12 +136,13 @@ const Profile = () => {
         vulnerabilityID: profileData.vulnerabilityID || 0,
         verificationID: profileData.verificationID || 0,
         userID: profileData.userID || "",
-        email: profileData.email,
-        isVerified: profileData.isVerified
+        email: user.email
       })
     }
-  },[profileData])
-  {console.log("IsVerified:",profileData?.verification?.isVerified)   }
+  },[user])
+
+  console.log("USerdata email", userData.email);
+  
 
   const fetchAddressData = async () => {
     // Get the current logged in user
@@ -145,6 +158,14 @@ const Profile = () => {
     .eq('userID', user.id)
     .single()
 
+    setUserAddress({
+        streetName: data.streetName || "",
+        brgyName: data.brgyName || "",
+        cityName: data.cityName || "",
+        geolocationCoords: data.geolocationCoords || "",
+        userID: data.userID || ""
+      })
+    
     if(error){
       console.error("Fetch error in address table: ", error)
     }
@@ -168,7 +189,7 @@ const Profile = () => {
         userID: addressData.userID || ""
       })
     }
-  },[addressData])
+  },[user])
   console.log("hasGuardian: ", profileData?.hasGuardian);
   
 
@@ -185,6 +206,14 @@ const Profile = () => {
     .select('*')
     .eq('userID', user.id)
     .single()
+
+    setUserGuardian({
+        fullName: data.fullName || "",
+        relationship: data.relationship || "",
+        guardianContact: data.guardianContact || "",
+        guardianAddress: data.guardianAddress || "",
+        userID: data.userID || ""
+      })
 
     if(error){
       console.error("Fetch error in guardian table: ", error)
@@ -210,7 +239,7 @@ const Profile = () => {
         userID: guardianData.userID || ""
       })
     }
-  },[guardianData])
+  },[user])
 
   const fetchVulData = async () => {
     // Get the current logged in user
@@ -225,6 +254,17 @@ const Profile = () => {
     .select('*')
     .eq('userID', user.id)
     .single()
+
+    setUserVul({
+        elderly: data.elderly ?? false,
+        pregnantInfant: data.pregnantInfant ?? [],
+        physicalPWD: data.physicalPWD ?? [],
+        psychPWD: data.psychPWD ?? [],
+        sensoryPWD: data.sensoryPWD ?? [],
+        medDep: data.medDep ?? [],
+        locationRiskLevel: data.locationRiskLevel ?? "None",
+        userID: data.userID || ""
+      })
 
     if(error){
       console.error("Fetch error in vulList table: ", error)
@@ -252,7 +292,7 @@ const Profile = () => {
         userID: vulListData.userID || ""
       })
     }
-  },[vulListData])
+  },[user])
 
   console.log(userVul);
 
@@ -430,7 +470,7 @@ const Profile = () => {
         )
       }
 
-      <View style={styles.row}>{renderField("elderly", "Age-related", userVul.elderly.toString(), false)}</View>
+      <View style={styles.row}>{renderField("elderly", "Age-related", (userVul.elderly ? "Elderly" : "Not elderly"), false)}</View>
       <View style={styles.row}>{renderField("pregnantInfant", "Pregnant/Infant", userVul.pregnantInfant.toString(), false)}</View>
 
       <View style={styles.row}>{renderField("physicalPWD", "Physical Disability", userVul.physicalPWD.toString(), false)}</View>

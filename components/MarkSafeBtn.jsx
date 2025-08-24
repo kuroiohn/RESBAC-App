@@ -57,7 +57,7 @@ const EvacuationStatusCard = ({ style, ...props }) => {
   }
 
   useEffect(() => {
-    if (userData?.markAsSafe === true){
+    if (userData?.markAsSafe === true){ // added ? to userData?
       setStep(2)
     }
     if(userData){

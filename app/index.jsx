@@ -1,5 +1,5 @@
 import { StyleSheet, Text } from "react-native"
-import { Link } from 'expo-router'
+import { Link, Redirect } from 'expo-router'
 
 // themed components
 import ThemedView from '../components/ThemedView'
@@ -9,8 +9,17 @@ import ThemedText from "../components/ThemedText"
 import WelcomeHeader from '../components/WelcomeHeader'
 import ThemedButton from "../components/ThemedButton"
 import ImageButton from "../components/ImageButton"
+import { useUser } from "../hooks/useUser"
+import { useEffect } from "react"
 
 const Home = () => {
+
+    useEffect(() => {
+    const { user } = useUser()
+    if (!user) {
+      router.replace("/login")
+    }
+  }, [user])
 
     return(
         <ThemedView style={styles.container}>

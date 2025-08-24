@@ -70,7 +70,7 @@ export function UserProvider({ children }) {
     async function getInitialUserValue() {
         try {
             console.log('Getting initial user value...')
-            const { data: { user }, error } = await supabase.auth.getUser()
+            const { data: { session }, error } = await supabase.auth.getSession()
             
             if (error) {
                 console.error('Error getting initial user:', error)
@@ -78,8 +78,8 @@ export function UserProvider({ children }) {
                 await supabase.auth.signOut({ scope: 'global' })
                 setUser(null)
             } else {
-                console.log('Initial user found:', user?.id || 'none')
-                setUser(user)
+                console.log('Initial user found:', session?.user?.id || 'none')
+                setUser(session?.user)
             }
         } catch (error) {
             console.error('Error getting user:', error)

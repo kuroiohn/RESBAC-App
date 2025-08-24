@@ -16,7 +16,7 @@ const AlertCard = ({ alertLevel = 1 }) => {
     .select()
 
     if(error){
-      console.error("Fetch error in supabase: ", error)
+      console.error("Fetch error in supabase alert card: ", error)
     }
     console.log("Successful fetch",  data);
     return data

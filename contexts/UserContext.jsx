@@ -1,5 +1,6 @@
 import { createContext, useEffect, useState } from 'react'
 import supabase from './supabaseClient'
+import { useRouter } from 'expo-router'
 
 export const UserContext = createContext()
 
@@ -52,6 +53,7 @@ export function UserProvider({ children }) {
         }
     }
 
+    const router = useRouter()
     async function logout() {
         try {
             console.log('Logging out user')
@@ -59,6 +61,7 @@ export function UserProvider({ children }) {
             if (error) throw error
             setUser(null)
             console.log('Logout successful')
+            router.replace("/")
         } catch (error) {
             console.error('Logout error:', error)
             // Force clear user state even if signOut fails

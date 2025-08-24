@@ -38,7 +38,7 @@ const EmergencyGuideContent = () => {
     .select()
 
     if(error){
-      console.error("Fetch error in supabase: ", error)
+      console.error("Fetch error in supabase emerGuide: ", error)
     }
     console.log("Successful fetch",  data);
     return data

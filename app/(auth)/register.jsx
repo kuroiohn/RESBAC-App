@@ -30,7 +30,7 @@ import supabase from '../../contexts/supabaseClient'
  */
 const Register = () => {
     // Form field state variables
-    const { logout } = useUser()
+    const { user:checkUser, logout } = useUser()
     
     // Force clear any existing session when registration screen loads
     useEffect(() => {
@@ -49,8 +49,10 @@ const Register = () => {
                 // Even if logout fails, continue with registration
             }
         }
-        
-        forceLogout()
+        if (checkUser) {
+
+            forceLogout()
+        }
     }, [])
     
     const [name, setName] = useState('') // User's full name

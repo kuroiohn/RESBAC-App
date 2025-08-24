@@ -6,6 +6,7 @@ import { useRouter } from 'expo-router'
 // App constants and custom components
 import { Colors } from '../../constants/Colors'
 import DatePickerInput from '../../components/DatePickerInput'
+import LocationPermissionInput from '../../components/LocationPermissionInput'
 //adding checkbox
 import { Checkbox } from 'react-native-paper';
 import { useState, useEffect } from 'react'
@@ -56,7 +57,7 @@ const Register = () => {
     const [email, setEmail] = useState('') // User's email address (used for authentication)
     const [contactNumber, setContactNumber] = useState('') // User's contact phone number
     const [address, setAddress] = useState('') // User's physical address
-    const [location, setLocation] = useState('') // User's location/area
+    const [locationData, setLocationData] = useState(null) // GPS location data
     const [sex, setSex] = useState('') // User's sex/gender
     const [password, setPassword] = useState('') // User's account password
     const [dob, setDob] = useState(null) // User's date of birth
@@ -107,9 +108,9 @@ const Register = () => {
             errors.address = "Address is required"
         }
 
-        // Location validation
-        if (!location || location.trim() === '') {
-            errors.location = "Location is required"
+        // Location verification
+        if (!locationData || !locationData.coordinates) {
+            errors.location = "Location verification is required - please allow GPS access"
         }
 
         // Sex validation
@@ -162,8 +163,13 @@ const Register = () => {
             email,
             password,
             contactNumber,
-            address,
-            location,
+            address, // User's manually typed address
+            location: locationData ? {
+                coordinates: locationData.coordinates, // GPS coordinates
+                address: locationData.address,
+                formattedAddress: locationData.formattedAddress,
+                manualAddress: address // Keep both manual and GPS data
+            } : { manualAddress: address }, // Only manual address if GPS not used
             sex,
             dob,
             // Metadata
@@ -271,7 +277,7 @@ const Register = () => {
                             />
                             {formErrors.contactNumber && <Text style={styles.fieldError}>{formErrors.contactNumber}</Text>}
 
-                            {/* Address input field */}
+                            {/* Address input field - ALWAYS REQUIRED */}
                             <ThemedTextInput
                                 style={{ width: '80%', marginBottom: 5 }}
                                 placeholder="Address"
@@ -284,16 +290,16 @@ const Register = () => {
                             />
                             {formErrors.address && <Text style={styles.fieldError}>{formErrors.address}</Text>}
 
-                            {/* Location input field - further set up is needed before finalizing*/}
-                            <ThemedTextInput
-                                style={{ width: '80%', marginBottom: 5 }}
-                                placeholder="Confirm your Location"
-                                value={location}
-                                onChangeText={text => {
-                                    setLocation(text);
+                            {/* Location Permission Component */}
+                            <Text style={styles.locationLabel}>Verify your location for emergency services (Required):</Text>
+                            <LocationPermissionInput
+                                value={locationData}
+                                onChange={data => {
+                                    setLocationData(data);
                                     clearFieldError('location');
                                 }}
-                                editable={isAgreed}
+                                placeholder="Allow location access"
+                                disabled={!isAgreed}
                             />
                             {formErrors.location && <Text style={styles.fieldError}>{formErrors.location}</Text>}
 
@@ -412,5 +418,12 @@ const styles = StyleSheet.create({
         marginLeft: 111,
         fontStyle: 'italic',
         marginBottom: 20,
+    },
+    locationLabel: {
+        fontSize: 14,
+        color: '#666',
+        marginBottom: 10,
+        alignSelf: 'flex-start',
+        marginLeft: '10%',
     }
 })

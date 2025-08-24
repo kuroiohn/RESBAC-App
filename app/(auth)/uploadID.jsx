@@ -29,6 +29,36 @@ export default function uploadID() {
   const completeUserData = userData ? JSON.parse(userData) : {}
   console.log('Complete user data in uploadID:', completeUserData)
 
+  // Clean location data before saving to database
+  // Both manual address and GPS verification are now required
+  const getCleanLocationData = (userData) => {
+    const streetName = userData.address || 'Unknown Street';
+    const defaultCityName = 'Unknown City';
+    const defaultBrgyName = 'Unknown Barangay';
+    const defaultCoordinates = '0,0';
+
+    // Extract city from manual address as fallback
+    const addressParts = userData.address ? userData.address.split(',') : [];
+    const parsedCityName = addressParts.length > 1 ? addressParts[addressParts.length - 1].trim() : defaultCityName;
+
+    // Get GPS data
+    const gpsCoordinates = userData.location && userData.location.coordinates 
+      ? `${userData.location.coordinates.latitude},${userData.location.coordinates.longitude}`
+      : defaultCoordinates;
+
+    const gpsCityName = userData.location?.address?.city || parsedCityName;
+    const gpsBrgyName = userData.location?.address?.district && userData.location.address.district !== 'Unknown District'
+      ? userData.location.address.district
+      : defaultBrgyName;
+
+    return { 
+      streetName, 
+      cityName: gpsCityName, 
+      brgyName: gpsBrgyName, 
+      coordinates: gpsCoordinates 
+    };
+  };
+
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -99,14 +129,18 @@ export default function uploadID() {
       
       console.log('Saving profile data to database...')
       
-      // Create address record - with explicit userID
+      // Get clean location data
+      const locationData = getCleanLocationData(completeUserData);
+      console.log('Clean location data:', locationData);
+      
+      // Create address record
       const { data: addressData, error: addressError } = await supabase
         .from('address')
         .insert({
-          streetName: completeUserData.address || 'Unknown Street',
-          brgyName: 'Unknown Barangay',
-          cityName: completeUserData.location || 'Unknown City',
-          geolocationCoords: '0,0',
+          streetName: locationData.streetName,
+          brgyName: locationData.brgyName,
+          cityName: locationData.cityName,
+          geolocationCoords: locationData.coordinates,
           userID: authResult.user.id
         })
         .select('*')

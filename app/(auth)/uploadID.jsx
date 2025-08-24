@@ -188,22 +188,22 @@ export default function uploadID() {
       console.log('Vulnerability created:', vulnerabilityData)
 
       // Create verification record - with explicit userID
-      const { data: verificationData, error: verificationError } = await supabase
-        .from('verification')
-        .insert({
-          isVerified: false,
-          proofFile: image,
-          userID: authResult.user.id
-        })
-        .select('*')
-        .single()
+      // const { data: verificationData, error: verificationError } = await supabase
+      //   .from('verification')
+      //   .insert({
+      //     isVerified: false,
+      //     proofFile: image,
+      //     userID: authResult.user.id
+      //   })
+      //   .select('*')
+      //   .single()
         
-      if (verificationError) {
-        console.error('Error creating verification:', verificationError)
-        throw new Error('Failed to create verification record')
-      }
+      // if (verificationError) {
+      //   console.error('Error creating verification:', verificationError)
+      //   throw new Error('Failed to create verification record')
+      // }
 
-      console.log('Verification created:', verificationData)
+      // console.log('Verification created:', verificationData)
 
       // Create the user record - this one needs explicit userID
       const nameParts = (completeUserData.name || '').split(' ')
@@ -222,7 +222,7 @@ export default function uploadID() {
           hasGuardian: completeUserData.vulnerability?.hasGuardian === 'yes',
           guardianID: guardianData?.id || null,
           vulnerabilityID: vulnerabilityData.id,
-          verificationID: verificationData.id
+          // verificationID: verificationData.id
         })
         .select('*')
 

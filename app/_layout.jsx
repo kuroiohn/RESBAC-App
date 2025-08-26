@@ -20,9 +20,9 @@ export default function RootLayout() {
         headerTintColor: theme.title,
       }}
       >
+        <Stack.Screen name="index" options={{ headerShown: false, title: 'Onboarding' }} />
         <Stack.Screen name="(auth)" options={{ headerShown: false }}/>
         <Stack.Screen name="(dashboard)" options={{ headerShown: false }}/>
-        <Stack.Screen name="index" options={{ title: 'Onboarding' }} />
         {/* <Stack.Screen name="emergencyGuide" options={{ title: 'Emergency Guide' }} /> */}
         <Stack.Screen name="emergencyGuideGuest" options={{ headerShown: false }} />
         

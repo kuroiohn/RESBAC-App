@@ -1,5 +1,5 @@
 import { StyleSheet, Text } from "react-native"
-import { Link, Redirect } from 'expo-router'
+import { Link, Redirect, router } from 'expo-router'
 
 // themed components
 import ThemedView from '../components/ThemedView'
@@ -11,6 +11,8 @@ import ThemedButton from "../components/ThemedButton"
 import ImageButton from "../components/ImageButton"
 import { useUser } from "../hooks/useUser"
 import { useEffect } from "react"
+
+import Mpin from '../app/(auth)/mpin'
 
 const Home = () => {
 

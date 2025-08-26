@@ -24,10 +24,10 @@ const EvacuationStatusCard = ({ style, ...props }) => {
     .from('user')
     .select('*')
     .eq('userID', user.id)
-    .single()
+    .maybeSingle()
 
     if(error){
-      console.error("Fetch error in supabase: ", error)
+      console.error("Fetch error in supabase markassafe: ", error)
     }
     console.log("Successful fetch",  data);
     return data

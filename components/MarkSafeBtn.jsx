@@ -202,7 +202,7 @@ const EvacuationStatusCard = ({ style, ...props }) => {
 
 const styles = StyleSheet.create({
   borderWrapper: {
-    width: '88%',
+    width: '95%',
     padding: 2,
     borderRadius: 12,
   },

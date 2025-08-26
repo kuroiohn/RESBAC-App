@@ -1,8 +1,7 @@
-import { StyleSheet, Text, View, Image } from 'react-native'
+import { StyleSheet, Text, Image } from 'react-native'
 import blueCheck from "../../assets/blueCheck.png"
 import ThemedView from '../../components/ThemedView'
 import { Link } from 'expo-router'
-import ThemedText from '../../components/ThemedText'
 import TitleText from '../../components/TitleText'
 import Spacer from '../../components/Spacer'
 import ThemedButton from '../../components/ThemedButton'

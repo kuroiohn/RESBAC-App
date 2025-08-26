@@ -1,18 +1,13 @@
 import { StyleSheet, Text } from "react-native"
-import { Link, Redirect, router } from 'expo-router'
+import { Link } from 'expo-router'
 
 // themed components
 import ThemedView from '../components/ThemedView'
-import ThemedLogo from '../components/ThemedLogo'
 import Spacer from "../components/Spacer"
 import ThemedText from "../components/ThemedText"
 import WelcomeHeader from '../components/WelcomeHeader'
 import ThemedButton from "../components/ThemedButton"
 import ImageButton from "../components/ImageButton"
-import { useUser } from "../hooks/useUser"
-import { useEffect } from "react"
-
-import Mpin from '../app/(auth)/mpin'
 
 const Home = () => {
 
@@ -24,15 +19,15 @@ const Home = () => {
 
             <Spacer />
             <Link href="/login" asChild>
-                <ThemedButton>
-                <Text style={{ color: '#f2f2f2' }}>Login</Text>
-            </ThemedButton>
+              <ThemedButton>
+                <Text style={{ color: '#f2f2f2', fontWeight: '600' }}>Login</Text>
+              </ThemedButton>
             </Link>
 
             <Link href="/register" asChild>
-                <ThemedButton>
-                <Text style={{ color: '#f2f2f2' }}>Register</Text>
-            </ThemedButton>
+              <ThemedButton>
+                <Text style={{ color: '#f2f2f2', fontWeight: '600' }}>Register</Text>
+              </ThemedButton>
             </Link>
 
             <Spacer height={10} />

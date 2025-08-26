@@ -11,7 +11,6 @@ import ThemedText from '../../components/ThemedText'
 import ThemedButton from '../../components/ThemedButton'
 import ThemedTextInput from '../../components/ThemedTextInput'
 import Spacer from '../../components/Spacer'
-import ThemedLoader from '../../components/ThemedLoader'
 import TitleText from '../../components/TitleText'
 
 const Login = () => {

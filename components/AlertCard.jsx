@@ -82,14 +82,14 @@ const AlertCard = ({ alertLevel = 1 }) => {
   const formatTitle = (title) => {
     if (!title) return "";
 
-    // If the whole title is 12 chars or less → show on one line
-    if (title.length <= 12) return title;
+    // If the whole title is 19 chars or less → show on one line
+    if (title.length <= 19) return title;
 
     // Otherwise split by spaces
     const words = title.split(" ");
 
-    // If the first word itself exceeds 12 chars, force-break at 12
-    if (words[0].length > 12) {
+    // If the first word itself exceeds 19 chars, force-break at 19
+    if (words[0].length > 19) {
       return words[0].slice(0, 12) + "\n" + words[0].slice(12) + " " + words.slice(1).join(" ");
     }
 
@@ -177,7 +177,7 @@ export default AlertCard;
 
 const styles = StyleSheet.create({
   borderWrapper: {
-    width: '88%',
+    width: '95%',
     padding: 2, // para sa stroke
     borderRadius: 12,
     marginBottom: 10, // adds space between stacked alerts

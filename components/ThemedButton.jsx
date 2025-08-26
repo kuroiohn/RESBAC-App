@@ -21,9 +21,9 @@ function ThemedButton({ style, children, ...props }) {
 const styles = StyleSheet.create({
   btn: {
     backgroundColor: Colors.primary,
-    padding: 17,
+    padding: 15,
     borderRadius: 7,
-    marginVertical: 10,
+    marginVertical: 5,
     width: "80%",
     alignItems: 'center',
   },

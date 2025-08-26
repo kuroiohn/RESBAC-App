@@ -75,7 +75,7 @@ const Home = () => {
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ paddingHorizontal: 20 }}
+              contentContainerStyle={{ paddingHorizontal: 12 }}
             >
               <EvacuationCenterCard style={{ marginRight: 16 }} />
               <EvacuationCenterCard style={{ marginRight: 16 }} />
@@ -86,7 +86,7 @@ const Home = () => {
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ paddingHorizontal: 20 }}
+              contentContainerStyle={{ paddingHorizontal: 12 }}
             >
               <EvacuationCenterCard style={{ marginRight: 16 }} />
               <EvacuationCenterCard style={{ marginRight: 16 }} />
@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
   textLeft: {
     textAlign: 'left',
     alignSelf: 'stretch',
-    marginLeft: 30,
+    marginLeft: 19,
     fontSize: 19,
     marginTop: 10,
     marginBottom: 5,

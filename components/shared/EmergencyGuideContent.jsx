@@ -19,11 +19,7 @@ import Clothing from "../../assets/Clothing.png"
 import Money from "../../assets/Money.png"
 import Batteries from "../../assets/Batteries.png"
 
-import HBES from "../../assets/HBES.png"
-import PES from "../../assets/PES.png"
-import CES from "../../assets/CES.png"
-import CIS from "../../assets/CIS.png"
-import GuestOnly from '../../components/auth/GuestOnly'
+import RescuerCard from '../../components/RescuerCard'
 
 import { useState } from 'react'
 import { useQuery,useQueryClient } from '@tanstack/react-query'
@@ -53,6 +49,8 @@ const EmergencyGuideContent = () => {
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <ThemedView style={styles.container}>
 
+          <RescuerCard/>
+          <RescuerCard/>
           <Image source={EmergencyContactsPic} />
 
           <ThemedText style={styles.textLeft}>

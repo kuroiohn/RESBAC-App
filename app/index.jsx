@@ -14,13 +14,6 @@ import { useEffect } from "react"
 
 const Home = () => {
 
-    useEffect(() => {
-    const { user } = useUser()
-    if (!user) {
-      router.replace("/login")
-    }
-  }, [user])
-
     return(
         <ThemedView style={styles.container}>
             <WelcomeHeader/>

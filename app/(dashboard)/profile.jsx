@@ -21,7 +21,7 @@ const Profile = () => {
     firstName:"",
     middleName:"",
     surname:"",
-    //dob:"",
+    dob:"",
     age:0,
     mpin:"",
     userNumber:"",
@@ -33,7 +33,7 @@ const Profile = () => {
     verificationID:0,
     userID:"",
     email:"",
-    isVerified:false
+    isVerified:false,
   });
   const [userAddress,setUserAddress] = useState({
     streetName:"",
@@ -84,7 +84,7 @@ const Profile = () => {
         firstName: data.firstName || "",
         middleName: data.middleName || "",
         surname: data.surname || "",
-        //dob: data.dob || "",
+        dob: data.dateOfBirth || "",
         age: data.age || 0,
         mpin: data.mpin || "",
         userNumber: data.userNumber || "",
@@ -125,7 +125,7 @@ const Profile = () => {
         firstName: profileData.firstName || "",
         middleName: profileData.middleName || "",
         surname: profileData.surname || "",
-        //dob: profileData.dob || "",
+        dob: profileData.dateOfBirth || "",
         age: profileData.age || 0,
         mpin: profileData.mpin || "",
         userNumber: profileData.userNumber || "",
@@ -437,12 +437,36 @@ const Profile = () => {
         <Text style={styles.sectionTitle}>Personal Information</Text>
         <View style={styles.divider} />
         <View style={styles.row}>
-          {renderField("contactNumber", "Contact Number", userData.userNumber)}
+          <View style={styles.rowItem}>
+          {renderField("firstName", "First Name", userData.firstName)}
+          </View>
+          <View style={styles.rowItem}>
+          {
+            userData.middleName !== null ? renderField("middleName", "Middle Name", userData.middleName) : renderField("", "Middle Name", userData.middleName)
+          }
+          </View>
+        </View>
+        <View style={styles.row}>
+          <View style={styles.rowItem}>
+          {renderField("surname", "Surname", userData.surname)}
+          </View>
+        </View>
+          <View style={styles.row}>
           <View style={styles.rowItem}>
             <Text style={styles.label}>Age</Text>
             <TextInput style={[styles.input, styles.disabledInput]} value={userData.age?.toString() || ""} editable={false} />
           </View>
-        <View style={styles.row}>{renderField("householdSize", "Household Size", userData.householdSize.toString(), false)}</View>
+            {renderField("dob", "Date of Birth (YYYY-MM-DD)", userData.dob, false)}</View>
+          <View style={styles.row}>
+            <View style={styles.rowItem}>
+
+            {renderField("householdSize", "Household Size", userData.householdSize.toString(), false)}
+            </View>
+          <View style={styles.rowItem}>
+          {renderField("contactNumber", "Contact Number", userData.userNumber)}
+          </View>
+            </View>
+        <View style={styles.row}>
         </View>
         <View style={styles.row}>
           {/* {renderField("emergencyContact", "Emergency Contact", userData.emergencyContact)} */}

@@ -90,9 +90,9 @@ const Register = () => {
         if (!firstName || firstName.trim() === '') {
             errors.firstName = "Name is required"
         }
-        if (!middleName || middleName.trim() === '') {
-            errors.middleName = "Name is required"
-        }
+        // if (!middleName || middleName.trim() === '') {
+        //     errors.middleName = "Name is required"
+        // }
         if (!surname || surname.trim() === '') {
             errors.surname = "Name is required"
         }
@@ -279,13 +279,15 @@ const Register = () => {
                                 onChange={date => {
                                     setDob(date);
                                     clearFieldError('dob');
-
+                                    
                                     if(date){
                                         const age = differenceInYears(new Date(), new Date(date))
                                         setAge(age)
                                         console.log("Age: ",age); 
                                     }
                                 }}
+                                minimumDate={new Date(1900, 1, 1)}
+                                maximumDate={new Date()} 
                                 placeholder="Date of Birth"
                                 disabled={!isAgreed}
                             />

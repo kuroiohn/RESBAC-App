@@ -23,6 +23,8 @@ import BackNextButtons from '../../components/buttons/BackNextButtons'
 import { useUser } from '../../hooks/useUser'
 import GenderSelector from "../../components/GenderSelector";
 import supabase from '../../contexts/supabaseClient'
+import { differenceInYears } from "date-fns";
+
 
 /**
  * Registration component that handles user registration form
@@ -55,7 +57,10 @@ const Register = () => {
         }
     }, [])
     
-    const [name, setName] = useState('') // User's full name
+    const [firstName, setFirstName] = useState('') // User's full name
+    const [middleName, setMiddleName] = useState('') // User's full name
+    const [surname, setSurname] = useState('') // User's full name
+    const [age, setAge] = useState(0) // set age
     const [email, setEmail] = useState('') // User's email address (used for authentication)
     const [contactNumber, setContactNumber] = useState('') // User's contact phone number
     const [address, setAddress] = useState('') // User's physical address
@@ -82,8 +87,14 @@ const Register = () => {
         const errors = {}
 
         // Name validation
-        if (!name || name.trim() === '') {
-            errors.name = "Name is required"
+        if (!firstName || firstName.trim() === '') {
+            errors.firstName = "Name is required"
+        }
+        if (!middleName || middleName.trim() === '') {
+            errors.middleName = "Name is required"
+        }
+        if (!surname || surname.trim() === '') {
+            errors.surname = "Name is required"
         }
 
         // Date of Birth validation
@@ -143,7 +154,7 @@ const Register = () => {
     
     // handles the logic for the user agreement if agreed ot not
     const handleNext = () => {
-        console.log('handleNext called with data:', { name, email, password })
+        console.log('handleNext called with data:', { firstName, email, password })
         
         // Validation logic
         if (!isAgreed) {
@@ -161,7 +172,10 @@ const Register = () => {
 
         const basicUserData = {
             // Basic info
-            name,
+            firstName,
+            middleName,
+            surname,
+            age,
             email,
             password,
             contactNumber,
@@ -226,18 +240,38 @@ const Register = () => {
                             {/* Name input field */}
                             <ThemedTextInput
                                 style={{ width: '80%' }}
-                                placeholder="Name"
-                                value={name}
+                                placeholder="First Name"
+                                value={firstName}
                                 onChangeText={text => {
-                                    setName(text);
-                                    clearFieldError('name');
+                                    setFirstName(text);
+                                    clearFieldError('firstName');
+                                }}
+                                editable={isAgreed}
+                            />
+                            <ThemedTextInput
+                                style={{ width: '80%' }}
+                                placeholder="Middle Name"
+                                value={middleName}
+                                onChangeText={text => {
+                                    setMiddleName(text);
+                                    clearFieldError('middleName');
+                                }}
+                                editable={isAgreed}
+                            />
+                            <ThemedTextInput
+                                style={{ width: '80%' }}
+                                placeholder="Surname"
+                                value={surname}
+                                onChangeText={text => {
+                                    setSurname(text);
+                                    clearFieldError('surname');
                                 }}
                                 editable={isAgreed}
                             />
                             {formErrors.name && <Text style={styles.fieldError}>{formErrors.name}</Text>}
-                            <TitleText type="title4" style={styles.inputHint}>
+                            {/* <TitleText type="title4" style={styles.inputHint}>
                                 (First Name, Middle Name, Last Name)
-                            </TitleText>
+                            </TitleText> */}
 
                             {/* Date of Birth picker */}
                             <DatePickerInput
@@ -245,6 +279,12 @@ const Register = () => {
                                 onChange={date => {
                                     setDob(date);
                                     clearFieldError('dob');
+
+                                    if(date){
+                                        const age = differenceInYears(new Date(), new Date(date))
+                                        setAge(age)
+                                        console.log("Age: ",age); 
+                                    }
                                 }}
                                 placeholder="Date of Birth"
                                 disabled={!isAgreed}

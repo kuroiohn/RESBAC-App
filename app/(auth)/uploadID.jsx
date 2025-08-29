@@ -240,15 +240,15 @@ export default function uploadID() {
       // console.log('Verification created:', verificationData)
 
       // Create the user record - this one needs explicit userID
-      const nameParts = (completeUserData.name || '').split(' ')
+      // const nameParts = (completeUserData.name || '').split(' ')
       const { error: userError } = await supabase
         .from('user')
         .insert({
           userID: authResult.user.id,
-          firstName: nameParts[0] || 'Unknown',
-          middleName: nameParts[1] || '',
-          surname: nameParts.slice(2).join(' ') || 'User',
-          age: 25, 
+          firstName: completeUserData.firstName || 'Unknown',
+          middleName: completeUserData.middleName || '',
+          surname: completeUserData.surname || 'User',
+          age: completeUserData.age || 0, 
           mpin: Math.floor(1000 + Math.random() * 9000).toString(),
           userNumber: completeUserData.contactNumber || '0000000000',
           householdSize: parseInt(completeUserData.vulnerability?.householdCount) || 1,

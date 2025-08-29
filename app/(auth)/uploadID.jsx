@@ -17,6 +17,7 @@ import Spacer from '../../components/Spacer'
 import BackNextButtons from '../../components/buttons/BackNextButtons'
 import { useUser } from '../../hooks/useUser'
 import supabase from '../../contexts/supabaseClient'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 
 export default function uploadID() {
   const [image, setImage] = useState(null)
@@ -221,26 +222,10 @@ export default function uploadID() {
 
       console.log('Vulnerability created:', vulnerabilityData)
 
-      // Create verification record - with explicit userID
-      // const { data: verificationData, error: verificationError } = await supabase
-      //   .from('verification')
-      //   .insert({
-      //     isVerified: false,
-      //     proofFile: image,
-      //     userID: authResult.user.id
-      //   })
-      //   .select('*')
-      //   .single()
-        
-      // if (verificationError) {
-      //   console.error('Error creating verification:', verificationError)
-      //   throw new Error('Failed to create verification record')
-      // }
-
-      // console.log('Verification created:', verificationData)
-
-      // Create the user record - this one needs explicit userID
-      // const nameParts = (completeUserData.name || '').split(' ')
+      const nameParts = (completeUserData.name || '').split(' ')
+      
+      const tempMpin = `temp${Date.now().toString().slice(-4)}`
+      
       const { error: userError } = await supabase
         .from('user')
         .insert({
@@ -257,7 +242,6 @@ export default function uploadID() {
           hasGuardian: completeUserData.vulnerability?.hasGuardian === 'yes',
           guardianID: guardianData?.id || null,
           vulnerabilityID: vulnerabilityData.id,
-          // verificationID: verificationData.id
         })
         .select('*')
 
@@ -275,12 +259,31 @@ export default function uploadID() {
         step: 'complete',
         completedAt: new Date().toISOString()
       }
+
+      const { data: loginData, error:loginError } = await supabase.auth.signInWithPassword({
+        email: cleanEmail,
+        password: completeUserData.password
+      }) 
+      if(loginError) {
+        console.error("Error in login after registration: ",loginError);
+      }
+      const currentUser = loginData.user
       
+      console.log("Current user: ",currentUser);      
       console.log('Final user data:', finalUserData)
       
-      // Navigate to dashboard
-      console.log('Registration complete! Redirecting to dashboard...')
-      router.push('/(dashboard)/home')
+      // Navigate to MPIN setup instead of dashboard
+      console.log('Redirecting to MPIN setup...')
+      console.log('Final user data being passed:', JSON.stringify(finalUserData).substring(0, 200) + '...')
+      
+      router.replace({
+        pathname: '/mpinSetup',
+        params: {
+          userData: JSON.stringify({...finalUserData,
+            userID:currentUser.id,
+          })
+        }
+      })
       
     } catch (error) {
       console.error('Registration error:', error)
@@ -307,7 +310,7 @@ export default function uploadID() {
         {/* DEBUG: Show received data */}
         {completeUserData.name && (
           <Text style={{textAlign: 'center', color: 'green', marginBottom: 10}}>
-            Final step for: {completeUserData.name}
+            Almost done for: {completeUserData.name}
           </Text>
         )}
 
@@ -353,7 +356,7 @@ export default function uploadID() {
           onBack={() => router.back()} 
           onNext={handleNext}
           nextDisabled={isCreating}
-          nextText={isCreating ? "Creating Account..." : "Complete Registration"}
+          nextText={isCreating ? "Creating Account..." : "Next: Set MPIN"}
         />
       </ThemedView>
     </ScrollView>

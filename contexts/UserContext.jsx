@@ -1,6 +1,7 @@
 import { createContext, useEffect, useState } from 'react'
 import supabase from './supabaseClient'
 import { useRouter } from 'expo-router'
+import { SecureStorage } from '../utils/secureStorage'
 
 export const UserContext = createContext()
 
@@ -57,6 +58,11 @@ export function UserProvider({ children }) {
     async function logout() {
         try {
             console.log('Logging out user')
+            
+            // Clear stored MPIN session before signing out
+            await SecureStorage.clearSession()
+            console.log('Stored session cleared')
+            
             const { error } = await supabase.auth.signOut({ scope: 'global' })
             if (error) throw error
             setUser(null)
@@ -64,7 +70,8 @@ export function UserProvider({ children }) {
             router.replace("/")
         } catch (error) {
             console.error('Logout error:', error)
-            // Force clear user state even if signOut fails
+            // Force clear user state and stored session even if signOut fails
+            await SecureStorage.clearSession()
             setUser(null)
             throw Error(error.message)
         }
@@ -79,6 +86,7 @@ export function UserProvider({ children }) {
                 console.error('Error getting initial user:', error)
                 // Force clear session if there's an error
                 await supabase.auth.signOut({ scope: 'global' })
+                await SecureStorage.clearSession()
                 setUser(null)
             } else {
                 console.log('Initial user found:', session?.user?.id || 'none')
@@ -86,6 +94,7 @@ export function UserProvider({ children }) {
             }
         } catch (error) {
             console.error('Error getting user:', error)
+            await SecureStorage.clearSession()
             setUser(null)
         } finally {
             setAuthChecked(true)
@@ -96,14 +105,20 @@ export function UserProvider({ children }) {
         getInitialUserValue()
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
-            (event, session) => {
+            async (event, session) => {
                 console.log('=== AUTH STATE CHANGE ===')
                 console.log('Event:', event)
                 console.log('Session exists:', !!session)
                 console.log('User ID:', session?.user?.id)
                 console.log('Session expires at:', session?.expires_at)
                 console.log('========================')
+                
                 setUser(session?.user ?? null)
+                
+                // Clear stored session if user signs out
+                if (event === 'SIGNED_OUT') {
+                    await SecureStorage.clearSession()
+                }
             }
         )
 
@@ -112,7 +127,8 @@ export function UserProvider({ children }) {
 
     return (
         <UserContext.Provider value={{ 
-            user, 
+            user,
+            setUser, // added 
             login, 
             register, 
             logout,

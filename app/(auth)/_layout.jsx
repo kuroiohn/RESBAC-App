@@ -1,19 +1,31 @@
-import { Stack } from "expo-router"
-import { StatusBar } from "react-native"
-import { useUser } from "../../hooks/useUser"
-import GuestOnly from "../../components/auth/GuestOnly"
+import { useColorScheme } from 'react-native'
+import { Stack } from 'expo-router'
+import { Colors } from "../../constants/Colors"
 
 export default function AuthLayout() {
+  const colorScheme = useColorScheme()
+  const theme = Colors[colorScheme] ?? Colors.light
 
-  const { user } = useUser()
-  console.log(user)
-  
   return (
-    <GuestOnly>
-      <StatusBar style="auto" />
-      <Stack 
-        screenOptions={{ headerShown: false, animation: "none" }} 
+    <Stack screenOptions={{
+      headerStyle: { backgroundColor: theme.navBackground },
+      headerTintColor: theme.title,
+    }}>
+      <Stack.Screen name="login" options={{ headerShown: false }} />
+      <Stack.Screen name="register" options={{ headerShown: false }} />
+      <Stack.Screen name="mpin" options={{ headerShown: false }} />
+      <Stack.Screen 
+        name="mpinSetup" 
+        options={{ 
+          headerShown: false,
+          gestureEnabled: false, // Prevent swipe back
+          animation: 'none',
+          title: 'Setup MPIN'
+        }} 
       />
-    </GuestOnly>
+      <Stack.Screen name="regisComplete" options={{ headerShown: false }} />
+      <Stack.Screen name="uploadID" options={{ headerShown: false }} />
+      <Stack.Screen name="vulnerable" options={{ headerShown: false }} />
+    </Stack>
   )
 }

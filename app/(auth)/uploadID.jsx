@@ -221,26 +221,10 @@ export default function uploadID() {
 
       console.log('Vulnerability created:', vulnerabilityData)
 
-      // Create verification record - with explicit userID
-      // const { data: verificationData, error: verificationError } = await supabase
-      //   .from('verification')
-      //   .insert({
-      //     isVerified: false,
-      //     proofFile: image,
-      //     userID: authResult.user.id
-      //   })
-      //   .select('*')
-      //   .single()
-        
-      // if (verificationError) {
-      //   console.error('Error creating verification:', verificationError)
-      //   throw new Error('Failed to create verification record')
-      // }
-
-      // console.log('Verification created:', verificationData)
-
-      // Create the user record - this one needs explicit userID
       const nameParts = (completeUserData.name || '').split(' ')
+      
+      const tempMpin = `temp${Date.now().toString().slice(-4)}`
+      
       const { error: userError } = await supabase
         .from('user')
         .insert({
@@ -249,14 +233,13 @@ export default function uploadID() {
           middleName: nameParts[1] || '',
           surname: nameParts.slice(2).join(' ') || 'User',
           age: 25, 
-          mpin: Math.floor(1000 + Math.random() * 9000).toString(),
+          mpin: tempMpin, // Unique temporary placeholder - will be updated in MPIN setup
           userNumber: completeUserData.contactNumber || '0000000000',
           householdSize: parseInt(completeUserData.vulnerability?.householdCount) || 1,
           addressID: addressData.id,
           hasGuardian: completeUserData.vulnerability?.hasGuardian === 'yes',
           guardianID: guardianData?.id || null,
           vulnerabilityID: vulnerabilityData.id,
-          // verificationID: verificationData.id
         })
         .select('*')
 
@@ -277,9 +260,16 @@ export default function uploadID() {
       
       console.log('Final user data:', finalUserData)
       
-      // Navigate to dashboard
-      console.log('Registration complete! Redirecting to dashboard...')
-      router.push('/(dashboard)/home')
+      // Navigate to MPIN setup instead of dashboard
+      console.log('Redirecting to MPIN setup...')
+      console.log('Final user data being passed:', JSON.stringify(finalUserData).substring(0, 200) + '...')
+      
+      router.replace({
+        pathname: '/mpinSetup',
+        params: {
+          userData: JSON.stringify(finalUserData)
+        }
+      })
       
     } catch (error) {
       console.error('Registration error:', error)
@@ -306,7 +296,7 @@ export default function uploadID() {
         {/* DEBUG: Show received data */}
         {completeUserData.name && (
           <Text style={{textAlign: 'center', color: 'green', marginBottom: 10}}>
-            Final step for: {completeUserData.name}
+            Almost done for: {completeUserData.name}
           </Text>
         )}
 
@@ -352,7 +342,7 @@ export default function uploadID() {
           onBack={() => router.back()} 
           onNext={handleNext}
           nextDisabled={isCreating}
-          nextText={isCreating ? "Creating Account..." : "Complete Registration"}
+          nextText={isCreating ? "Creating Account..." : "Next: Set MPIN"}
         />
       </ThemedView>
     </ScrollView>

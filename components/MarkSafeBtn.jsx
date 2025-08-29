@@ -2,40 +2,73 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, Pressable } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { useUser } from '../hooks/useUser'
 
 import supabase from '../contexts/supabaseClient'
 import { useQuery,useQueryClient } from '@tanstack/react-query'
 
 const EvacuationStatusCard = ({ style, ...props }) => {
+  const {user} = useUser()
   const [step, setStep] = useState(0);
   const [isPressed, setIsPressed] = useState(false);
   const [mark,setMark] = useState(false);
 
-  // reads from supabase
-  const fetchData = async () => {
-    // Get the current logged-in user
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    if (userError || !user) {
-      console.error("Error fetching auth user:", userError);
-      throw new Error("No active session / user");
-    }
+  useEffect(()=>{
+    const userid = user.id
+    // reads from supabase
+    const fetchData = async () => {
+      // Get the current logged-in user
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) {
+        console.error("Error fetching auth user:", userError);
+        throw new Error("No active session / user");
+      }
 
-    const {data,error} = await supabase
-    .from('user')
-    .select('*')
-    .eq('userID', user.id)
-    .maybeSingle()
+      const {data,error} = await supabase
+      .from('user')
+      .select('markAsSafe')
+      .eq('userID', user.id)
+      .maybeSingle()
 
-    if(error){
-      console.error("Fetch error in supabase markassafe: ", error)
+      if(error){
+        console.error("Fetch error in supabase markassafe: ", error)
+      }
+      console.log("Successful fetch",  data);
+      setMark(data.markAsSafe)
+      if(data.markAsSafe) setStep(2)
+      return data
     }
-    console.log("Successful fetch",  data);
-    return data
-  }
-  const {data: userData,isPending,isError,error, refetch} = useQuery({
-    queryKey: ["user"],
-    queryFn: fetchData,
-  })
+    
+    fetchData();
+    
+    const markChannel = supabase.channel('markAsSafe-channel')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'user',
+          filter: `userID = eq.${userid}`
+        },
+        (payload) => {
+          console.log('Change received!', payload)
+
+          if (payload.new?.markAsSafe !== undefined){
+            setMark(payload.new.markAsSafe)
+            console.log("Realtime Mark: ", mark);
+
+            if(payload.new.markAsSafe){
+              setStep(2)
+            }
+            
+          }
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(markChannel);
+    };
+
+  },[])
+  
 
   const updateMarkAsSafe = async () => {
     const { data: { user }, error: userError } = await supabase.auth.getUser();
@@ -48,6 +81,7 @@ const EvacuationStatusCard = ({ style, ...props }) => {
     .from('user')
     .update({markAsSafe: true})
     .eq("userID",user.id)
+    .select()
 
     console.log("Row(s) found:", data, error);
 
@@ -56,15 +90,7 @@ const EvacuationStatusCard = ({ style, ...props }) => {
     }
   }
 
-  useEffect(() => {
-    if (userData?.markAsSafe === true){ // added ? to userData?
-      setStep(2)
-    }
-    if(userData){
-      setMark(userData.markAsSafe);
-    }
-  },[userData])
-
+  // ##########################################
   console.log("markAsSafe:",mark, "Step: ",step);
   
   const handlePress = () => {

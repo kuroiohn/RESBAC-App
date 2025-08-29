@@ -1,13 +1,33 @@
 import { useRef,useEffect, useState } from 'react'
 import LottieView from 'lottie-react-native'
 import { TouchableWithoutFeedback, StyleSheet, View, Linking, Alert } from 'react-native'
+import supabase from '../contexts/supabaseClient'
+import { useUser } from '../hooks/useUser'
 
 const CallButton = ({ onAnimationStart, onAnimationFinish }) => {
+  const {user} = useUser()
   const animationRef = useRef(null)
   const phoneNumber = "09684319082"
   const [isDisabled,setIsDisabled] = useState(false)
 
   const handleDial = async () => {
+    // const { data: { user }, error: userError } = await supabase.auth.getUser();
+    // if (userError) {
+    //   console.error("Error fetching auth user: ", userError);
+    // }
+
+    const {data,error} = await supabase
+    .from('user')
+    .update({pressedCallBtn: true})
+    .eq("userID",user.id)
+    .select()
+
+    console.log("updated call btn:", data, error);
+
+    if(error) {
+      console.error("Error in updating call btn", error);
+    }
+  
     const url = `tel:${phoneNumber}`
     const supported = await Linking.canOpenURL(url)
 

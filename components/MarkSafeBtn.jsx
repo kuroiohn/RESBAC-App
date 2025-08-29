@@ -45,7 +45,7 @@ const EvacuationStatusCard = ({ style, ...props }) => {
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'user',
-          filter: `userID = eq.${userid}`
+          filter: `userID=eq.${userid}`
         },
         (payload) => {
           console.log('Change received!', payload)

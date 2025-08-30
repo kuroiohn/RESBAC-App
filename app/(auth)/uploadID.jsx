@@ -48,12 +48,21 @@ export default function uploadID() {
       : defaultCoordinates;
 
     const gpsCityName = userData.location?.address?.city || parsedCityName;
-    const gpsBrgyName = userData.location?.address?.district && userData.location.address.district !== 'Unknown District'
-      ? userData.location.address.district
-      : defaultBrgyName;
+    const gpsBrgyName = userData.location?.address?.barangay ||
+    userData.location?.address?.subLocality ||
+    userData.location?.address?.village ||
+    userData.location?.address?.neighborhood ||
+    defaultBrgyName;
+
+    const gpsStreetName =
+    userData.location?.address?.road ||
+    userData.location?.address?.street ||
+    userData.location?.address?.route ||
+    userData.location?.address?.address_line ||
+    defaultStreetName;
 
     return { 
-      streetName, 
+      streetName: gpsStreetName, 
       cityName: gpsCityName, 
       brgyName: gpsBrgyName, 
       coordinates: gpsCoordinates 

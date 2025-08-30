@@ -6,10 +6,12 @@ import supabase from "../../contexts/supabaseClient";
 import profilePic from "../../assets/sohee.jpg";
 import Spacer from "../../components/Spacer"
 import { useQuery,useQueryClient } from '@tanstack/react-query'
+import { differenceInYears } from "date-fns";
 
 
 const Profile = () => {
   const { user, logout } = useUser();
+  const queryClient = useQueryClient()
   
   // debug (ata, if this makes sense)
   console.log('Profile component - user state:', user);
@@ -33,7 +35,7 @@ const Profile = () => {
     verificationID:0,
     userID:"",
     email:"",
-    isVerified:false,
+    // isVerified:false,
   });
   const [userAddress,setUserAddress] = useState({
     streetName:"",
@@ -61,6 +63,12 @@ const Profile = () => {
   })
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
+  const [editedUser,setEditedUser] = useState({
+    userData:{...userData},
+    userAddress: {...userAddress},
+    userGuardian: {...userGuardian},
+    userVul: {...userVul}
+  })
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [passwords, setPasswords] = useState({ current: "", new: "", confirm: "" });
 
@@ -136,7 +144,7 @@ const Profile = () => {
         vulnerabilityID: profileData.vulnerabilityID || 0,
         verificationID: profileData.verificationID || 0,
         userID: profileData.userID || "",
-        email: user.email
+        email: profileData.email
       })
     }
   },[user])
@@ -296,6 +304,92 @@ const Profile = () => {
 
   console.log(userVul);
 
+  // SUBSCRIBING TO REALTIME ON ALL TABLES ##############################
+  useEffect(() => {
+    if (!user?.id) return;
+
+    // USER table subscription
+    const userSub = supabase
+      .channel('user-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'user', filter: `userID=eq.${user.id}` },
+        (payload) => {
+          console.log("Realtime USER update:", payload);
+          setUserData(prev => ({
+            ...prev,
+            ...payload.new,
+            dob: payload.new.dateOfBirth ?? prev.dob
+          }))
+          // Re-fetch with react-query
+          // refetch();
+        }
+      )
+      .subscribe();
+
+    // ADDRESS table subscription
+    const addressSub = supabase
+      .channel('address-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'address', filter: `userID=eq.${user.id}` },
+        (payload) => {
+          console.log("Realtime ADDRESS update:", payload);
+          setUserAddress(prev => ({
+            ...prev,
+            ...payload.new
+          }))
+          // trigger react-query refetch for address
+          queryClient.invalidateQueries(["address"]);
+        }
+      )
+      .subscribe();
+
+    // GUARDIAN table subscription
+    const guardianSub = supabase
+      .channel('guardian-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'guardian', filter: `userID=eq.${user.id}` },
+        (payload) => {
+          console.log("Realtime GUARDIAN update:", payload);
+          setUserGuardian(prev => ({
+            ...prev,
+            ...payload.new
+          }))
+
+          queryClient.invalidateQueries(["guardian", user.id]);
+        }
+      )
+      .subscribe();
+
+    // VULNERABILITY table subscription
+    const vulSub = supabase
+      .channel('vulnerability-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'vulnerabilityList', filter: `userID=eq.${user.id}` },
+        (payload) => {
+          console.log("Realtime VUL update:", payload);
+          setUserVul(prev => ({
+            ...prev,
+            ...payload.new
+          }))
+          queryClient.invalidateQueries(["vulnerabilityList"]);
+        }
+      )
+      .subscribe();
+
+    // cleanup on unmount
+    return () => {
+      supabase.removeChannel(userSub);
+      supabase.removeChannel(addressSub);
+      supabase.removeChannel(guardianSub);
+      supabase.removeChannel(vulSub);
+    };
+  }, [user?.id]);
+
+
   const toggleEdit = () => {
     if (isEditing) {
       Alert.alert(
@@ -304,7 +398,7 @@ const Profile = () => {
         [
           {
             text: "Cancel",
-            onPress: () => setEditedUser(userData),
+            // onPress: () => setEditedUser(userData),
             style: "cancel",
           },
           {
@@ -314,15 +408,65 @@ const Profile = () => {
         ]
       );
     } else {
-      setEditedUser(userData);
+      // setEditedUser(userData);
     }
     setIsEditing(!isEditing);
   };
 
   const saveChanges = async () => {
     try {
-      Alert.alert("Info", "Profile updates require backend API implementation due to normalized database structure. Please contact your development team.");
+      const newAge = differenceInYears(new Date(), new Date(userData.dob))
+      // update email ################################################
+      // const {error:emailError} = await supabase.auth.updateUser({
+      //   email: userData.email
+      // })
+      // if (emailError) {
+      //   console.error("Email update error", error);
+      // }
+
+      // Update user table ############################################
+      await supabase.from('user').update({
+        firstName: userData.firstName,
+        middleName: userData.middleName,
+        surname: userData.surname,
+        age: newAge,
+        userNumber: userData.userNumber,
+        householdSize: userData.householdSize,
+        hasGuardian: userData.hasGuardian
+      })
+      .eq('userID', user.id)
+      .select()
+
+      // Update address table ###########################################
+      await supabase.from('address').update({
+        streetName: userAddress.streetName,
+        brgyName: userAddress.brgyName,
+        cityName: userAddress.cityName,
+        geolocationCoords: userAddress.geolocationCoords
+      }).eq('userID', user.id);
+
+      // Update guardian table (if exists) ##############################
+      if(userData.hasGuardian){
+        await supabase.from('guardian').update({
+          fullName: userGuardian.fullName,
+          relationship: userGuardian.relationship,
+          guardianContact: userGuardian.guardianContact,
+          guardianAddress: userGuardian.guardianAddress
+        }).eq('userID', user.id);
+      }
+
+      // Update vulnerability table ###################################
+      await supabase.from('vulnerabilityList').update({
+        elderly: userVul.elderly,
+        pregnantInfant: userVul.pregnantInfant,
+        physicalPWD: userVul.physicalPWD,
+        psychPWD: userVul.psychPWD,
+        sensoryPWD: userVul.sensoryPWD,
+        medDep: userVul.medDep,
+        locationRiskLevel: userVul.locationRiskLevel
+      }).eq('userID', user.id);
       
+      Alert.alert("Success", "Profile updated!");
       //setUserData(editedUser);
     } catch (error) {
       console.error('Error updating profile:', error);
@@ -330,11 +474,14 @@ const Profile = () => {
     }
   };
 
-  const updateField = (field, value) => {
-    setEditedUser((prev) => ({ ...prev, [field]: value }));
+  const updateField = (section,field, value) => {
+    if (section === "userData") {setUserData((prev) => ({ ...prev, [field]: value })) } 
+    else if (section === "userGuardian" && userData.hasGuardian) {setUserGuardian((prev) => ({ ...prev, [field]: value })) }
+    else if (section === "userAddress") {setUserAddress((prev) => ({ ...prev, [field]: value })) }
+    else if (section === "userVul") {setUserVul((prev) => ({ ...prev, [field]: value })) }
   };
 
-  const renderField = (field, label, value, editable = true) => (
+  const renderField = (section, field, label, value, editable = true) => (
     <View style={styles.rowItem}>
       <Text style={styles.label}>{label}</Text>
       <TextInput
@@ -344,7 +491,7 @@ const Profile = () => {
         ]}
         value={value || ""}
         editable={isEditing && editable}
-        onChangeText={(text) => editable && updateField(field, text)}
+        onChangeText={(text) => editable && updateField(section, field, text)}
       />
     </View>
   );
@@ -421,9 +568,9 @@ const Profile = () => {
             {userData.isVerified && <Feather name="check-circle" size={16} color="#007bff" />}
           </Text>
           <Text style={styles.fullName}>
-            {userData.firstName.charAt(0).toUpperCase()+userData.firstName.slice(1)}
-            {userData.middleName === "" &&
-          (" " + userData.middleName.charAt(0).toUpperCase()+userData.middleName.slice(1))}
+            {userData.firstName.charAt(0).toUpperCase()+userData.firstName.slice(1) + " "}
+            {userData.middleName !== "" &&
+          (userData.middleName.charAt(0).toUpperCase()+userData.middleName.slice(1)) + " "}
             {userData.surname.charAt(0).toUpperCase()+userData.surname.slice(1)}</Text>
           <Text style={styles.address}>
             {userAddress.streetName.charAt(0).toUpperCase()+userAddress.streetName.slice(1)}, 
@@ -433,49 +580,55 @@ const Profile = () => {
       </View>
 
       {/* Personal Information */}
+      {/* USER DATA */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Personal Information</Text>
         <View style={styles.divider} />
         <View style={styles.row}>
           <View style={styles.rowItem}>
-          {renderField("firstName", "First Name", userData.firstName)}
+          {renderField("userData","firstName", "First Name", userData.firstName)}
           </View>
           <View style={styles.rowItem}>
           {
-            userData.middleName !== null ? renderField("middleName", "Middle Name", userData.middleName) : renderField("", "Middle Name", userData.middleName)
+            userData.middleName !== null ? renderField("userData","middleName", "Middle Name", userData.middleName) : renderField("userData","", "Middle Name", userData.middleName)
           }
           </View>
         </View>
         <View style={styles.row}>
-          <View style={styles.rowItem}>
-          {renderField("surname", "Surname", userData.surname)}
+          <View style={styles.row}>
+          {renderField("userData","surname", "Surname", userData.surname)}
           </View>
         </View>
-          <View style={styles.row}>
+
+        <View style={styles.row}>
           <View style={styles.rowItem}>
             <Text style={styles.label}>Age</Text>
             <TextInput style={[styles.input, styles.disabledInput]} value={userData.age?.toString() || ""} editable={false} />
           </View>
-            {renderField("dob", "Date of Birth (YYYY-MM-DD)", userData.dob, false)}</View>
-          <View style={styles.row}>
-            <View style={styles.rowItem}>
+            {renderField("userData","dob", "Date of Birth (YYYY-MM-DD)", userData.dob, false)}
+        </View>
 
-            {renderField("householdSize", "Household Size", userData.householdSize.toString(), false)}
+            <View style={styles.row}>
+              {renderField("userData","householdSize", "Household Size", userData.householdSize.toString())}
+              <View style={styles.row}>
+                {renderField("userData","contactNumber", "Contact Number", userData.userNumber)}
+              <View style={styles.row}>{renderField("userData","email", "Email", userData.email, false)}</View>
             </View>
-          <View style={styles.rowItem}>
-          {renderField("contactNumber", "Contact Number", userData.userNumber)}
-          </View>
-            </View>
+        </View>
         <View style={styles.row}>
         </View>
         <View style={styles.row}>
           {/* {renderField("emergencyContact", "Emergency Contact", userData.emergencyContact)} */}
           <View style={styles.rowItem}>
-            <Text style={styles.label}>Barangay</Text>
-            <TextInput style={[styles.input, styles.disabledInput]} value={userAddress.brgyName || ""} editable={false} />
+          <Text style={styles.sectionTitle}>Address Information</Text>
+          <View style={styles.divider} />
+            {renderField("userAddress","streetName", "Street", userAddress.streetName)}
+            {renderField("userAddress","brgyName", "Barangay", userAddress.brgyName)}
+            {renderField("userAddress","cityName", "City", userAddress.cityName)}
+            {/* <Text style={styles.label}>Barangay</Text> */}
+            {/* <TextInput style={[styles.input, styles.disabledInput]} value={userAddress.brgyName || ""} editable={true} /> */}
           </View>
         </View>
-        <View style={styles.row}>{renderField("email", "Email", userData.email, false)}</View>
         {/* <View style={styles.row}>{renderField("vulnerability", "Vulnerability", userData.vulnerability, false)}</View> */}
       </View>
       
@@ -485,24 +638,26 @@ const Profile = () => {
             <Text style={styles.sectionTitle}>Guardian Information</Text>
             <View style={styles.divider} />
             <View style={styles.row}>
-              {renderField("guardianName", "Name", userGuardian.fullName)}
-              {renderField("guardianRelationship", "Relationship", userGuardian.relationship)}
+              {renderField("userGuardian","fullName", "Name", userGuardian.fullName)}
+              {renderField("userGuardian","relationship", "Relationship", userGuardian.relationship)}
             </View>
-            <View style={styles.row}>{renderField("guardianContact", "Contact", userGuardian.guardianContact)}</View>
-            <View style={styles.row}>{renderField("guardianAddress", "Address", userGuardian.guardianAddress)}</View>
+            <View style={styles.row}>{renderField("userGuardian","guardianContact", "Contact", userGuardian.guardianContact)}</View>
+            <View style={styles.row}>{renderField("userGuardian","guardianAddress", "Address", userGuardian.guardianAddress)}</View>
           </View> 
         )
       }
 
-      <View style={styles.row}>{renderField("elderly", "Age-related", (userVul.elderly ? "Elderly" : "Not elderly"), false)}</View>
-      <View style={styles.row}>{renderField("pregnantInfant", "Pregnant/Infant", userVul.pregnantInfant.toString(), false)}</View>
+      <Text style={styles.sectionTitle}>Vulnerability Information</Text>
+      <View style={styles.divider} />
+      <View style={styles.row}>{renderField("userVul","elderly", "Age-related", (userVul.elderly ? "Elderly" : "Not elderly"), false)}</View>
+      <View style={styles.row}>{renderField("userVul","pregnantInfant", "Pregnant/Infant", userVul.pregnantInfant.toString(), false)}</View>
 
-      <View style={styles.row}>{renderField("physicalPWD", "Physical Disability", userVul.physicalPWD.toString(), false)}</View>
-      <View style={styles.row}>{renderField("psychPWD", "Psychological Disability", userVul.psychPWD.toString(), false)}</View>
-      <View style={styles.row}>{renderField("sensoryPWD", "Sensory Disability", userVul.sensoryPWD.toString(), false)}</View>
+      <View style={styles.row}>{renderField("userVul","physicalPWD", "Physical Disability", userVul.physicalPWD.toString(), false)}</View>
+      <View style={styles.row}>{renderField("userVul","psychPWD", "Psychological Disability", userVul.psychPWD.toString(), false)}</View>
+      <View style={styles.row}>{renderField("userVul","sensoryPWD", "Sensory Disability", userVul.sensoryPWD.toString(), false)}</View>
 
-      <View style={styles.row}>{renderField("medDep", "Medically Dependent", userVul.medDep.toString(), false)}</View>
-      <View style={styles.row}>{renderField("locationRiskLevel", "Location Risk Level", userVul.locationRiskLevel.toString(), false)}</View>
+      <View style={styles.row}>{renderField("userVul","medDep", "Medically Dependent", userVul.medDep.toString(), false)}</View>
+      <View style={styles.row}>{renderField("userVul","locationRiskLevel", "Location Risk Level", userVul.locationRiskLevel.toString(), false)}</View>
 
       {/* 
       <View style={styles.section}>

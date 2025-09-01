@@ -70,6 +70,7 @@ export default function uploadID() {
   };
 
   const pickImage = async () => {
+    //FIXME - make it use document picker instead of image picker, or both but make it conditional, but it will still upload on the same bucket
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       quality: 1,
@@ -229,12 +230,40 @@ export default function uploadID() {
         throw new Error('Failed to create vulnerability record')
       }
 
-      console.log('Vulnerability created:', vulnerabilityData)
+      //TODO - add verification table insert somewhere here
+      const { data: verifData, error: verifError } = await supabase
+        .from('verification')
+        .insert({
+          isVerified: false, // will turn true after admin
+          proofFile: image,
+          userID: authResult.user.id
+        })
+        .select('*')
+        .single()
 
+      if (verifError) {
+        console.error('Error creating verification:', verifError)
+        throw new Error('Failed to create verification record')
+      }
+
+      console.log('Verification created:', verifData)
+
+      //NOTE - not used
       const nameParts = (completeUserData.name || '').split(' ')
-      
       const tempMpin = `temp${Date.now().toString().slice(-4)}`
       
+      //NOTE - apparently redundant since verifData already contains the inserted row
+      // //TODO - fetch the verification table and update the insert of the user
+      // const { data:fetchVerifData, error: fetchVerifError } = await supabase
+      // .from('verification')
+      // .select('*')
+      // .eq("userID",authResult.user.id)
+      // .single()
+
+      // if(fetchVerifError){
+      //   console.error("Error in fetching verification id for user table:", fetchVerifError);
+      // }
+
       const { error: userError } = await supabase
         .from('user')
         .insert({
@@ -251,6 +280,7 @@ export default function uploadID() {
           hasGuardian: completeUserData.vulnerability?.hasGuardian === 'yes',
           guardianID: guardianData?.id || null,
           vulnerabilityID: vulnerabilityData.id,
+          verificationID: verifData.id
         })
         .select('*')
 
@@ -266,7 +296,7 @@ export default function uploadID() {
         ...completeUserData,
         uploadedID: image,
         step: 'complete',
-        completedAt: new Date().toISOString()
+        completedAt: new Date().toISOString(),
       }
 
       const { data: loginData, error:loginError } = await supabase.auth.signInWithPassword({

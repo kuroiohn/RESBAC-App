@@ -141,6 +141,7 @@ const MpinSetup = () => {
     }
   }
 
+  //NOTE - this is not being called at all
   const saveMpinAndCompleteRegistration = async () => {
     setIsCreating(true)
     try {

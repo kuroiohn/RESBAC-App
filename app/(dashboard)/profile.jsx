@@ -560,9 +560,15 @@ const Profile = () => {
     <ScrollView contentContainerStyle={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        {/* USER PROFILE PICTURE */}
+        {/* USER PROFILE PICTURE 
+            //TODO - add bucket insert for picture
+        */}
         <Image source={profilePic} style={styles.photo} />
         <View style={styles.statusContainer}>
+          {
+            //TODO - fetch verification here
+
+          }
           <Text style={[styles.statusText, userData.isVerified ? styles.safe : styles.pending]}>
             {userData.isVerified ? "Verified" : "Pending Verification"}{" "}
             {userData.isVerified && <Feather name="check-circle" size={16} color="#007bff" />}

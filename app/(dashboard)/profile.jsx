@@ -35,7 +35,6 @@ const Profile = () => {
     verificationID:0,
     userID:"",
     email:"",
-    // isVerified:false,
   });
   const [userAddress,setUserAddress] = useState({
     streetName:"",
@@ -61,6 +60,7 @@ const Profile = () => {
     locationRiskLevel:"",
     userID:""
   })
+  const [isVerified, setIsVerified] = useState(false);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [editedUser,setEditedUser] = useState({
@@ -304,6 +304,41 @@ const Profile = () => {
 
   console.log(userVul);
 
+  const fetchVerif = async () => {
+    // Get the current logged in user
+    const { error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
+      console.error("Error fetching auth user:", userError);
+      throw new Error("No active session / user");
+    }
+
+    const {data,error} = await supabase
+    .from('verification')
+    .select('*')
+    .eq('userID', user.id)
+    .single()
+
+    setIsVerified(data.isVerified)
+
+    if(error){
+      console.error("Fetch error in verif table: ", error)
+    }
+    console.log("Successful fetch",  data);
+    return data
+  }
+  const {data: verifData,error:verifError} = useQuery({
+    queryKey: ["verification"],
+    queryFn: fetchVerif,
+  })
+  if(verifError){
+    console.error("Error in fetching vulList table: ", verifError);
+  }
+  useEffect(()=>{
+    if(verifData){
+      setIsVerified(verifData.isVerified)
+    }
+  },[user])
+
   // SUBSCRIBING TO REALTIME ON ALL TABLES ##############################
   useEffect(() => {
     if (!user?.id) return;
@@ -380,15 +415,31 @@ const Profile = () => {
       )
       .subscribe();
 
+    // VERIFICATION table subscription
+    const verifSub = supabase
+      .channel('verification-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'verification', filter: `userID=eq.${user.id}` },
+        (payload) => {
+          setIsVerified(payload.new)
+          queryClient.invalidateQueries(["verification"]);
+        }
+      )
+      .subscribe();
+
     // cleanup on unmount
     return () => {
       supabase.removeChannel(userSub);
       supabase.removeChannel(addressSub);
       supabase.removeChannel(guardianSub);
       supabase.removeChannel(vulSub);
+      supabase.removeChannel(verifSub);
     };
   }, [user?.id]);
 
+  console.log("realtime verif: ", isVerified);
+  
 
   const toggleEdit = () => {
     if (isEditing) {
@@ -411,7 +462,7 @@ const Profile = () => {
       // setEditedUser(userData);
     }
     setIsEditing(!isEditing);
-  };
+  };  
 
   const saveChanges = async () => {
     try {
@@ -567,11 +618,10 @@ const Profile = () => {
         <View style={styles.statusContainer}>
           {
             //TODO - fetch verification here
-
           }
-          <Text style={[styles.statusText, userData.isVerified ? styles.safe : styles.pending]}>
-            {userData.isVerified ? "Verified" : "Pending Verification"}{" "}
-            {userData.isVerified && <Feather name="check-circle" size={16} color="#007bff" />}
+          <Text style={[styles.statusText, isVerified ? styles.safe : styles.pending]}>
+            {isVerified ? "Verified" : "Pending Verification"}{" "}
+            {isVerified && <Feather name="check-circle" size={16} color="#007bff" />}
           </Text>
           <Text style={styles.fullName}>
             {userData.firstName.charAt(0).toUpperCase()+userData.firstName.slice(1) + " "}

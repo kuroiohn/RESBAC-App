@@ -295,6 +295,7 @@ export default function uploadID() {
       const finalUserData = {
         ...completeUserData,
         uploadedID: image,
+        isVerified: verifData.isVerified,
         step: 'complete',
         completedAt: new Date().toISOString(),
       }

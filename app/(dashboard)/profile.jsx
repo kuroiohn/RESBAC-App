@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { View, Text, StyleSheet, Image, TouchableOpacity, TextInput, ScrollView, Alert, Modal, Button } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useUser } from "../../hooks/useUser";
@@ -7,6 +7,8 @@ import profilePic from "../../assets/sohee.jpg";
 import Spacer from "../../components/Spacer"
 import { useQuery,useQueryClient } from '@tanstack/react-query'
 import { differenceInYears } from "date-fns";
+import ThemedLoader from "../../components/ThemedLoader";
+import DatePickerInput from '../../components/DatePickerInput'
 
 
 const Profile = () => {
@@ -588,12 +590,9 @@ const Profile = () => {
     );
   };
 
-  //TODO - gawan ng loading or gamitin yung dati
   if (loading) {
     return (
-      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-        <Text>Loading profile...</Text>
-      </View>
+      <ThemedLoader />
     );
   }
 
@@ -657,20 +656,54 @@ const Profile = () => {
           </View>
         </View>
 
+        {/* DOB and Age */}
         <View style={styles.row}>
           <View style={styles.rowItem}>
             <Text style={styles.label}>Age</Text>
-            <TextInput style={[styles.input, styles.disabledInput]} value={userData.age?.toString() || ""} editable={false} />
+            <TextInput
+              style={[styles.input, styles.disabledInput]}
+              value={userData.age?.toString() || ""}
+              editable={false}
+            />
           </View>
-            {renderField("userData","dob", "Date of Birth (YYYY-MM-DD)", userData.dob, false)}
+
+          <View style={styles.rowItem}>
+            <Text style={styles.label}>Date of Birth</Text>
+
+            {isEditing ? (
+              <View style={[styles.input, styles.editableInput]}>
+                <DatePickerInput
+                  value={userData.dob ? new Date(userData.dob) : null}
+                  onChange={(date) => {
+                    if (date) {
+                      updateField("userData", "dob", date.toISOString().split("T")[0]);
+                    }
+                  }}
+                  style={[
+                    styles.input,
+                    isEditing ? styles.editableInput : styles.disabledInput
+                  ]}
+                />
+
+              </View>
+            ) : (
+              <TextInput
+                style={[styles.input, styles.disabledInput]}
+                value={userData.dob || ""}
+                editable={false}
+              />
+            )}
+
+          </View>
         </View>
 
+            {/* Household Information */}
             <View style={styles.row}>
               {renderField("userData","householdSize", "Household Size", userData.householdSize.toString())}
               <View style={styles.row}>
                 {renderField("userData","contactNumber", "Contact Number", userData.userNumber)}
               <View style={styles.row}>{renderField("userData","email", "Email", userData.email, false)}</View>
-            </View>
+              </View>
         </View>
         <View style={styles.row}>
         </View>
@@ -824,20 +857,34 @@ const styles = StyleSheet.create({
   row: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", marginBottom: 12 },
   rowItem: { flex: 1, marginRight: 8, marginBottom: 12 },
   label: { fontSize: 12, color: "#555", marginBottom: 4 },
+
+  // Unified input style
   input: {
     fontSize: 16,
+    height: 44, // 👈 consistent height across all fields
     borderWidth: 1,
     borderColor: "#ccc",
     borderRadius: 8,
     paddingVertical: 8,
     paddingHorizontal: 12,
     backgroundColor: "#fff",
+    justifyContent: "center", // ensures text/date is vertically centered
   },
-  editableInput: { backgroundColor: "#e6f0ff" },
-  disabledInput: { backgroundColor: "#f0f0f0", color: "#555" },
+
+  editableInput: {
+    backgroundColor: "#e6f0ff", // 👈 bluish fill when editing
+    borderColor: "#007bff",     // 👈 highlight stroke when editing
+  },
+
+  disabledInput: {
+    backgroundColor: "#f0f0f0",
+    color: "#555",
+  },
+
   buttonRow: { flexDirection: "row", justifyContent: "space-between", marginVertical: 20 },
   editButton: { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, paddingVertical: 10, borderRadius: 8 },
   editButtonText: { color: "#fff", fontWeight: "600", marginLeft: 8 },
+
   modalBackground: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center" },
   modalContainer: { width: "85%", backgroundColor: "#fff", borderRadius: 8, padding: 20 },
 });

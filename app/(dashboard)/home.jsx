@@ -1,5 +1,5 @@
 import { ScrollView, Animated, TouchableOpacity, Text, StyleSheet } from "react-native"
-import React, { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect } from "react"
 
 import Spacer from "../../components/Spacer"
 import ThemedText from "../../components/ThemedText"
@@ -136,6 +136,7 @@ const Home = () => {
             <CallButton
               onAnimationStart={handleAnimationStart}
               onAnimationFinish={handleAnimationFinish}
+              disabled={callRequested}
             />
             <Spacer/>
 
@@ -180,6 +181,7 @@ const Home = () => {
             <CallButton
               onAnimationStart={handleAnimationStart}
               onAnimationFinish={handleAnimationFinish}
+              disabled={callRequested}
             />
           </>
         )}
@@ -195,6 +197,7 @@ const Home = () => {
             <CallButton 
               onAnimationStart={handleAnimationStart} 
               onAnimationFinish={handleAnimationFinish} 
+              disabled={callRequested}
             /> 
             <Spacer/>
             <TouchableOpacity onPress={handleCancel} style={styles.cancelBtn}>

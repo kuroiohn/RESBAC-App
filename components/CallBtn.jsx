@@ -4,11 +4,29 @@ import { TouchableWithoutFeedback, StyleSheet, View, Linking, Alert } from 'reac
 import supabase from '../contexts/supabaseClient'
 import { useUser } from '../hooks/useUser'
 
-const CallButton = ({ onAnimationStart, onAnimationFinish }) => {
+const CallButton = ({ onAnimationStart, onAnimationFinish, disabled }) => {
   const {user} = useUser()
   const animationRef = useRef(null)
   const phoneNumber = "09684319082"
-  const [isDisabled,setIsDisabled] = useState(false)
+  const [isDisabled, setIsDisabled] = useState(false)
+
+  const handlePress = () => {
+    if (isDisabled || disabled ) return
+
+    if (onAnimationStart) onAnimationStart()
+    setIsDisabled(true)
+
+    // Always start from frame 0
+    animationRef.current?.reset()
+    animationRef.current?.play()
+
+    setTimeout(() => {
+      animationRef.current?.reset() // reset so it's ready for next press
+      handleDial()
+      if (onAnimationFinish) onAnimationFinish()
+      setIsDisabled(false)
+    }, 2000)
+  }
 
   const handleDial = async () => {
     // const { data: { user }, error: userError } = await supabase.auth.getUser();
@@ -37,19 +55,9 @@ const CallButton = ({ onAnimationStart, onAnimationFinish }) => {
       Alert.alert("Error", "Dialer not supported on this device!")
     }
   }
-
-  console.log(isDisabled);
   
   return (
-    <TouchableWithoutFeedback disabled={isDisabled}
-      onPressIn={() => {
-        // Tell Home to switch to "Help is on the way" UI
-        if (onAnimationStart) onAnimationStart()
-        //animationRef.current?.reset()
-        setIsDisabled(true)
-        animationRef.current?.play()
-      }}
-    >
+    <TouchableWithoutFeedback disabled={isDisabled || disabled} onPressIn={handlePress}>
       <View style={styles.container}>
         <LottieView
           ref={animationRef}
@@ -57,11 +65,6 @@ const CallButton = ({ onAnimationStart, onAnimationFinish }) => {
           style={styles.animation}
           autoPlay={false}
           loop={false}
-          onAnimationFinish={() => {
-            // After animation, open dialer
-            handleDial()
-            if (onAnimationFinish) onAnimationFinish()
-          }}
         />
       </View>
     </TouchableWithoutFeedback>

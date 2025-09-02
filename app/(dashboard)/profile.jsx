@@ -537,6 +537,7 @@ const Profile = () => {
     );
   };
 
+  //TODO - gawan ng loading or gamitin yung dati
   if (loading) {
     return (
       <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>

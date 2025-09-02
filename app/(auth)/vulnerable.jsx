@@ -51,10 +51,10 @@ const Vulnerable = () => {
     const [mobilityStatus, setMobilityStatus] = useState(null);
 
     // new state for asking if vulnerability is permanent or not
-    const [isPDPermanent, setIsPDPermanent] = useState(null);
-    const [isSDPermament, setIsSDPermanent] = useState(null);
-    const [isPSYPermament, setIsPSYPermament] = useState(null);
-    const [isMDPermament, setIsMDPermament] = useState(null);
+    const [isPDPermanent, setIsPDPermanent] = useState(false);
+    const [isSDPermament, setIsSDPermanent] = useState(false);
+    const [isPSYPermament, setIsPSYPermament] = useState(false);
+    const [isMDPermament, setIsMDPermament] = useState(false);
 
     //new data for pregnancy options
     const pregnancyOptions = [
@@ -73,12 +73,6 @@ const Vulnerable = () => {
         { label: 'Yes', value: 'yes' },
         { label: 'No', value: 'no' },
     ];
-
-    // Data for permanent vulnerability [reusable for all state of permanent]
-    const permanentVulnerabilityOptions = [
-        { label: 'Yes', value: 'yes' },
-        { label: 'No', value: 'no' },
-    ]
 
     //data for the household count dropdown
     const householdData = Array.from({length: 10}, (_, i) => ({
@@ -297,10 +291,9 @@ const Vulnerable = () => {
                     <TitleText type="title3" style={styles.categoryHeader}>Check all that may apply</TitleText>
 
                     {/* Physical Disabilities */}
-                    <RadioGroup
+                    <CheckboxComponent
                         label = "Is your Physical Disability permanent?"
-                        options = {permanentVulnerabilityOptions}
-                        selectedValue = {isPDPermanent}
+                        isChecked={isPDPermanent}
                         onValueChange = {setIsPDPermanent}
                     />
                     <TitleText type="title3" style={styles.categoryHeader}>Physical</TitleText>
@@ -354,10 +347,9 @@ const Vulnerable = () => {
                     {/* Psychological Disabilities */}
                     <TitleText type="title5"> Psychological Disability (PWD) </TitleText>
                     <TitleText type="title3" style={styles.categoryHeader}>Check all that may apply</TitleText>
-                    <RadioGroup
+                    <CheckboxComponent
                         label = "Is your Psychological Disability permanent?"
-                        options = {permanentVulnerabilityOptions}
-                        selectedValue = {isPSYPermament}
+                        isChecked={isPSYPermament}
                         onValueChange = {setIsPSYPermament}
                     />
                     <TitleText type="title3" style={styles.categoryHeader}>Psychological</TitleText>
@@ -403,10 +395,9 @@ const Vulnerable = () => {
                     {/* Sensory Disabilities */}
                     <TitleText type="title5"> Sensory Disability (PWD) </TitleText>
                     <TitleText type="title3" style={styles.categoryHeader}>Check all that may apply</TitleText>
-                    <RadioGroup
+                    <CheckboxComponent
                         label = "Is your Sensory Disability permanent?"
-                        options = {permanentVulnerabilityOptions}
-                        selectedValue = {isSDPermament}
+                        isChecked={isSDPermament}
                         onValueChange = {setIsSDPermanent}
                     />
                     <TitleText type="title3" style={styles.categoryHeader}>Sensory</TitleText>
@@ -442,10 +433,9 @@ const Vulnerable = () => {
                     {/* Health Conditions */}
                     <TitleText type="title5"> Medically Dependent </TitleText>
                     <TitleText type="title3" style={styles.categoryHeader}>Check all that may apply</TitleText>
-                    <RadioGroup
+                    <CheckboxComponent
                         label = "Is your medical dependence permanent?"
-                        options = {permanentVulnerabilityOptions}
-                        selectedValue = {isMDPermament}
+                        isChecked = {isMDPermament}
                         onValueChange = {setIsMDPermament}
                     />
                     <TitleText type="title3" style={styles.categoryHeader}>Medically Dependent</TitleText>

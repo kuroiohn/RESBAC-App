@@ -113,7 +113,6 @@ const PickUpLocation = () => {
             Pickup Locations
           </ThemedText> 
           {
-            //TODO - put pickup fetch in here 
             pickupData?.map( pickup => (
               <View key={pickup.id}>
                 <Image source={{uri:pickup.pickupImage}} style={{ width: 200, height: 200 }}/>

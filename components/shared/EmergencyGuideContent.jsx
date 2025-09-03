@@ -32,7 +32,7 @@ const EmergencyGuideContent = () => {
         <ThemedView style={styles.container}>
 
           <RescuerCard/>
-          <RescuerCard/>
+          {/* <RescuerCard/> */}
           <Image source={EmergencyContactsPic} />
 
           <ThemedText style={styles.textLeft}>

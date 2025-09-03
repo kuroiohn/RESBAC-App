@@ -52,7 +52,7 @@ const CallButton = ({ onAnimationStart, onAnimationFinish, disabled }) => {
     if (supported) {
       await Linking.openURL(url)
     } else {
-      Alert.alert("Error", "Dialer not supported on this device!")
+      Alert.alert("Error in Call Button", "Dialer not supported on this device!")
     }
   }
   

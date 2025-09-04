@@ -9,12 +9,36 @@ import { useQuery,useQueryClient } from '@tanstack/react-query'
 import { differenceInYears } from "date-fns";
 import ThemedLoader from "../../components/ThemedLoader";
 import DatePickerInput from '../../components/DatePickerInput'
+import * as ImagePicker from "expo-image-picker"
 
 
 const Profile = () => {
   const { user, logout } = useUser();
   const queryClient = useQueryClient()
-  
+
+  // new add for update profile pic
+  const [selectedImage, setSelectedImage] = useState(null);
+  const pickImage = async () => {
+    // ask permission
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert("Permission required", "We need access to your gallery.");
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true, // allow cropping
+      aspect: [1, 1], // square crop
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setSelectedImage(result.assets[0].uri);
+    }
+  };
+
+
   // debug (ata, if this makes sense)
   console.log('Profile component - user state:', user);
   console.log('Profile component - user exists:', !!user);
@@ -64,7 +88,23 @@ const Profile = () => {
   })
   const [isVerified, setIsVerified] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [isEditing, setIsEditing] = useState(false);
+
+  // const [isEditing, setIsEditing] = useState(false);
+  const [editingSections, setEditingSections] = useState({
+    userData: false,
+    address: false,
+    guardian: false,
+    vulnerability: false
+  });
+  // added helper
+  const toggleSectionEdit = (section) => {
+    setEditingSections((prev) => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  }
+
+  // TODO tih pacheck here if okay lang na di k ginamit to
   const [editedUser,setEditedUser] = useState({
     userData:{...userData},
     userAddress: {...userAddress},
@@ -444,7 +484,7 @@ const Profile = () => {
   
 
   const toggleEdit = () => {
-    if (isEditing) {
+    if (editingSections) {
       Alert.alert(
         "Save Changes?",
         "Do you want to save your changes?",
@@ -463,8 +503,8 @@ const Profile = () => {
     } else {
       // setEditedUser(userData);
     }
-    setIsEditing(!isEditing);
-  };  
+    setEditingSections(!editingSections);
+  };
 
   const saveChanges = async () => {
     try {
@@ -520,6 +560,15 @@ const Profile = () => {
       }).eq('userID', user.id);
       
       Alert.alert("Success", "Profile updated!");
+
+      // Reset editing state back to false so button goes back to blue
+      setEditingSections({
+        userData: false,
+        address: false,
+        guardian: false,
+        vulnerability: false,
+      });
+
       //setUserData(editedUser);
     } catch (error) {
       console.error('Error updating profile:', error);
@@ -529,9 +578,9 @@ const Profile = () => {
 
   const updateField = (section,field, value) => {
     if (section === "userData") {setUserData((prev) => ({ ...prev, [field]: value })) } 
-    else if (section === "userGuardian" && userData.hasGuardian) {setUserGuardian((prev) => ({ ...prev, [field]: value })) }
-    else if (section === "userAddress") {setUserAddress((prev) => ({ ...prev, [field]: value })) }
-    else if (section === "userVul") {setUserVul((prev) => ({ ...prev, [field]: value })) }
+    else if (section === "guardian" && userData.hasGuardian) {setUserGuardian((prev) => ({ ...prev, [field]: value })) }
+    else if (section === "address") {setUserAddress((prev) => ({ ...prev, [field]: value })) }
+    else if (section === "vulnerability") {setUserVul((prev) => ({ ...prev, [field]: value })) }
   };
 
   const renderField = (section, field, label, value, editable = true) => (
@@ -540,10 +589,10 @@ const Profile = () => {
       <TextInput
         style={[
           styles.input,
-          editable ? (isEditing ? styles.editableInput : styles.disabledInput) : styles.disabledInput,
+          editable ? (editingSections[section] ? styles.editableInput : styles.disabledInput) : styles.disabledInput,
         ]}
         value={value || ""}
-        editable={isEditing && editable}
+        editable={editingSections[section] && editable}
         onChangeText={(text) => editable && updateField(section, field, text)}
       />
     </View>
@@ -609,12 +658,22 @@ const Profile = () => {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      {/* Header */}
+      
+      {/* Header (hanggang address) */}
       <View style={styles.header}>
         {/* USER PROFILE PICTURE 
             //TODO - add bucket insert for picture
         */}
-        <Image source={profilePic} style={styles.photo} />
+        <View style={styles.photoContainer}>
+          <Image
+            source={selectedImage ? { uri: selectedImage } : profilePic}
+            style={styles.photo}
+          />
+          <TouchableOpacity style={styles.changePhotoButton} onPress={pickImage}>
+            <Feather name="camera" size={18} color="#fff" />
+          </TouchableOpacity>
+        </View>
+
         <View style={styles.statusContainer}>
           {
             //TODO - fetch verification here
@@ -639,14 +698,29 @@ const Profile = () => {
       {/* USER DATA */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Personal Information</Text>
-        <View style={styles.divider} />
-        <View style={styles.row}>
           <View style={styles.rowItem}>
+        <View style={styles.divider} />
+
+        {/* Edit Personal Info Button */}
+        <TouchableOpacity
+            style={[styles.editButton, { backgroundColor: editingSections.userData ? "#28a745" : "#007bff" }]}
+            onPress={() => editingSections.userData ? saveChanges() : toggleSectionEdit("userData")}
+        >
+            <Feather name={editingSections.userData ? "check" : "edit"} size={20} color="#fff" />
+            <Text style={styles.editButtonText}>
+              {editingSections.userData ? "Save Changes" : "Edit Personal Info"}
+            </Text>
+        </TouchableOpacity>
+
+        <Spacer height={10}/>
+
+        {/* Name Fields */}
+        <View style={styles.row}>
           {renderField("userData","firstName", "First Name", userData.firstName)}
           </View>
           <View style={styles.rowItem}>
           {
-            userData.middleName !== null ? renderField("userData","middleName", "Middle Name", userData.middleName) : renderField("userData","", "Middle Name", userData.middleName)
+            userData.middleName !== null ? renderField("userData","middleName", "Middle Name", userData.middleName) : renderField("userData","middleName", "Middle Name", userData.middleName)
           }
           </View>
         </View>
@@ -670,7 +744,7 @@ const Profile = () => {
           <View style={styles.rowItem}>
             <Text style={styles.label}>Date of Birth</Text>
 
-            {isEditing ? (
+            {editingSections.userData ? (
               <View style={[styles.input, styles.editableInput]}>
                 <DatePickerInput
                   value={userData.dob ? new Date(userData.dob) : null}
@@ -679,12 +753,7 @@ const Profile = () => {
                       updateField("userData", "dob", date.toISOString().split("T")[0]);
                     }
                   }}
-                  style={[
-                    styles.input,
-                    isEditing ? styles.editableInput : styles.disabledInput
-                  ]}
                 />
-
               </View>
             ) : (
               <TextInput
@@ -697,12 +766,12 @@ const Profile = () => {
           </View>
         </View>
 
-            {/* Household Information */}
-            <View style={styles.row}>
-              {renderField("userData","householdSize", "Household Size", userData.householdSize.toString())}
-              <View style={styles.row}>
-                {renderField("userData","contactNumber", "Contact Number", userData.userNumber)}
-              <View style={styles.row}>{renderField("userData","email", "Email", userData.email, false)}</View>
+        {/* Household Information */}
+        <View style={styles.row}>
+          {renderField("userData","householdSize", "Household Size", userData.householdSize.toString())}
+           <View style={styles.row}>
+            {renderField("userData","contactNumber", "Contact Number", userData.userNumber)}
+          <View style={styles.row}>{renderField("userData","email", "Email", userData.email, false)}</View>
               </View>
         </View>
         <View style={styles.row}>
@@ -712,9 +781,25 @@ const Profile = () => {
           <View style={styles.rowItem}>
           <Text style={styles.sectionTitle}>Address Information</Text>
           <View style={styles.divider} />
-            {renderField("userAddress","streetName", "Street", userAddress.streetName)}
-            {renderField("userAddress","brgyName", "Barangay", userAddress.brgyName)}
-            {renderField("userAddress","cityName", "City", userAddress.cityName)}
+
+          {/* Edit Address Info Button */}
+          <TouchableOpacity
+            style={[styles.editButton, { backgroundColor: editingSections.address ? "#28a745" : "#007bff" }]}
+            onPress={() => editingSections.address ? saveChanges() : toggleSectionEdit("address")}
+          >
+            <Feather name={editingSections.address ? "check" : "edit"} size={20} color="#fff" />
+            <Text style={styles.editButtonText}>
+              {editingSections.address ? "Save Changes" : "Edit Address Info"}
+            </Text>
+          </TouchableOpacity>
+
+
+
+          <Spacer height={10}/>
+            {renderField("address","streetName", "Street", userAddress.streetName)}
+            {renderField("address","brgyName", "Barangay", userAddress.brgyName)}
+            {renderField("address","cityName", "City", userAddress.cityName)}
+
             {/* <Text style={styles.label}>Barangay</Text> */}
             {/* <TextInput style={[styles.input, styles.disabledInput]} value={userAddress.brgyName || ""} editable={true} /> */}
           </View>
@@ -728,26 +813,36 @@ const Profile = () => {
             <Text style={styles.sectionTitle}>Guardian Information</Text>
             <View style={styles.divider} />
             <View style={styles.row}>
-              {renderField("userGuardian","fullName", "Name", userGuardian.fullName)}
-              {renderField("userGuardian","relationship", "Relationship", userGuardian.relationship)}
+              {renderField("guardian","fullName", "Name", userGuardian.fullName)}
+              {renderField("guardian","relationship", "Relationship", userGuardian.relationship)}
             </View>
-            <View style={styles.row}>{renderField("userGuardian","guardianContact", "Contact", userGuardian.guardianContact)}</View>
-            <View style={styles.row}>{renderField("userGuardian","guardianAddress", "Address", userGuardian.guardianAddress)}</View>
-          </View> 
+            <View style={styles.row}>{renderField("guardian","guardianContact", "Contact", userGuardian.guardianContact)}</View>
+            <View style={styles.row}>{renderField("guardian","guardianAddress", "Address", userGuardian.guardianAddress)}</View>
+          </View>
         )
       }
 
       <Text style={styles.sectionTitle}>Vulnerability Information</Text>
       <View style={styles.divider} />
-      <View style={styles.row}>{renderField("userVul","elderly", "Age-related", (userVul.elderly ? "Elderly" : "Not elderly"), false)}</View>
-      <View style={styles.row}>{renderField("userVul","pregnantInfant", "Pregnant/Infant", userVul.pregnantInfant.toString(), false)}</View>
+      <TouchableOpacity
+            style={[styles.editButton, { backgroundColor: editingSections.vulnerability ? "#28a745" : "#007bff" }]}
+            onPress={() => editingSections.vulnerability ? saveChanges() : toggleSectionEdit("vulnerability")}
+          >
+            <Feather name={editingSections.vulnerability ? "check" : "edit"} size={20} color="#fff" />
+            <Text style={styles.editButtonText}>
+              {editingSections.vulnerability ? "Save Changes" : "Edit Vulnerability Info"}
+            </Text>
+      </TouchableOpacity>
 
-      <View style={styles.row}>{renderField("userVul","physicalPWD", "Physical Disability", userVul.physicalPWD.toString(), false)}</View>
-      <View style={styles.row}>{renderField("userVul","psychPWD", "Psychological Disability", userVul.psychPWD.toString(), false)}</View>
-      <View style={styles.row}>{renderField("userVul","sensoryPWD", "Sensory Disability", userVul.sensoryPWD.toString(), false)}</View>
+      <View style={styles.row}>{renderField("vulnerability","elderly", "Age-related", (userVul.elderly ? "Elderly" : "Not elderly"), true)}</View>
+      <View style={styles.row}>{renderField("vulnerability","pregnantInfant", "Pregnant/Infant", userVul.pregnantInfant.toString(), true)}</View>
 
-      <View style={styles.row}>{renderField("userVul","medDep", "Medically Dependent", userVul.medDep.toString(), false)}</View>
-      <View style={styles.row}>{renderField("userVul","locationRiskLevel", "Location Risk Level", userVul.locationRiskLevel.toString(), false)}</View>
+      <View style={styles.row}>{renderField("vulnerability","physicalPWD", "Physical Disability", userVul.physicalPWD.toString(), true)}</View>
+      <View style={styles.row}>{renderField("vulnerability","psychPWD", "Psychological Disability", userVul.psychPWD.toString(), true)}</View>
+      <View style={styles.row}>{renderField("vulnerability","sensoryPWD", "Sensory Disability", userVul.sensoryPWD.toString(), true)}</View>
+
+      <View style={styles.row}>{renderField("vulnerability","medDep", "Medically Dependent", userVul.medDep.toString(), false)}</View>
+      <View style={styles.row}>{renderField("vulnerability","locationRiskLevel", "Location Risk Level", userVul.locationRiskLevel.toString(), false)}</View>
 
       {/* 
       <View style={styles.section}>
@@ -761,10 +856,7 @@ const Profile = () => {
 
       {/* Buttons */}
       <View style={styles.buttonRow}>
-        <TouchableOpacity style={[styles.editButton, { backgroundColor: isEditing ? "#28a745" : "#007bff" }]} onPress={toggleEdit}>
-          <Feather name={isEditing ? "check" : "edit"} size={20} color="#fff" />
-          <Text style={styles.editButtonText}>{isEditing ? "Save Changes" : "Edit Profile"}</Text>
-        </TouchableOpacity>
+        
         <TouchableOpacity style={[styles.editButton, { backgroundColor: "#6c757d" }]} onPress={() => setShowPasswordModal(true)}>
           <Feather name="lock" size={20} color="#fff" />
           <Text style={styles.editButtonText}>Change Password</Text>
@@ -861,19 +953,19 @@ const styles = StyleSheet.create({
   // Unified input style
   input: {
     fontSize: 16,
-    height: 44, // 👈 consistent height across all fields
+    height: 44, 
     borderWidth: 1,
     borderColor: "#ccc",
     borderRadius: 8,
     paddingVertical: 8,
     paddingHorizontal: 12,
     backgroundColor: "#fff",
-    justifyContent: "center", // ensures text/date is vertically centered
+    justifyContent: "center",
   },
 
   editableInput: {
-    backgroundColor: "#e6f0ff", // 👈 bluish fill when editing
-    borderColor: "#007bff",     // 👈 highlight stroke when editing
+    backgroundColor: "#e6f0ff",
+    borderColor: "#007bff", 
   },
 
   disabledInput: {
@@ -887,4 +979,26 @@ const styles = StyleSheet.create({
 
   modalBackground: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center" },
   modalContainer: { width: "85%", backgroundColor: "#fff", borderRadius: 8, padding: 20 },
+
+  photoContainer: {
+  position: "relative",
+  width: 120,
+  height: 120,
+  marginBottom: 8,
+  },
+  photo: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 10,
+  },
+  changePhotoButton: {
+    position: "absolute",
+    bottom: 5,
+    right: 5,
+    backgroundColor: "#007bff",
+    borderRadius: 20,
+    padding: 6,
+    elevation: 3,
+  },
+
 });

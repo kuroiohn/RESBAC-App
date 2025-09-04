@@ -13,7 +13,7 @@ import * as ImagePicker from "expo-image-picker"
 import * as FileSystem from 'expo-file-system'
 import mime from 'mime'
 import { decode as atob, encode as btoa } from 'base-64';
-
+import { ImageManipulator, SaveFormat } from 'expo-image-manipulator'
 
 const Profile = () => {
   const { user, logout } = useUser();
@@ -111,22 +111,47 @@ const Profile = () => {
     }
   };
 
+  const toJPEG = async (uri) => {
+    try{
+
+        const context = await ImageManipulator.manipulate(uri)
+        
+        //resize if needed
+        context.resize({ width: 800 })
+
+      // render async
+      const imageRef = await context.renderAsync()
+
+      const result = await imageRef.saveAsync({
+        compress: 0.9,
+        format: SaveFormat.JPEG
+      })
+
+      return result.uri;
+    } catch(error) {
+      Alert.alert("Error in image manipulator", "Error in coercing image to JPEG type.")
+    }
+  }
+
   //ANCHOR - image upload function here
   const uploadProfile = async (uri) => {
     try {
       if (!user?.id) throw new Error("No user id!")
 
       const ext = uri.split('.').pop()
-      const filename = `users/${user.id}_profile.${ext}`
+      // const filename = `users/${user.id}_profile.${ext}`
+      const filename = `users/${user.id}_profile.jpeg`
 
-      const base64 = await FileSystem.readAsStringAsync(uri, {
+      const jpegUri = await toJPEG(uri)
+      const base64 = await FileSystem.readAsStringAsync(jpegUri, {
         encoding: FileSystem.EncodingType.Base64,
       });
 
       // convert to binary
       const imgBlob = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0))
 
-      const contentType = mime.getType(uri) || "image/jpeg"
+      // const contentType = mime.getType(uri) || "image/jpeg"
+      const contentType = "image/jpeg"
 
       const { error } = await supabase.storage
       .from("profilePicture")
@@ -555,7 +580,7 @@ const Profile = () => {
 
   console.log("realtime verif: ", isVerified);
   
-
+  //NOTE - never tinawag
   const toggleEdit = () => {
     if (editingSections) {
       Alert.alert(
@@ -656,6 +681,7 @@ const Profile = () => {
     else if (section === "guardian" && userData.hasGuardian) {setUserGuardian((prev) => ({ ...prev, [field]: value })) }
     else if (section === "address") {setUserAddress((prev) => ({ ...prev, [field]: value })) }
     else if (section === "vulnerability") {
+      // dont modify
       setUserVul((prev) => { 
         const currentValue = prev[field]
         if(Array.isArray(currentValue)){

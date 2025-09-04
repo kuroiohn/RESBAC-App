@@ -506,6 +506,7 @@ const Profile = () => {
     setEditingSections(!editingSections);
   };
 
+  //ANCHOR - update tables here
   const saveChanges = async () => {
     try {
       const newAge = differenceInYears(new Date(), new Date(userData.dob))
@@ -523,6 +524,7 @@ const Profile = () => {
         middleName: userData.middleName,
         surname: userData.surname,
         age: newAge,
+        dateOfBirth: userData.dob,
         userNumber: userData.userNumber,
         householdSize: userData.householdSize,
         hasGuardian: userData.hasGuardian
@@ -580,7 +582,20 @@ const Profile = () => {
     if (section === "userData") {setUserData((prev) => ({ ...prev, [field]: value })) } 
     else if (section === "guardian" && userData.hasGuardian) {setUserGuardian((prev) => ({ ...prev, [field]: value })) }
     else if (section === "address") {setUserAddress((prev) => ({ ...prev, [field]: value })) }
-    else if (section === "vulnerability") {setUserVul((prev) => ({ ...prev, [field]: value })) }
+    else if (section === "vulnerability") {
+      setUserVul((prev) => { 
+        const currentValue = prev[field]
+        if(Array.isArray(currentValue)){
+          return {
+            ...prev,
+            [field]: value
+            .split(",")
+            .map(v => v.trim())
+            .filter(v => v.length > 0)
+          }
+        }
+        return { ...prev, [field]: value }
+      }) }
   };
 
   const renderField = (section, field, label, value, editable = true) => (
@@ -687,6 +702,9 @@ const Profile = () => {
             {userData.middleName !== "" &&
           (userData.middleName.charAt(0).toUpperCase()+userData.middleName.slice(1)) + " "}
             {userData.surname.charAt(0).toUpperCase()+userData.surname.slice(1)}</Text>
+
+          <Text style={styles.address}>{userData.email}</Text>
+
           <Text style={styles.address}>
             {userAddress.streetName.charAt(0).toUpperCase()+userAddress.streetName.slice(1)}, 
             {" " + userAddress.brgyName.charAt(0).toUpperCase()+userAddress.brgyName.slice(1)}, 
@@ -698,52 +716,39 @@ const Profile = () => {
       {/* USER DATA */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Personal Information</Text>
-          <View style={styles.rowItem}>
-        <View style={styles.divider} />
+          <View style={styles.divider} />
 
-        {/* Edit Personal Info Button */}
-        <TouchableOpacity
-            style={[styles.editButton, { backgroundColor: editingSections.userData ? "#28a745" : "#007bff" }]}
-            onPress={() => editingSections.userData ? saveChanges() : toggleSectionEdit("userData")}
-        >
-            <Feather name={editingSections.userData ? "check" : "edit"} size={20} color="#fff" />
-            <Text style={styles.editButtonText}>
-              {editingSections.userData ? "Save Changes" : "Edit Personal Info"}
-            </Text>
-        </TouchableOpacity>
+            {/* Edit Personal Info Button */}
+            <TouchableOpacity
+                style={[styles.editButton, { backgroundColor: editingSections.userData ? "#28a745" : "#007bff" }]}
+                onPress={() => editingSections.userData ? saveChanges() : toggleSectionEdit("userData")}
+            >
+                <Feather name={editingSections.userData ? "check" : "edit"} size={20} color="#fff" />
+                <Text style={styles.editButtonText}>
+                  {editingSections.userData ? "Save Changes" : "Edit Personal Info"}
+                </Text>
+            </TouchableOpacity>
 
-        <Spacer height={10}/>
+            <Spacer height={10}/>
 
-        {/* Name Fields */}
-        <View style={styles.row}>
-          {renderField("userData","firstName", "First Name", userData.firstName)}
+            {/* Name Fields */}
+            <View style={styles.row}>
+              {renderField("userData","firstName", "First Name", userData.firstName)}
+            </View>
+            <View style={styles.row}>
+            {
+              userData.middleName !== null ? renderField("userData","middleName", "Middle Name", userData.middleName) : renderField("userData","middleName", "Middle Name", userData.middleName)
+            }
+            </View>
+            <View style={styles.row}>
+              {renderField("userData","surname", "Surname", userData.surname)}
+            </View>
           </View>
-          <View style={styles.rowItem}>
-          {
-            userData.middleName !== null ? renderField("userData","middleName", "Middle Name", userData.middleName) : renderField("userData","middleName", "Middle Name", userData.middleName)
-          }
-          </View>
-        </View>
-        <View style={styles.row}>
-          <View style={styles.row}>
-          {renderField("userData","surname", "Surname", userData.surname)}
-          </View>
-        </View>
 
         {/* DOB and Age */}
         <View style={styles.row}>
           <View style={styles.rowItem}>
-            <Text style={styles.label}>Age</Text>
-            <TextInput
-              style={[styles.input, styles.disabledInput]}
-              value={userData.age?.toString() || ""}
-              editable={false}
-            />
-          </View>
-
-          <View style={styles.rowItem}>
             <Text style={styles.label}>Date of Birth</Text>
-
             {editingSections.userData ? (
               <View style={[styles.input, styles.editableInput]}>
                 <DatePickerInput
@@ -755,6 +760,7 @@ const Profile = () => {
                   }}
                 />
               </View>
+              
             ) : (
               <TextInput
                 style={[styles.input, styles.disabledInput]}
@@ -762,22 +768,30 @@ const Profile = () => {
                 editable={false}
               />
             )}
+          </View>
 
+          <View style={styles.rowItem}>
+            <Text style={styles.label}>Age</Text>
+            <TextInput
+              style={[styles.input, styles.disabledInput]}
+              value={userData.age?.toString() || ""}
+              editable={false}
+            />
           </View>
         </View>
 
         {/* Household Information */}
         <View style={styles.row}>
           {renderField("userData","householdSize", "Household Size", userData.householdSize.toString())}
-           <View style={styles.row}>
-            {renderField("userData","contactNumber", "Contact Number", userData.userNumber)}
-          <View style={styles.row}>{renderField("userData","email", "Email", userData.email, false)}</View>
+          <View style={styles.row}>
+            {renderField("userData","userNumber", "Contact Number", userData.userNumber)}
+          {/* <View style={styles.row}>{renderField("userData","email", "Email", userData.email, false)}</View> */}
+
               </View>
         </View>
         <View style={styles.row}>
         </View>
         <View style={styles.row}>
-          {/* {renderField("emergencyContact", "Emergency Contact", userData.emergencyContact)} */}
           <View style={styles.rowItem}>
           <Text style={styles.sectionTitle}>Address Information</Text>
           <View style={styles.divider} />
@@ -793,8 +807,6 @@ const Profile = () => {
             </Text>
           </TouchableOpacity>
 
-
-
           <Spacer height={10}/>
             {renderField("address","streetName", "Street", userAddress.streetName)}
             {renderField("address","brgyName", "Barangay", userAddress.brgyName)}
@@ -805,7 +817,6 @@ const Profile = () => {
           </View>
         </View>
         {/* <View style={styles.row}>{renderField("vulnerability", "Vulnerability", userData.vulnerability, false)}</View> */}
-      </View>
       
       { userData.hasGuardian === true &&
         (
@@ -841,18 +852,8 @@ const Profile = () => {
       <View style={styles.row}>{renderField("vulnerability","psychPWD", "Psychological Disability", userVul.psychPWD.toString(), true)}</View>
       <View style={styles.row}>{renderField("vulnerability","sensoryPWD", "Sensory Disability", userVul.sensoryPWD.toString(), true)}</View>
 
-      <View style={styles.row}>{renderField("vulnerability","medDep", "Medically Dependent", userVul.medDep.toString(), false)}</View>
+      <View style={styles.row}>{renderField("vulnerability","medDep", "Medically Dependent", userVul.medDep.toString(), true)}</View>
       <View style={styles.row}>{renderField("vulnerability","locationRiskLevel", "Location Risk Level", userVul.locationRiskLevel.toString(), false)}</View>
-
-      {/* 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Account Information</Text>
-        <View style={styles.divider} />
-        <View style={styles.row}>{renderField("created", "Created", userData.created, false)}</View>
-      </View>     
-
-        */}
-
 
       {/* Buttons */}
       <View style={styles.buttonRow}>

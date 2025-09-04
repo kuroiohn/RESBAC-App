@@ -10,6 +10,9 @@ import { differenceInYears } from "date-fns";
 import ThemedLoader from "../../components/ThemedLoader";
 import DatePickerInput from '../../components/DatePickerInput'
 import * as ImagePicker from "expo-image-picker"
+import * as FileSystem from 'expo-file-system'
+import mime from 'mime'
+import { decode as atob, encode as btoa } from 'base-64';
 
 
 const Profile = () => {
@@ -18,26 +21,6 @@ const Profile = () => {
 
   // new add for update profile pic
   const [selectedImage, setSelectedImage] = useState(null);
-  const pickImage = async () => {
-    // ask permission
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== "granted") {
-      Alert.alert("Permission required", "We need access to your gallery.");
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true, // allow cropping
-      aspect: [1, 1], // square crop
-      quality: 1,
-    });
-
-    if (!result.canceled) {
-      setSelectedImage(result.assets[0].uri);
-    }
-  };
-
 
   // debug (ata, if this makes sense)
   console.log('Profile component - user state:', user);
@@ -61,6 +44,7 @@ const Profile = () => {
     verificationID:0,
     userID:"",
     email:"",
+    profilePic: ""
   });
   const [userAddress,setUserAddress] = useState({
     streetName:"",
@@ -104,6 +88,94 @@ const Profile = () => {
     }));
   }
 
+  //ANCHOR - pikc image here
+  const pickImage = async () => {
+    // ask permission
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert("Permission required", "We need access to your gallery.");
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true, // allow cropping
+      aspect: [1, 1], // square crop
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      const  uri = result.assets[0].uri
+      setSelectedImage(result.assets[0].uri);
+      uploadProfile(uri)
+    }
+  };
+
+  //ANCHOR - image upload function here
+  const uploadProfile = async (uri) => {
+    try {
+      if (!user?.id) throw new Error("No user id!")
+
+      const ext = uri.split('.').pop()
+      const filename = `users/${user.id}_profile.${ext}`
+
+      const base64 = await FileSystem.readAsStringAsync(uri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+
+      // convert to binary
+      const imgBlob = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0))
+
+      const contentType = mime.getType(uri) || "image/jpeg"
+
+      const { error } = await supabase.storage
+      .from("profilePicture")
+      .upload(filename,imgBlob, {
+        contentType,
+        upsert: true
+      })
+
+      if (error) {
+        console.error("Error in supabase bucket upload: ", error);
+      }
+
+      await fetchProfilePicture(filename)
+
+    } catch (error){
+      console.error("Image upload error in upload profile: ", error);
+      Alert.alert("Error", error.message);
+      
+    }
+  }
+
+  //ANCHOR - fetch image
+  const fetchProfilePicture = async (path) => {
+    if(!path) {
+      Alert.alert("Null", "No path!")
+    }
+
+    const { data, error } = await supabase.storage
+    .from('profilePicture')
+    .createSignedUrl(path,60 * 60 * 24 * 365 * 99)
+
+    if(error) {
+      console.error("Error creating signed URL: ", error);
+      return null  
+    }
+
+    setUserData(prev => ({
+      ...prev,
+      profilePic: data.signedUrl
+    }))
+
+    await supabase.from('user').update({
+        profilePic: data.signedUrl
+      })
+      .eq('userID', user.id)
+      .select()
+
+  }
+
   // TODO tih pacheck here if okay lang na di k ginamit to
   const [editedUser,setEditedUser] = useState({
     userData:{...userData},
@@ -145,7 +217,8 @@ const Profile = () => {
         vulnerabilityID: data.vulnerabilityID || 0,
         verificationID: data.verificationID || 0,
         userID: data.userID || "",
-        email: user.email
+        email: user.email,
+        profilePic: data.profilePic || profilePic
       })
     if(error){
       console.error("Fetch error in user table: ", error)
@@ -676,12 +749,9 @@ const Profile = () => {
       
       {/* Header (hanggang address) */}
       <View style={styles.header}>
-        {/* USER PROFILE PICTURE 
-            //TODO - add bucket insert for picture
-        */}
         <View style={styles.photoContainer}>
           <Image
-            source={selectedImage ? { uri: selectedImage } : profilePic}
+            source={userData.profilePic && typeof userData.profilePic === "string" ? { uri: userData.profilePic.toString() } : profilePic}
             style={styles.photo}
           />
           <TouchableOpacity style={styles.changePhotoButton} onPress={pickImage}>

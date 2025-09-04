@@ -139,11 +139,12 @@ const Login = () => {
         
         console.log('MPIN data updated with password for auto-login')
         
-        Alert.alert(
-          'Quick Access Enabled!',
-          'You can now use your 4-digit MPIN for quick login on this device.',
-          [{ text: 'OK', onPress: () => router.replace('/(dashboard)/home') }]
-        )
+        router.replace('/(dashboard)/home')
+        // Alert.alert(
+        //   'Quick Access Enabled!',
+        //   'You can now use your 4-digit MPIN for quick login on this device.',
+          // [{ text: 'OK', onPress: () => router.replace('/(dashboard)/home') }]
+        // )
       } else {
         // No local MPIN found
         console.log('No local MPIN found')

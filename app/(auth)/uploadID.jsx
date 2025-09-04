@@ -316,6 +316,8 @@ export default function uploadID() {
       console.log('Redirecting to MPIN setup...')
       console.log('Final user data being passed:', JSON.stringify(finalUserData).substring(0, 200) + '...')
       
+      // TODO - upload file to supabase storage
+       
       router.replace({
         pathname: '/mpinSetup',
         params: {

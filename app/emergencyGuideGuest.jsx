@@ -1,5 +1,5 @@
-import TopBarGuest from '../components/TopBarGuest'
-import EmergencyGuideContent from '../components/shared/EmergencyGuideContent'
+import TopBarGuest from "../components/TopBarGuest";
+import EmergencyGuideContent from "../components/shared/EmergencyGuideContent";
 
 export default function GuestEmergencyGuide() {
   return (
@@ -7,5 +7,5 @@ export default function GuestEmergencyGuide() {
       <TopBarGuest />
       <EmergencyGuideContent />
     </>
-  )
+  );
 }

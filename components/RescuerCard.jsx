@@ -1,42 +1,48 @@
-import { View, Text, ImageBackground, Image, TouchableOpacity, StyleSheet, Linking, Alert } from "react-native";
+import {
+  View,
+  Text,
+  ImageBackground,
+  Image,
+  TouchableOpacity,
+  StyleSheet,
+  Linking,
+  Alert,
+} from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Phone, MessageCircle } from "lucide-react-native";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
-import supabase from '../contexts/supabaseClient'
+import supabase from "../contexts/supabaseClient";
 
 export default function RescuerCard() {
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
 
   // reads from supabase
   const fetchContact = async () => {
-    const {data,error} = await supabase
-    .from('emergencyPersons')
-    .select()
+    const { data, error } = await supabase.from("emergencyPersons").select();
 
-    if(error){
-      console.error("Fetch error in supabase emerP: ", error)
+    if (error) {
+      console.error("Fetch error in supabase emerP: ", error);
     }
-    console.log("Successful fetch",  data);
-    return data
-  }
+    console.log("Successful fetch", data);
+    return data;
+  };
   // use data here to map the values and read
-  const {data: emerPData,error: emerPError} = useQuery({
+  const { data: emerPData, error: emerPError } = useQuery({
     queryKey: ["emergencyPersons"],
     queryFn: fetchContact,
-  })
+  });
   if (emerPError) {
     console.error("Error in query of emergency persons table: ", emerPError);
-    
   }
 
   // subscribe to realtime
   useEffect(() => {
     const emerPChannnel = supabase
-      .channel('emerP-changes')
+      .channel("emerP-changes")
       .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'emergencyPersons' },
+        "postgres_changes",
+        { event: "*", schema: "public", table: "emergencyPersons" },
         (payload) => {
           console.log("Realtime change received:", payload);
 
@@ -52,74 +58,90 @@ export default function RescuerCard() {
   }, [queryClient]);
 
   const handleContactBtn = async (number) => {
-    const url = `tel:${number}`
-      const supported = await Linking.canOpenURL(url)
-  
-      if (supported) {
-        await Linking.openURL(url)
-      } else {
-        Alert.alert("Error in Rescuer Card", "Dialer not supported on this device!")
-      }
-  }
+    const url = `tel:${number}`;
+    const supported = await Linking.canOpenURL(url);
+
+    if (supported) {
+      await Linking.openURL(url);
+    } else {
+      Alert.alert(
+        "Error in Rescuer Card",
+        "Dialer not supported on this device!"
+      );
+    }
+  };
 
   const handleMsgBtn = async (link) => {
-    const splitLink = link.split('/')
-    const username = splitLink.slice(3).join('/')
+    const splitLink = link.split("/");
+    const username = splitLink.slice(3).join("/");
     console.log("Username:", username);
-    
 
-      const supported = await Linking.canOpenURL(`https://m.me/${username}`)
-  
-      if (supported) {
-        await Linking.openURL(`https://m.me/${username}`)
-      } else {
-        Alert.alert("Error in Rescuer Card", "Device cannot open link")
-      }
-  }
+    const supported = await Linking.canOpenURL(`https://m.me/${username}`);
+
+    if (supported) {
+      await Linking.openURL(`https://m.me/${username}`);
+    } else {
+      Alert.alert("Error in Rescuer Card", "Device cannot open link");
+    }
+  };
 
   return (
     <>
-      {
-        emerPData?.map(
-          emerP => (
-            <LinearGradient
-            key={emerP.id}
-              colors={["#0060FF", "rgba(0, 58, 153, 0)"]}
-              start={{ x: 0.5, y: 0 }}
-              end={{ x: 0.5, y: 1 }}
-              style={styles.borderWrapper}
+      {emerPData?.map((emerP) => (
+        <LinearGradient
+          key={emerP.id}
+          colors={["#0060FF", "rgba(0, 58, 153, 0)"]}
+          start={{ x: 0.5, y: 0 }}
+          end={{ x: 0.5, y: 1 }}
+          style={styles.borderWrapper}
+        >
+          <ImageBackground
+            source={require("../assets/hbesbg.png")}
+            style={styles.card}
+            imageStyle={styles.backgroundImage}
+          >
+            <View style={styles.contentRow}>
+              {/* Rescuer Profile */}
+              <Image
+                source={{ uri: emerP.emerPImage }}
+                style={styles.profileImage}
+              />
+
+              {/* Rescuer Details */}
+              <View style={styles.infoWrapper}>
+                <Text style={styles.name}>{emerP.emerPName}</Text>
+                <Text style={styles.position}>{emerP.emerPRole}</Text>
+                <Text style={styles.barangay}>{emerP.emerPBrgy}</Text>
+              </View>
+            </View>
+
+            {/* Buttons */}
+            <View style={styles.buttonRow}>
+              <TouchableOpacity
+                style={[styles.button, styles.callButton]}
+                activeOpacity={0.7}
+                onPress={() => handleContactBtn(emerP.emerPNumber)}
               >
-              <ImageBackground source={require("../assets/hbesbg.png")} style={styles.card} imageStyle={styles.backgroundImage}>
-                <View style={styles.contentRow}>
-                  
-                  {/* Rescuer Profile */}
-                  <Image source={{uri: emerP.emerPImage}} style={styles.profileImage} />
+                <Phone color='#0060ff' size={18} style={{ marginRight: 6 }} />
+                <Text style={styles.callText}>Call {emerP.emerPNumber}</Text>
+              </TouchableOpacity>
 
-                  {/* Rescuer Details */}
-                  <View style={styles.infoWrapper}>
-                    <Text style={styles.name}>{emerP.emerPName}</Text>
-                    <Text style={styles.position}>{emerP.emerPRole}</Text>
-                    <Text style={styles.barangay}>{emerP.emerPBrgy}</Text>
-                  </View>
-                </View>
-
-                {/* Buttons */}
-                <View style={styles.buttonRow}>
-                  <TouchableOpacity style={[styles.button, styles.callButton]} activeOpacity={0.7} onPress={() =>  handleContactBtn(emerP.emerPNumber)}>
-                    <Phone color="#0060ff" size={18} style={{ marginRight: 6 }} />
-                    <Text style={styles.callText}>Call {emerP.emerPNumber}</Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity style={[styles.button, styles.messageButton]} activeOpacity={0.7} onPress={() => handleMsgBtn(emerP.emerPMessLink)}>
-                    <MessageCircle color="#0060FF" size={18} style={{ marginRight: 6 }} />
-                    <Text style={styles.messageText}>Click here to message </Text>
-                  </TouchableOpacity>
-                </View>
-              </ImageBackground>
-            </LinearGradient>
-          )
-        )
-      } 
+              <TouchableOpacity
+                style={[styles.button, styles.messageButton]}
+                activeOpacity={0.7}
+                onPress={() => handleMsgBtn(emerP.emerPMessLink)}
+              >
+                <MessageCircle
+                  color='#0060FF'
+                  size={18}
+                  style={{ marginRight: 6 }}
+                />
+                <Text style={styles.messageText}>Click here to message </Text>
+              </TouchableOpacity>
+            </View>
+          </ImageBackground>
+        </LinearGradient>
+      ))}
     </>
   );
 }

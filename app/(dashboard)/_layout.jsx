@@ -60,7 +60,7 @@ const DashboardLayout = () => {
 
       <Tabs.Screen 
       name="pickUpLocations" 
-      options={{title: 'Pickup', tabBarIcon: ({ focused }) => (
+      options={{title: 'Locations', tabBarIcon: ({ focused }) => (
         <Ionicons
           size={24}
           name={focused ? 'location' : 'location-outline'}

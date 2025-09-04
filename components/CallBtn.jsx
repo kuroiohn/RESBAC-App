@@ -1,32 +1,38 @@
-import { useRef,useEffect, useState } from 'react'
-import LottieView from 'lottie-react-native'
-import { TouchableWithoutFeedback, StyleSheet, View, Linking, Alert } from 'react-native'
-import supabase from '../contexts/supabaseClient'
-import { useUser } from '../hooks/useUser'
+import { useRef, useEffect, useState } from "react";
+import LottieView from "lottie-react-native";
+import {
+  TouchableWithoutFeedback,
+  StyleSheet,
+  View,
+  Linking,
+  Alert,
+} from "react-native";
+import supabase from "../contexts/supabaseClient";
+import { useUser } from "../hooks/useUser";
 
 const CallButton = ({ onAnimationStart, onAnimationFinish, disabled }) => {
-  const {user} = useUser()
-  const animationRef = useRef(null)
-  const phoneNumber = "09684319082"
-  const [isDisabled, setIsDisabled] = useState(false)
+  const { user } = useUser();
+  const animationRef = useRef(null);
+  const phoneNumber = "09684319082";
+  const [isDisabled, setIsDisabled] = useState(false);
 
   const handlePress = () => {
-    if (isDisabled || disabled ) return
+    if (isDisabled || disabled) return;
 
-    if (onAnimationStart) onAnimationStart()
-    setIsDisabled(true)
+    if (onAnimationStart) onAnimationStart();
+    setIsDisabled(true);
 
     // Always start from frame 0
-    animationRef.current?.reset()
-    animationRef.current?.play()
+    animationRef.current?.reset();
+    animationRef.current?.play();
 
     setTimeout(() => {
-      animationRef.current?.reset() // reset so it's ready for next press
-      handleDial()
-      if (onAnimationFinish) onAnimationFinish()
-      setIsDisabled(false)
-    }, 2000)
-  }
+      animationRef.current?.reset(); // reset so it's ready for next press
+      handleDial();
+      if (onAnimationFinish) onAnimationFinish();
+      setIsDisabled(false);
+    }, 2000);
+  };
 
   const handleDial = async () => {
     // const { data: { user }, error: userError } = await supabase.auth.getUser();
@@ -34,52 +40,58 @@ const CallButton = ({ onAnimationStart, onAnimationFinish, disabled }) => {
     //   console.error("Error fetching auth user: ", userError);
     // }
 
-    const {data,error} = await supabase
-    .from('user')
-    .update({pressedCallBtn: true})
-    .eq("userID",user.id)
-    .select()
+    const { data, error } = await supabase
+      .from("user")
+      .update({ pressedCallBtn: true })
+      .eq("userID", user.id)
+      .select();
 
     console.log("updated call btn:", data, error);
 
-    if(error) {
+    if (error) {
       console.error("Error in updating call btn", error);
     }
-  
-    const url = `tel:${phoneNumber}`
-    const supported = await Linking.canOpenURL(url)
+
+    const url = `tel:${phoneNumber}`;
+    const supported = await Linking.canOpenURL(url);
 
     if (supported) {
-      await Linking.openURL(url)
+      await Linking.openURL(url);
     } else {
-      Alert.alert("Error in Call Button", "Dialer not supported on this device!")
+      Alert.alert(
+        "Error in Call Button",
+        "Dialer not supported on this device!"
+      );
     }
-  }
-  
+  };
+
   return (
-    <TouchableWithoutFeedback disabled={isDisabled || disabled} onPressIn={handlePress}>
+    <TouchableWithoutFeedback
+      disabled={isDisabled || disabled}
+      onPressIn={handlePress}
+    >
       <View style={styles.container}>
         <LottieView
           ref={animationRef}
-          source={require('../assets/animations/rippleBtn.json')}
+          source={require("../assets/animations/rippleBtn.json")}
           style={styles.animation}
           autoPlay={false}
           loop={false}
         />
       </View>
     </TouchableWithoutFeedback>
-  )
-}
+  );
+};
 
-export default CallButton
+export default CallButton;
 
 const styles = StyleSheet.create({
   container: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   animation: {
     width: 200,
     height: 200,
   },
-})
+});

@@ -1,115 +1,129 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, Pressable } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
-import { useUser } from '../hooks/useUser'
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+  Pressable,
+} from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { Ionicons } from "@expo/vector-icons";
+import { useUser } from "../hooks/useUser";
 
-import supabase from '../contexts/supabaseClient'
-import { useQuery,useQueryClient } from '@tanstack/react-query'
+import supabase from "../contexts/supabaseClient";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 const EvacuationStatusCard = ({ style, ...props }) => {
-  const {user} = useUser()
+  const { user } = useUser();
   const [step, setStep] = useState(0);
   const [isPressed, setIsPressed] = useState(false);
-  const [mark,setMark] = useState(false);
+  const [mark, setMark] = useState(false);
 
-  useEffect(()=>{
-    const userid = user.id
+  useEffect(() => {
+    const userid = user.id;
     // reads from supabase
     const fetchData = async () => {
       // Get the current logged-in user
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
       if (userError || !user) {
         console.error("Error fetching auth user:", userError);
         throw new Error("No active session / user");
       }
 
-      const {data,error} = await supabase
-      .from('user')
-      .select('markAsSafe')
-      .eq('userID', user.id)
-      .maybeSingle()
+      const { data, error } = await supabase
+        .from("user")
+        .select("markAsSafe")
+        .eq("userID", user.id)
+        .maybeSingle();
 
-      if(error){
-        console.error("Fetch error in supabase markassafe: ", error)
+      if (error) {
+        console.error("Fetch error in supabase markassafe: ", error);
       }
-      console.log("Successful fetch",  data);
-      setMark(data.markAsSafe)
-      if(data.markAsSafe) setStep(2)
-      return data
-    }
-    
+      console.log("Successful fetch", data);
+      setMark(data.markAsSafe);
+      if (data.markAsSafe) setStep(2);
+      return data;
+    };
+
     fetchData();
-    
-    const markChannel = supabase.channel('markAsSafe-channel')
+
+    const markChannel = supabase
+      .channel("markAsSafe-channel")
       .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'user',
-          filter: `userID=eq.${userid}`
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "user",
+          filter: `userID=eq.${userid}`,
         },
         (payload) => {
-          console.log('Change received!', payload)
+          console.log("Change received!", payload);
 
-          if (payload.new?.markAsSafe !== undefined){
-            setMark(payload.new.markAsSafe)
+          if (payload.new?.markAsSafe !== undefined) {
+            setMark(payload.new.markAsSafe);
             console.log("Realtime Mark: ", mark);
 
-            if(payload.new.markAsSafe){
-              setStep(2)
+            if (payload.new.markAsSafe) {
+              setStep(2);
             } else {
-              setStep(0)
+              setStep(0);
             }
-            
           }
         }
       )
-      .subscribe()
+      .subscribe();
 
     return () => {
       supabase.removeChannel(markChannel);
     };
-
-  },[user?.id])
-  
+  }, [user?.id]);
 
   const updateMarkAsSafe = async () => {
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
 
     if (userError) {
       console.error("Error fetching auth user: ", userError);
     }
 
-    const {data,error} = await supabase
-    .from('user')
-    .update({markAsSafe: true})
-    .eq("userID",user.id)
-    .select()
+    const { data, error } = await supabase
+      .from("user")
+      .update({ markAsSafe: true })
+      .eq("userID", user.id)
+      .select();
 
     console.log("Row(s) found:", data, error);
 
-    if(error) {
+    if (error) {
       console.error("Error in updating mark as safe", error);
     }
-  }
+  };
 
   // ##########################################
-  console.log("markAsSafe:",mark, "Step: ",step);
-  
+  console.log("markAsSafe:", mark, "Step: ", step);
+
   const handlePress = () => {
-  if (step === 1) {
-    // when the user confirms
-    setMark(true); // or setMark(!mark) if you want toggle behavior
-    console.log("Hello",mark);
-    updateMarkAsSafe();
-  }
+    if (step === 1) {
+      // when the user confirms
+      setMark(true); // or setMark(!mark) if you want toggle behavior
+      console.log("Hello", mark);
+      updateMarkAsSafe();
+    }
 
     if (step < 2) setStep(step + 1);
   };
 
   const getButtonLabel = () => {
-    if (step !== 1 && mark === false) return 'Mark yourself as Safe';
-    if (step === 1) return 'Yes, I am sure';
-    if (mark) return 'Marked as Safe';
+    if (step !== 1 && mark === false) return "Mark yourself as Safe";
+    if (step === 1) return "Yes, I am sure";
+    if (mark) return "Marked as Safe";
   };
 
   const renderText = () => {
@@ -129,22 +143,22 @@ const EvacuationStatusCard = ({ style, ...props }) => {
     }
     return (
       <Text style={styles.step2Text}>
-        Good to know! Stay in your evacuation area and wait for further announcements.
+        Good to know! Stay in your evacuation area and wait for further
+        announcements.
       </Text>
     );
   };
-
 
   const renderImage = () => {
     return (
       <Image
         source={
           mark === false
-            ? require('../assets/bell.png')
-            : require('../assets/shield.png')
+            ? require("../assets/bell.png")
+            : require("../assets/shield.png")
         }
         style={styles.image}
-        resizeMode="contain"
+        resizeMode='contain'
       />
     );
   };
@@ -156,10 +170,13 @@ const EvacuationStatusCard = ({ style, ...props }) => {
     if (mark === true) {
       return (
         <View style={styles.finalButton}>
-          <Text style={styles.buttonTextCentered}>
-            {label}
-          </Text>
-          <Ionicons name="checkmark" size={18} color="white" style={styles.iconRight} />
+          <Text style={styles.buttonTextCentered}>{label}</Text>
+          <Ionicons
+            name='checkmark'
+            size={18}
+            color='white'
+            style={styles.iconRight}
+          />
         </View>
       );
     }
@@ -177,7 +194,7 @@ const EvacuationStatusCard = ({ style, ...props }) => {
         >
           {isPressed ? (
             <LinearGradient
-              colors={['#409A7A', '#163429']}
+              colors={["#409A7A", "#163429"]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={styles.button}
@@ -185,7 +202,7 @@ const EvacuationStatusCard = ({ style, ...props }) => {
               <Text style={styles.buttonText}>{label}</Text>
             </LinearGradient>
           ) : (
-            <View style={[styles.button, { backgroundColor: '#409A7A' }]}>
+            <View style={[styles.button, { backgroundColor: "#409A7A" }]}>
               <Text style={styles.buttonText}>{label}</Text>
             </View>
           )}
@@ -197,7 +214,7 @@ const EvacuationStatusCard = ({ style, ...props }) => {
     return (
       <TouchableOpacity onPress={handlePress}>
         <LinearGradient
-          colors={['#409A7A', '#409A7A']}
+          colors={["#409A7A", "#409A7A"]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.button}
@@ -210,7 +227,7 @@ const EvacuationStatusCard = ({ style, ...props }) => {
 
   return (
     <LinearGradient
-      colors={['#0060FF', 'rgba(0, 58, 153, 0)']}
+      colors={["#0060FF", "rgba(0, 58, 153, 0)"]}
       start={{ x: 0.5, y: 0 }}
       end={{ x: 0.5, y: 1 }}
       style={styles.borderWrapper}
@@ -230,18 +247,18 @@ const EvacuationStatusCard = ({ style, ...props }) => {
 
 const styles = StyleSheet.create({
   borderWrapper: {
-    width: '95%',
+    width: "95%",
     padding: 2,
     borderRadius: 12,
   },
   innerCard: {
-    backgroundColor: '#FAFAFA',
+    backgroundColor: "#FAFAFA",
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 10,
 
     // Shadow for iOS
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 2,
@@ -250,8 +267,8 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   contentRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   textArea: {
     flex: 1,
@@ -260,54 +277,54 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 16,
     marginBottom: 10,
-    color: '#000',
+    color: "#000",
   },
-    step0Text: {
+  step0Text: {
     fontSize: 14,
     marginBottom: 5,
-    color: '#000',
+    color: "#000",
   },
   stepText: {
     fontSize: 16,
     marginBottom: 5, // <-- smaller margin for step 1
-    color: '#000',
+    color: "#000",
   },
   step2Text: {
-    fontSize: 13,      // <-- smaller text size
-    lineHeight: 17,    // <-- tighter vertical padding
-    marginBottom: 5,   // <-- smaller spacing below
-    color: '#000',
+    fontSize: 13, // <-- smaller text size
+    lineHeight: 17, // <-- tighter vertical padding
+    marginBottom: 5, // <-- smaller spacing below
+    color: "#000",
   },
   bold: {
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   button: {
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 6,
-    alignSelf: 'flex-start',
-    justifyContent: 'center',
-    alignItems: 'center',
+    alignSelf: "flex-start",
+    justifyContent: "center",
+    alignItems: "center",
   },
   buttonText: {
-    color: '#fff',
-    fontWeight: '500',
+    color: "#fff",
+    fontWeight: "500",
     fontSize: 14,
   },
   buttonTextCentered: {
-    color: '#fff',
-    fontWeight: '500',
+    color: "#fff",
+    fontWeight: "500",
     fontSize: 14,
     marginRight: 6,
   },
   finalButton: {
-    backgroundColor: '#409A7A',
+    backgroundColor: "#409A7A",
     borderRadius: 6,
     paddingVertical: 10,
     paddingHorizontal: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'flex-start',
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "flex-start",
   },
   iconRight: {
     marginLeft: 4,
@@ -315,12 +332,12 @@ const styles = StyleSheet.create({
   imageWrapper: {
     width: 60,
     height: 60,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   image: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
   },
 });
 

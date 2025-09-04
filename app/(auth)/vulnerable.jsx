@@ -270,6 +270,7 @@ const Vulnerable = () => {
                 placeholder='Guardian Contact Number'
                 value={guardianContact}
                 onChangeText={setGuardianContact}
+                keyboardType='phone-pad'
               />
               <ThemedTextInput
                 style={{ width: "80%", marginBottom: 5 }}

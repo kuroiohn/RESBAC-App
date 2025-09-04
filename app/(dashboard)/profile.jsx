@@ -119,7 +119,7 @@ const Profile = () => {
     }));
   };
 
-  //ANCHOR - pikc image here
+  //ANCHOR - pick image here
   const pickImage = async () => {
     // ask permission
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -147,7 +147,7 @@ const Profile = () => {
       const context = await ImageManipulator.manipulate(uri);
 
       //resize if needed
-      context.resize({ width: 800 });
+      // context.resize({ width: 800 });
 
       // render async
       const imageRef = await context.renderAsync();
@@ -234,6 +234,7 @@ const Profile = () => {
   };
 
   // TODO tih pacheck here if okay lang na di k ginamit to
+  //FIXME -  not used
   const [editedUser, setEditedUser] = useState({
     userData: { ...userData },
     userAddress: { ...userAddress },
@@ -717,7 +718,7 @@ const Profile = () => {
       await supabase
         .from("vulnerabilityList")
         .update({
-          elderly: userVul.elderly,
+          elderly: (differenceInYears(new Date(), new Date(userData.dob)) >= 60 ? true : false),
           pregnantInfant: userVul.pregnantInfant,
           physicalPWD: userVul.physicalPWD,
           psychPWD: userVul.psychPWD,
@@ -971,6 +972,7 @@ const Profile = () => {
           {editingSections.userData ? (
             <View style={[styles.input, styles.editableInput]}>
               <DatePickerInput
+                minimumDate={new Date(1900,0,1)}
                 value={userData.dob ? new Date(userData.dob) : null}
                 onChange={(date) => {
                   if (date) {
@@ -1170,7 +1172,7 @@ const Profile = () => {
           "vulnerability",
           "elderly",
           "Age-related",
-          userVul.elderly ? "Elderly" : "Not elderly",
+          userVul.elderly.toString() === "true" ? "Elderly" : "Not Elderly",
           true
         )}
       </View>

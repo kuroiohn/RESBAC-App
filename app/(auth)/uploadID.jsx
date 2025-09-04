@@ -18,8 +18,13 @@ import BackNextButtons from "../../components/buttons/BackNextButtons";
 import { useUser } from "../../hooks/useUser";
 import supabase from "../../contexts/supabaseClient";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as FileSystem from "expo-file-system";
+import mime from "mime";
+import { decode as atob, encode as btoa } from "base-64";
+import { ImageManipulator, SaveFormat } from "expo-image-manipulator";
 
 export default function uploadID() {
+  const {user} = useUser()
   const [image, setImage] = useState(null);
   const [isCreating, setIsCreating] = useState(false);
   const router = useRouter();
@@ -74,8 +79,8 @@ export default function uploadID() {
     };
   };
 
+  //ANCHOR - pick image
   const pickImage = async () => {
-    //FIXME - make it use document picker instead of image picker, or both but make it conditional, but it will still upload on the same bucket
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       quality: 1,
@@ -87,8 +92,100 @@ export default function uploadID() {
 
       if (isValid) {
         setImage(file.uri);
+        // uploadProofs(file.uri)
       }
     }
+  };
+
+  const toJPEG = async (uri) => {
+    try {
+      const context = await ImageManipulator.manipulate(uri);
+
+      //resize if needed
+      // context.resize({ width: 800 });
+
+      // render async
+      const imageRef = await context.renderAsync();
+
+      const result = await imageRef.saveAsync({
+        compress: 0.9,
+        format: SaveFormat.JPEG,
+      });
+
+      return result.uri;
+    } catch (error) {
+      Alert.alert(
+        "Error in image manipulator",
+        "Error in coercing image to JPEG type."
+      );
+    }
+  };
+
+  //ANCHOR - image upload function here
+  const uploadProofs = async (uri,userID) => {
+    try {
+      if (!userID) throw new Error("No user id!");
+
+      // const ext = uri.split(".").pop();
+      // const filename = `users/${user.id}_profile.${ext}`
+      const filename = `users/${userID}proof.jpeg`;
+
+      const jpegUri = await toJPEG(uri);
+      const base64 = await FileSystem.readAsStringAsync(jpegUri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+
+      // convert to binary
+      const imgBlob = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+
+      // const contentType = mime.getType(uri) || "image/jpeg"
+      const contentType = "image/jpeg";
+
+      const { error } = await supabase.storage
+        .from("proofs")
+        .upload(filename, imgBlob, {
+          contentType,
+          upsert: true,
+        });
+
+      if (error) {
+        console.error("Error in supabase bucket upload: ", error);
+      }
+
+      await fetchProofs(filename,userID);
+    } catch (error) {
+      console.error("Image upload error in upload proof: ", error);
+      Alert.alert("Error", error.message);
+    }
+  };
+
+  //ANCHOR - fetch image
+  const fetchProofs = async (path,userID) => {
+    if (!path) {
+      Alert.alert("Null", "No path!");
+    }
+
+    const { data, error } = await supabase.storage
+      .from("proofs")
+      .createSignedUrl(path, 60 * 60 * 24 * 365 * 99);
+
+    if (error) {
+      console.error("Error creating signed URL: ", error);
+      return null;
+    }
+
+    // setUserData((prev) => ({
+    //   ...prev,
+    //   profilePic: data.signedUrl,
+    // }));
+
+    await supabase
+      .from("verification")
+      .update({
+        proofFile: data.signedUrl,
+      })
+      .eq("userID", userID)
+      .select();
   };
 
   const validateFile = (file) => {
@@ -346,6 +443,7 @@ export default function uploadID() {
       );
 
       // TODO - upload file to supabase storage
+      uploadProofs(image,authResult.user.id)
 
       router.replace({
         pathname: "/mpinSetup",

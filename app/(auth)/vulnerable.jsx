@@ -7,8 +7,8 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   View,
+  Button,
 } from "react-native";
-import React, { useState } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import BackNextButtons from "../../components/buttons/BackNextButtons";
 import ThemedText from "../../components/ThemedText";
@@ -22,29 +22,42 @@ import ThemedTextInput from "../../components/ThemedTextInput";
 import { Dropdown } from "react-native-element-dropdown";
 import CheckboxComponent from "../../components/CheckboxComponent";
 import { useRoute } from "@react-navigation/native";
+import { useState, useEffect } from "react";
 
 const Vulnerable = () => {
   const router = useRouter();
   const { userData } = useLocalSearchParams();
 
   // new add by ten
-  const route = useRoute();
-  const { mode, existingData } = route.params;
+  const { from } = useLocalSearchParams();
 
-  // if mode === "edit", prefill with existingData
-  const [formData, setFormData] = useState(
-    mode === "edit"
-      ? existingData // prefill with userVul from Profile
-      : {
-          elderly: false,
-          pregnantInfant: false,
-          physicalPWD: false,
-          psychPWD: false,
-          sensoryPWD: false,
-          medDep: false,
-          locationRiskLevel: "",
-        }
-  );
+  useEffect(() => {
+    if (from === "profile") {
+      // Prefill formData with userVul from Profile
+    }
+  }, [from]);
+
+  const [formData, setFormData] = useState({
+    elderly: "",
+    pregnantInfant: "",
+    physicalPWD: "",
+    psychPWD: "",
+    sensoryPWD: "",
+    medDep: "",
+    locationRiskLevel: "",
+  });
+
+  const handleSubmit = () => {
+    if (from === "profile") {
+      // Save edits
+      console.log("Updating vulnerability info:", formData);
+      router.replace("/dashboard/profile"); // go back to Profile
+    } else {
+      // Registration flow
+      console.log("Registering vulnerability:", formData);
+      router.push("/(auth)/nextStep"); // go to next registration step
+    }
+  };
 
   // Parse incoming data from register screen
   const existingUserData = userData ? JSON.parse(userData) : {};

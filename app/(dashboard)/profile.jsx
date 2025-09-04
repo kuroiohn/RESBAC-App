@@ -31,10 +31,12 @@ import { useLayoutEffect } from "react";
 import { Space } from "lucide-react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import LocationPermissionInput from "../../components/LocationPermissionInput";
+import { useRouter } from "expo-router";
 
 const Profile = () => {
   const { user, logout } = useUser();
   const queryClient = useQueryClient();
+  const router = useRouter();
 
   // added to remove header in profile tab
   const navigation = useNavigation();
@@ -1118,6 +1120,33 @@ const Profile = () => {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Guardian Information</Text>
           <View style={styles.divider} />
+
+          {/* Edit Guardian Info Button */}
+          <TouchableOpacity
+            style={[
+              styles.editButton,
+              {
+                backgroundColor: editingSections.guardian
+                  ? "#28a745"
+                  : "#007bff",
+              },
+            ]}
+            onPress={() =>
+              editingSections.guardian
+                ? saveChanges()
+                : toggleSectionEdit("guardian")
+            }
+          >
+            <Feather
+              name={editingSections.guardian ? "check" : "edit"}
+              size={20}
+              color='#fff'
+            />
+            <Text style={styles.editButtonText}>
+              {editingSections.guardian ? "Save Changes" : "Edit Guardian Info"}
+            </Text>
+          </TouchableOpacity>
+
           <View style={styles.row}>
             {renderField("guardian", "fullName", "Name", userGuardian.fullName)}
             {renderField(
@@ -1150,31 +1179,16 @@ const Profile = () => {
       <View style={styles.divider} />
 
       <TouchableOpacity
-        style={[
-          styles.editButton,
-          {
-            backgroundColor: editingSections.vulnerability
-              ? "#28a745"
-              : "#007bff",
-          },
-        ]}
-        onPress={() => {
-          navigation.navigate("vulnerable", {
-            mode: editingSections.vulnerability ? "edit" : "register",
-            existingData: userVul,
-          });
-        }}
+        style={[styles.editButton, { backgroundColor: "#007bff" }]}
+        onPress={() =>
+          router.push({
+            pathname: "/(auth)/vulnerable",
+            params: { from: "profile" },
+          })
+        }
       >
-        <Feather
-          name={editingSections.vulnerability ? "check" : "edit"}
-          size={20}
-          color='#fff'
-        />
-        <Text style={styles.editButtonText}>
-          {editingSections.vulnerability
-            ? "Save Changes"
-            : "Edit Vulnerability Info"}
-        </Text>
+        <Feather name='edit' size={20} color='#fff' />
+        <Text style={styles.editButtonText}>Edit Vulnerability Info</Text>
       </TouchableOpacity>
 
       <View style={styles.row}>

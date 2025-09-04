@@ -56,6 +56,8 @@ const EvacuationStatusCard = ({ style, ...props }) => {
 
             if(payload.new.markAsSafe){
               setStep(2)
+            } else {
+              setStep(0)
             }
             
           }
@@ -67,7 +69,7 @@ const EvacuationStatusCard = ({ style, ...props }) => {
       supabase.removeChannel(markChannel);
     };
 
-  },[])
+  },[user?.id])
   
 
   const updateMarkAsSafe = async () => {
@@ -105,7 +107,7 @@ const EvacuationStatusCard = ({ style, ...props }) => {
   };
 
   const getButtonLabel = () => {
-    if (step === 0) return 'Mark yourself as Safe';
+    if (step !== 1 && mark === false) return 'Mark yourself as Safe';
     if (step === 1) return 'Yes, I am sure';
     if (mark) return 'Marked as Safe';
   };

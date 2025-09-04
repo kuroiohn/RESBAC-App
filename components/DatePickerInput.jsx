@@ -13,7 +13,14 @@ import {
 import DateTimePicker from '@react-native-community/datetimepicker'
 import ThemedTextInput from './ThemedTextInput'
 
-const DatePickerInput = ({ value, onChange, placeholder = 'Select date', disabled}) => {
+const DatePickerInput = ({ 
+  value, 
+  onChange, 
+  placeholder = 'Select date', 
+  disabled,
+  minimumDate,
+  maximumDate 
+}) => {
   const [showModal, setShowModal] = useState(false)
   const [tempDate, setTempDate] = useState(value || new Date())
 
@@ -45,7 +52,7 @@ const DatePickerInput = ({ value, onChange, placeholder = 'Select date', disable
           disabled={disabled}
           style={[
             styles.inputWrapper,
-            disabled && styles.disabledInputWrapper, // Correct conditional style
+            disabled && styles.disabledInputWrapper,
           ]}
       >
         <ThemedTextInput
@@ -71,12 +78,13 @@ const DatePickerInput = ({ value, onChange, placeholder = 'Select date', disable
                 <View style={styles.modalContent}>
                     <View style={styles.datePickerWrapper}>
                         <DateTimePicker
-                        mode="date"
-                        display="spinner"
-                        value={tempDate}
-                        onChange={handleDateChange}
-                        maximumDate={new Date()}
-                        style={{ width: '100%', height: 220 }} // match the wrapper
+                          mode="date"
+                          display="spinner"
+                          value={tempDate}
+                          onChange={handleDateChange}
+                          minimumDate={minimumDate}
+                          maximumDate={maximumDate || new Date()}
+                          style={{ width: '100%', height: 220 }}
                         />
                     </View>
 
@@ -103,7 +111,8 @@ const DatePickerInput = ({ value, onChange, placeholder = 'Select date', disable
           value={tempDate}
           display="default"
           onChange={handleDateChange}
-          maximumDate={new Date()}
+          minimumDate={minimumDate}
+          maximumDate={maximumDate || new Date()}
         />
       )}
     </>
@@ -164,6 +173,6 @@ datePickerWrapper: {
     backgroundColor: '#eee',
   },
   disabledInput: {
-    color: '#a0a0a0', // A lighter text color
+    color: '#a0a0a0',
   },
 })

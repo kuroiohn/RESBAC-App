@@ -24,6 +24,9 @@ const MpinSetup = () => {
   // Parse user data from registration
   const completeUserData = params.userData ? JSON.parse(params.userData) : {}
 
+  console.log('MPIN Setup - Complete User Data:', completeUserData)
+  console.log('MPIN Setup - User ID:', completeUserData.userID)
+
   const dotAnimations = useRef(
     Array.from({ length: 4 }, () => new Animated.Value(0))
   ).current
@@ -93,6 +96,8 @@ const MpinSetup = () => {
     setIsCreating(true)
     try {
       console.log('Completing registration with MPIN storage...')
+      console.log('User MPIN:', mpin)
+      console.log('User ID for database update:', completeUserData.userID)
       
       // Store MPIN locally for quick access
       await AsyncStorage.setItem(
@@ -108,23 +113,29 @@ const MpinSetup = () => {
       console.log('MPIN stored locally for:', completeUserData.email)
       
       const userid = completeUserData.userID
-      // update the database MPIN
+      
+      // Update the database MPIN to replace the random one
       if (userid) {
+        console.log('Updating database MPIN from random to user-selected:', mpin)
+        
         const { error: updateError } = await supabase
           .from('user')
           .update({ mpin: mpin })
           .eq('userID', userid)
 
         if (updateError) {
-          console.log('Database MPIN update failed, but local storage succeeded:', updateError)
+          console.error('Database MPIN update failed:', updateError)
+          throw new Error('Failed to save your MPIN. Please try again.')
         } else {
-          console.log('MPIN also saved to database')
+          console.log('MPIN successfully saved to database')
         }
+      } else {
+        throw new Error('User ID not found. Cannot save MPIN.')
       }
       
       Alert.alert(
         'Registration Complete!', 
-        'Your account is ready!',
+        'Your account is ready.',
         [
           {
             text: 'Continue',
@@ -135,34 +146,10 @@ const MpinSetup = () => {
       
     } catch (error) {
       console.error('Error completing registration:', error)
-      Alert.alert('Error', 'Failed to complete registration. Please try again.')
-    } finally {
-      setIsCreating(false)
-    }
-  }
-
-  //NOTE - this is not being called at all
-  const saveMpinAndCompleteRegistration = async () => {
-    setIsCreating(true)
-    try {
-      console.log('Completing registration with local MPIN storage...')
-      
-      console.log('Registration completed! MPIN will be stored locally when user first logs in.')
-      
       Alert.alert(
-        'Registration Complete!', 
-        'Your account has been created successfully. Please log in with your email and password to enable MPIN quick access.',
-        [
-          {
-            text: 'Go to Login',
-            onPress: () => router.replace('/login')
-          }
-        ]
+        'Error', 
+        error.message || 'Failed to complete registration. Please try again.'
       )
-      
-    } catch (error) {
-      console.error('Error completing registration:', error)
-      Alert.alert('Error', 'Failed to complete registration. Please try again.')
     } finally {
       setIsCreating(false)
     }
@@ -201,9 +188,9 @@ const MpinSetup = () => {
       </ThemedText>
 
       {/* Debug info */}
-      {completeUserData.name && (
+      {completeUserData.firstName && (
         <Text style={{textAlign: 'center', color: 'green', marginBottom: 10, fontSize: 12}}>
-          Setting up MPIN for: {completeUserData.name}
+          Setting up MPIN for: {completeUserData.firstName}
         </Text>
       )}
 
@@ -264,7 +251,7 @@ const MpinSetup = () => {
 
       {isCreating && (
         <ThemedText style={styles.creatingText}>
-          Completing registration...
+          Saving your MPIN...
         </ThemedText>
       )}
     </ThemedView>

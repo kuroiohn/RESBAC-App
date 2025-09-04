@@ -10,6 +10,8 @@ import { differenceInYears } from "date-fns";
 import ThemedLoader from "../../components/ThemedLoader";
 import DatePickerInput from '../../components/DatePickerInput'
 import * as ImagePicker from "expo-image-picker"
+import PasswordChangeModal from '../../components/PasswordChangeModal'
+import ChangeMpinModal from '../../components/ChangeMpinModal'
 
 
 const Profile = () => {
@@ -112,7 +114,8 @@ const Profile = () => {
     userVul: {...userVul}
   })
   const [showPasswordModal, setShowPasswordModal] = useState(false);
-  const [passwords, setPasswords] = useState({ current: "", new: "", confirm: "" });
+  const [showMpinModal, setShowMpinModal] = useState(false);
+
 
   //reads from supabase
   
@@ -613,32 +616,6 @@ const Profile = () => {
     </View>
   );
 
-  const handleChangePassword = async () => {
-    if (passwords.new !== passwords.confirm) {
-      Alert.alert("Error", "New password and confirm password do not match!");
-      return;
-    }
-    
-    if (passwords.new.length < 6) {
-      Alert.alert("Error", "Password must be at least 6 characters long!");
-      return;
-    }
-
-    try {
-      const { error } = await supabase.auth.updateUser({
-        password: passwords.new
-      });
-
-      if (error) throw error;
-
-      Alert.alert("Success", "Password changed successfully!");
-      setPasswords({ current: "", new: "", confirm: "" });
-      setShowPasswordModal(false);
-    } catch (error) {
-      Alert.alert("Error", error.message);
-    }
-  };
-
   const handleLogout = async () => {
     Alert.alert(
       "Logout",
@@ -862,6 +839,12 @@ const Profile = () => {
           <Feather name="lock" size={20} color="#fff" />
           <Text style={styles.editButtonText}>Change Password</Text>
         </TouchableOpacity>
+      
+      {/* Change MPIN Button */}
+        <TouchableOpacity style={[styles.editButton, { backgroundColor: "#6c757d" }]} onPress={() => setShowMpinModal(true)}>
+          <Feather name="shield" size={20} color="#fff" />
+          <Text style={styles.editButtonText}>Change MPIN</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Logout Button */}
@@ -870,42 +853,15 @@ const Profile = () => {
         <Text style={styles.editButtonText}>Logout</Text>
       </TouchableOpacity>
 
-      {/* Password Modal */}
-      <Modal visible={showPasswordModal} transparent animationType="slide">
-        <View style={styles.modalBackground}>
-          <View style={styles.modalContainer}>
-            <Text style={styles.sectionTitle}>Change Password</Text>
-            <Spacer height={10} />
-            <TextInput
-              placeholder="Current Password"
-              style={styles.input}
-              secureTextEntry
-              value={passwords.current}
-              onChangeText={(text) => setPasswords((p) => ({ ...p, current: text }))}
-            />
-            <Spacer height={22} />
-            <TextInput
-              placeholder="New Password"
-              style={styles.input}
-              secureTextEntry
-              value={passwords.new}
-              onChangeText={(text) => setPasswords((p) => ({ ...p, new: text }))}
-            />
-            <Spacer height={22} />
-            <TextInput
-              placeholder="Confirm New Password"
-              style={styles.input}
-              secureTextEntry
-              value={passwords.confirm}
-              onChangeText={(text) => setPasswords((p) => ({ ...p, confirm: text }))}
-            />
-            <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 12 }}>
-              <Button title="Cancel" onPress={() => setShowPasswordModal(false)} />
-              <Button title="Save" onPress={handleChangePassword} />
-            </View>
-          </View>
-        </View>
-      </Modal>
+      <PasswordChangeModal 
+        visible={showPasswordModal} 
+        onClose={() => setShowPasswordModal(false)} 
+      />
+
+      <ChangeMpinModal 
+        visible={showMpinModal} 
+        onClose={() => setShowMpinModal(false)} 
+      />
     </ScrollView>
   );
 };

@@ -1,6 +1,6 @@
 // app/dashboard/emergency-guide.jsx
-import EmergencyGuideContent from '../../components/shared/EmergencyGuideContent'
+import EmergencyGuideContent from "../../components/shared/EmergencyGuideContent";
 
 export default function DashboardEmergencyGuide() {
-  return <EmergencyGuideContent />
+  return <EmergencyGuideContent />;
 }

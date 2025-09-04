@@ -1,112 +1,123 @@
-import { StyleSheet, Text, View, Animated, Easing, Pressable, Alert } from 'react-native'
-import { useEffect, useRef, useState } from 'react'
-import { useRouter, useLocalSearchParams } from 'expo-router'
-import { Colors } from '../../constants/Colors'
-import { useUser } from '../../hooks/useUser'
-import AsyncStorage from '@react-native-async-storage/async-storage'
-import supabase from '../../contexts/supabaseClient'
+import {
+  StyleSheet,
+  Text,
+  View,
+  Animated,
+  Easing,
+  Pressable,
+  Alert,
+} from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { useRouter, useLocalSearchParams } from "expo-router";
+import { Colors } from "../../constants/Colors";
+import { useUser } from "../../hooks/useUser";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import supabase from "../../contexts/supabaseClient";
 
 // themed components
-import ThemedLogo from '../../components/ThemedLogo'
-import ThemedView from '../../components/ThemedView'
-import ThemedText from '../../components/ThemedText'
-import Spacer from '../../components/Spacer'
+import ThemedLogo from "../../components/ThemedLogo";
+import ThemedView from "../../components/ThemedView";
+import ThemedText from "../../components/ThemedText";
+import Spacer from "../../components/Spacer";
 
 const MpinSetup = () => {
-  const router = useRouter()
-  const params = useLocalSearchParams()
-  const { user } = useUser()
-  const [mpin, setMpin] = useState('')
-  const [confirmMpin, setConfirmMpin] = useState('')
-  const [step, setStep] = useState('create')
-  const [isCreating, setIsCreating] = useState(false)
+  const router = useRouter();
+  const params = useLocalSearchParams();
+  const { user } = useUser();
+  const [mpin, setMpin] = useState("");
+  const [confirmMpin, setConfirmMpin] = useState("");
+  const [step, setStep] = useState("create");
+  const [isCreating, setIsCreating] = useState(false);
 
   // Parse user data from registration
-  const completeUserData = params.userData ? JSON.parse(params.userData) : {}
-
-  console.log('MPIN Setup - Complete User Data:', completeUserData)
-  console.log('MPIN Setup - User ID:', completeUserData.userID)
+  const completeUserData = params.userData ? JSON.parse(params.userData) : {};
 
   const dotAnimations = useRef(
     Array.from({ length: 4 }, () => new Animated.Value(0))
-  ).current
+  ).current;
 
   const confirmDotAnimations = useRef(
     Array.from({ length: 4 }, () => new Animated.Value(0))
-  ).current
+  ).current;
 
   useEffect(() => {
-    const currentMpin = step === 'create' ? mpin : confirmMpin
-    const currentAnimations = step === 'create' ? dotAnimations : confirmDotAnimations
+    const currentMpin = step === "create" ? mpin : confirmMpin;
+    const currentAnimations =
+      step === "create" ? dotAnimations : confirmDotAnimations;
 
-    currentMpin.split('').forEach((_, i) => {
+    currentMpin.split("").forEach((_, i) => {
       Animated.timing(currentAnimations[i], {
         toValue: 1,
         duration: 200,
         useNativeDriver: true,
         easing: Easing.out(Easing.ease),
-      }).start()
-    })
+      }).start();
+    });
 
-    for (const i of Array.from({ length: 4 - currentMpin.length }, (_, index) => currentMpin.length + index)) {
-      currentAnimations[i].setValue(0)
+    for (const i of Array.from(
+      { length: 4 - currentMpin.length },
+      (_, index) => currentMpin.length + index
+    )) {
+      currentAnimations[i].setValue(0);
     }
-  }, [mpin, confirmMpin, step])
+  }, [mpin, confirmMpin, step]);
 
   const handleKeyPress = (val) => {
-    if (step === 'create' && mpin.length < 4) {
-      setMpin(prev => prev + val)
-    } else if (step === 'confirm' && confirmMpin.length < 4) {
-      setConfirmMpin(prev => prev + val)
+    if (step === "create" && mpin.length < 4) {
+      setMpin((prev) => prev + val);
+    } else if (step === "confirm" && confirmMpin.length < 4) {
+      setConfirmMpin((prev) => prev + val);
     }
-  }
+  };
 
   const handleDelete = () => {
-    if (step === 'create') {
-      setMpin(prev => prev.slice(0, -1))
+    if (step === "create") {
+      setMpin((prev) => prev.slice(0, -1));
     } else {
-      setConfirmMpin(prev => prev.slice(0, -1))
+      setConfirmMpin((prev) => prev.slice(0, -1));
     }
-  }
+  };
 
   const handleNext = () => {
-    if (step === 'create' && mpin.length === 4) {
-      setStep('confirm')
-    } else if (step === 'confirm' && confirmMpin.length === 4) {
+    if (step === "create" && mpin.length === 4) {
+      setStep("confirm");
+    } else if (step === "confirm" && confirmMpin.length === 4) {
       if (mpin === confirmMpin) {
-        completeRegistrationFlow()
+        completeRegistrationFlow();
       } else {
-        Alert.alert('MPIN Mismatch', 'Your MPIN codes do not match. Please try again.', [
-          {
-            text: 'OK',
-            onPress: () => {
-              setConfirmMpin('')
-              setStep('create')
-              setMpin('')
-            }
-          }
-        ])
+        Alert.alert(
+          "MPIN Mismatch",
+          "Your MPIN codes do not match. Please try again.",
+          [
+            {
+              text: "OK",
+              onPress: () => {
+                setConfirmMpin("");
+                setStep("create");
+                setMpin("");
+              },
+            },
+          ]
+        );
       }
     } else {
-      Alert.alert('Incomplete MPIN', 'Please enter a 4-digit MPIN.')
+      Alert.alert("Incomplete MPIN", "Please enter a 4-digit MPIN.");
     }
-  }
+  };
 
   const completeRegistrationFlow = async () => {
-    setIsCreating(true)
+    setIsCreating(true);
     try {
-      console.log('Completing registration with MPIN storage...')
-      console.log('User MPIN:', mpin)
-      console.log('User ID for database update:', completeUserData.userID)
-      
+      console.log("Completing registration with MPIN storage...");
+
       // Store MPIN locally for quick access
       await AsyncStorage.setItem(
-        `user_mpin_${completeUserData.email}`, 
+        `user_mpin_${completeUserData.email}`,
         JSON.stringify({
           mpin: mpin,
           email: completeUserData.email,
           password: completeUserData.password,
-          createdAt: new Date().toISOString()
+          createdAt: new Date().toISOString(),
         })
       )
       
@@ -119,9 +130,9 @@ const MpinSetup = () => {
         console.log('Updating database MPIN from random to user-selected:', mpin)
         
         const { error: updateError } = await supabase
-          .from('user')
+          .from("user")
           .update({ mpin: mpin })
-          .eq('userID', userid)
+          .eq("userID", userid);
 
         if (updateError) {
           console.error('Database MPIN update failed:', updateError)
@@ -151,9 +162,9 @@ const MpinSetup = () => {
         error.message || 'Failed to complete registration. Please try again.'
       )
     } finally {
-      setIsCreating(false)
+      setIsCreating(false);
     }
-  }
+  };
 
   const renderKey = (label, onPress, isSpecial = false) => (
     <Pressable
@@ -168,9 +179,10 @@ const MpinSetup = () => {
     >
       <Text style={styles.keyText}>{label}</Text>
     </Pressable>
-  )
+  );
 
-  const currentAnimations = step === 'create' ? dotAnimations : confirmDotAnimations
+  const currentAnimations =
+    step === "create" ? dotAnimations : confirmDotAnimations;
 
   return (
     <ThemedView style={styles.container}>
@@ -178,13 +190,12 @@ const MpinSetup = () => {
       <Spacer height={20} />
 
       <ThemedText style={styles.title2}>
-        {step === 'create' ? 'Create Your MPIN' : 'Confirm Your MPIN'}
+        {step === "create" ? "Create Your MPIN" : "Confirm Your MPIN"}
       </ThemedText>
       <ThemedText style={styles.title3}>
-        {step === 'create' 
-          ? 'Choose a 4-digit code for quick access' 
-          : 'Enter your MPIN again to confirm'
-        }
+        {step === "create"
+          ? "Choose a 4-digit code for quick access"
+          : "Enter your MPIN again to confirm"}
       </ThemedText>
 
       {/* Debug info */}
@@ -218,17 +229,14 @@ const MpinSetup = () => {
       </View>
 
       {/* Show created MPIN when confirming */}
-      {step === 'confirm' && (
+      {step === "confirm" && (
         <>
           <ThemedText style={styles.createdMpinLabel}>Created MPIN:</ThemedText>
           <View style={styles.dotsContainer}>
             {[0, 1, 2, 3].map((i) => (
               <Animated.View
                 key={`created-${i}`}
-                style={[
-                  styles.dot,
-                  { opacity: i < mpin.length ? 1 : 0.3 }
-                ]}
+                style={[styles.dot, { opacity: i < mpin.length ? 1 : 0.3 }]}
               />
             ))}
           </View>
@@ -237,14 +245,14 @@ const MpinSetup = () => {
 
       {/* Custom Keypad */}
       <View style={styles.keypad}>
-        {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((num) =>
+        {["1", "2", "3", "4", "5", "6", "7", "8", "9"].map((num) =>
           renderKey(num, () => handleKeyPress(num))
         )}
-        {renderKey('⌫', handleDelete, true)}
-        {renderKey('0', () => handleKeyPress('0'))}
+        {renderKey("⌫", handleDelete, true)}
+        {renderKey("0", () => handleKeyPress("0"))}
         {renderKey(
-          isCreating ? '⏳' : (step === 'create' ? '→' : '✓'), 
-          handleNext, 
+          isCreating ? "⏳" : step === "create" ? "→" : "✓",
+          handleNext,
           true
         )}
       </View>
@@ -255,32 +263,32 @@ const MpinSetup = () => {
         </ThemedText>
       )}
     </ThemedView>
-  )
-}
+  );
+};
 
-export default MpinSetup
+export default MpinSetup;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   title2: {
-    color: '#161616',
+    color: "#161616",
     fontSize: 28,
-    fontWeight: 'bold',
-    textAlign: 'center',
+    fontWeight: "bold",
+    textAlign: "center",
   },
   title3: {
-    color: '#919191',
+    color: "#919191",
     fontSize: 15,
     marginBottom: 20,
-    textAlign: 'center',
+    textAlign: "center",
   },
   dotsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
     gap: 20,
     marginVertical: 30,
   },
@@ -291,25 +299,25 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary,
   },
   createdMpinLabel: {
-    color: '#666',
+    color: "#666",
     fontSize: 12,
     marginTop: 20,
     marginBottom: -10,
   },
   keypad: {
-    width: '80%',
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
+    width: "80%",
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "center",
     gap: 15,
   },
   key: {
     width: 70,
     height: 70,
     borderRadius: 35,
-    backgroundColor: '#e4e4e4',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#e4e4e4",
+    justifyContent: "center",
+    alignItems: "center",
     margin: 5,
   },
   specialKey: {
@@ -317,11 +325,11 @@ const styles = StyleSheet.create({
   },
   keyText: {
     fontSize: 24,
-    color: '#161616',
+    color: "#161616",
   },
   creatingText: {
     marginTop: 20,
-    color: '#666',
+    color: "#666",
     fontSize: 14,
   },
-})
+});

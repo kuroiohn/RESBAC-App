@@ -1,91 +1,102 @@
-import { ScrollView, Animated, TouchableOpacity, Text, StyleSheet } from "react-native"
-import { useState, useRef, useEffect } from "react"
+import {
+  ScrollView,
+  Animated,
+  TouchableOpacity,
+  Text,
+  StyleSheet,
+} from "react-native";
+import { useState, useRef, useEffect } from "react";
 
-import Spacer from "../../components/Spacer"
-import ThemedText from "../../components/ThemedText"
-import ThemedView from "../../components/ThemedView"
-import CallButton from '../../components/CallBtn'
-import MarkSafeBtn from '../../components/MarkSafeBtn'
-import AlertCard from '../../components/AlertCard'
-import EvacuationCenterCard from '../../components/EvacuationCenterCard'
-import { useUser } from "../../hooks/useUser"
-import supabase from "../../contexts/supabaseClient"
+import Spacer from "../../components/Spacer";
+import ThemedText from "../../components/ThemedText";
+import ThemedView from "../../components/ThemedView";
+import CallButton from "../../components/CallBtn";
+import MarkSafeBtn from "../../components/MarkSafeBtn";
+import AlertCard from "../../components/AlertCard";
+import EvacuationCenterCard from "../../components/EvacuationCenterCard";
+import { useUser } from "../../hooks/useUser";
+import supabase from "../../contexts/supabaseClient";
 
 const Home = () => {
-  const {user} = useUser()
-  const [animating, setAnimating] = useState(false)
-  const [callRequested, setCallRequested] = useState(false)
-  const fadeAnim = useRef(new Animated.Value(0)).current
+  const { user } = useUser();
+  const [animating, setAnimating] = useState(false);
+  const [callRequested, setCallRequested] = useState(false);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
 
-  useEffect(()=>{
-    const userid = user.id
+  useEffect(() => {
+    const userid = user.id;
     // reads from supabase
     const fetchData = async () => {
       // Get the current logged-in user
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
       if (userError || !user) {
         console.error("Error fetching auth user:", userError);
         throw new Error("No active session / user");
       }
 
-      const {data,error} = await supabase
-      .from('user')
-      .select('pressedCallBtn')
-      .eq('userID', user.id)
-      .maybeSingle()
+      const { data, error } = await supabase
+        .from("user")
+        .select("pressedCallBtn")
+        .eq("userID", user.id)
+        .maybeSingle();
 
-      if(error){
-        console.error("Fetch error in supabase pressedCallBtn: ", error)
+      if (error) {
+        console.error("Fetch error in supabase pressedCallBtn: ", error);
       }
-      console.log("Successful fetch",  data.pressedCallBtn);
-      setCallRequested(data.pressedCallBtn)
-      return data
-    }
-    
+      console.log("Successful fetch", data.pressedCallBtn);
+      setCallRequested(data.pressedCallBtn);
+      return data;
+    };
+
     fetchData();
-    
-    const callBtnChannel = supabase.channel('pressedCallBtn-channel')
+
+    const callBtnChannel = supabase
+      .channel("pressedCallBtn-channel")
       .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'user',
-          filter: `userID=eq.${userid}`
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "user",
+          filter: `userID=eq.${userid}`,
         },
         (payload) => {
-          console.log('Change received!', payload)
+          console.log("Change received!", payload);
 
-          if (payload.new?.pressedCallBtn !== undefined){
-            setCallRequested(payload.new.pressedCallBtn)
+          if (payload.new?.pressedCallBtn !== undefined) {
+            setCallRequested(payload.new.pressedCallBtn);
             console.log("Realtime pressedCall: ", callRequested);
-            
           }
         }
       )
-      .subscribe()
+      .subscribe();
 
     return () => {
       supabase.removeChannel(callBtnChannel);
     };
-
-  },[])
+  }, []);
 
   // pang animate
   const handleAnimationStart = () => {
-    setAnimating(true)
-    setCallRequested(false)
-    fadeAnim.setValue(0) // reset fade each time
-  }
+    setAnimating(true);
+    setCallRequested(false);
+    fadeAnim.setValue(0); // reset fade each time
+  };
 
   // pang animate
   const handleAnimationFinish = () => {
-    setAnimating(false)
-    setCallRequested(true)
+    setAnimating(false);
+    setCallRequested(true);
 
     Animated.timing(fadeAnim, {
       toValue: 1,
       duration: 500,
       useNativeDriver: true,
-    }).start()
-  }
+    }).start();
+  };
 
   const handleCancel = async () => {
     Animated.timing(fadeAnim, {
@@ -93,31 +104,33 @@ const Home = () => {
       duration: 500,
       useNativeDriver: true,
     }).start(() => {
-      setAnimating(false)
-      setCallRequested(false)
-    })
+      setAnimating(false);
+      setCallRequested(false);
+    });
 
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
     if (userError) {
       console.error("Error fetching auth user: ", userError);
     }
 
-    const {data,error} = await supabase
-    .from('user')
-    .update({pressedCallBtn: false})
-    .eq("userID",user.id)
-    .select()
+    const { data, error } = await supabase
+      .from("user")
+      .update({ pressedCallBtn: false })
+      .eq("userID", user.id)
+      .select();
 
     console.log("updated call btn:", data, error);
 
-    if(error) {
+    if (error) {
       console.error("Error in updating call btn", error);
     }
-  }
+  };
 
-  console.log("Callrequested: ",callRequested)
-  console.log("animating: ",animating)
-
+  console.log("Callrequested: ", callRequested);
+  console.log("animating: ", animating);
 
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
@@ -132,13 +145,13 @@ const Home = () => {
             <ThemedText>Press the button below and help will</ThemedText>
             <ThemedText>reach you shortly.</ThemedText>
 
-            <Spacer/>
+            <Spacer />
             <CallButton
               onAnimationStart={handleAnimationStart}
               onAnimationFinish={handleAnimationFinish}
               disabled={callRequested}
             />
-            <Spacer/>
+            <Spacer />
 
             <MarkSafeBtn />
 
@@ -177,7 +190,7 @@ const Home = () => {
             <ThemedText style={{ marginTop: 20, fontWeight: "bold" }}>
               Calling for help...
             </ThemedText>
-            <Spacer/>
+            <Spacer />
             <CallButton
               onAnimationStart={handleAnimationStart}
               onAnimationFinish={handleAnimationFinish}
@@ -185,7 +198,7 @@ const Home = () => {
             />
           </>
         )}
-        
+
         {/* After request */}
         {callRequested && !animating && (
           <Animated.View style={{ alignItems: "center" }}>
@@ -193,34 +206,32 @@ const Home = () => {
               Please stand by, or look for a safe {"\n"}
               place to stay until rescue has arrived.
             </ThemedText>
-            <Spacer/>
-            <CallButton 
-              onAnimationStart={handleAnimationStart} 
-              onAnimationFinish={handleAnimationFinish} 
+            <Spacer />
+            <CallButton
+              onAnimationStart={handleAnimationStart}
+              onAnimationFinish={handleAnimationFinish}
               disabled={callRequested}
-            /> 
-            <Spacer/>
+            />
+            <Spacer />
             <TouchableOpacity onPress={handleCancel} style={styles.cancelBtn}>
               <Text style={styles.cancelBtnText}>Cancel Request</Text>
             </TouchableOpacity>
-            <Spacer/>
+            <Spacer />
           </Animated.View>
         )}
-        {!animating && callRequested && (
-          <MarkSafeBtn />
-        )}
+        {!animating && callRequested && <MarkSafeBtn />}
       </ThemedView>
     </ScrollView>
-  )
-}
+  );
+};
 
-export default Home
+export default Home;
 
 const styles = StyleSheet.create({
   scrollContainer: {
     paddingVertical: 20,
     paddingHorizontal: 10,
-    backgroundColor: '#fafafa',
+    backgroundColor: "#fafafa",
     flexGrow: 1,
   },
   container: {
@@ -234,8 +245,8 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   textLeft: {
-    textAlign: 'left',
-    alignSelf: 'stretch',
+    textAlign: "left",
+    alignSelf: "stretch",
     marginLeft: 19,
     fontSize: 19,
     marginTop: 10,
@@ -251,6 +262,6 @@ const styles = StyleSheet.create({
   },
   cancelBtnText: {
     color: "white",
-    fontWeight: "bold"
+    fontWeight: "bold",
   },
-})
+});

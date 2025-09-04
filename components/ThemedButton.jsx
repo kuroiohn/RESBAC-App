@@ -1,5 +1,5 @@
-import { Pressable, StyleSheet } from 'react-native'
-import { Colors } from '../constants/Colors'
+import { Pressable, StyleSheet } from "react-native";
+import { Colors } from "../constants/Colors";
 
 function ThemedButton({ style, children, ...props }) {
   return (
@@ -9,7 +9,7 @@ function ThemedButton({ style, children, ...props }) {
     >
       {/* Wrap children in <Text> if it's a string */}
       {/* finally!! naayos ang error about <Text> */}
-      {typeof children === 'string' ? (
+      {typeof children === "string" ? (
         <Text style={styles.text}>{children}</Text>
       ) : (
         children
@@ -25,11 +25,11 @@ const styles = StyleSheet.create({
     borderRadius: 7,
     marginVertical: 5,
     width: "80%",
-    alignItems: 'center',
+    alignItems: "center",
   },
   pressed: {
-    opacity: 0.5
+    opacity: 0.5,
   },
-})
+});
 
-export default ThemedButton
+export default ThemedButton;

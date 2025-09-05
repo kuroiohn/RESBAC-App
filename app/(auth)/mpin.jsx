@@ -78,6 +78,27 @@ const MPin = () => {
     setMpin((prev) => prev.slice(0, -1));
   };
 
+  // Function to update the most recent login timestamp
+  const updateMostRecentLogin = async (userEmail) => {
+    try {
+      const currentTime = new Date().toISOString();
+      
+      // Update the specific user's lastLogin time
+      const targetKey = `user_mpin_${userEmail}`;
+      const existingData = await AsyncStorage.getItem(targetKey);
+      
+      if (existingData) {
+        const parsed = JSON.parse(existingData);
+        parsed.lastLogin = currentTime;
+        await AsyncStorage.setItem(targetKey, JSON.stringify(parsed));
+        console.log(`Updated lastLogin for ${userEmail} to ${currentTime}`);
+      }
+      
+    } catch (error) {
+      console.error("Error updating most recent login:", error);
+    }
+  };
+
   const handleMpinSubmit = async () => {
     if (mpin.length !== 4) {
       Alert.alert("Invalid MPIN", "Please enter a 4-digit MPIN.");
@@ -101,6 +122,13 @@ const MPin = () => {
 
         if (mpin === storedMpin) {
           console.log("Local MPIN verified - performing automatic login");
+
+          // ALWAYS update the most recent user email for quick access
+          await AsyncStorage.setItem('most_recent_user_email', userEmail);
+          console.log(`Set most recent user email to: ${userEmail}`);
+
+          // Update the specific user's lastLogin time
+          await updateMostRecentLogin(userEmail);
 
           // if may password stored, do automatic login
           if (password) {
@@ -146,35 +174,23 @@ const MPin = () => {
         }
       }
 
-      // Fallback: Check database MPIN
-      console.log("Checking database MPIN...");
-      const { data: userData, error: userError } = await supabase
-        .from("user")
-        .select("mpin")
-        .eq("userID", userEmail)
-        .single();
-
-      if (userError || !userData) {
-        throw new Error(
-          "No MPIN found for this email. Please log in with email/password first."
-        );
-      }
-
-      if (mpin === userData.mpin) {
-        console.log("Database MPIN verified - need password for login");
-        Alert.alert(
-          "MPIN Verified!",
-          "Your MPIN is correct, but you need to log in with email/password to enable automatic access.",
-          [
-            {
-              text: "Go to Email Login",
-              onPress: () => router.replace("/(auth)/login"),
-            },
-          ]
-        );
-      } else {
-        throw new Error("Invalid MPIN. Please try again.");
-      }
+      // No local MPIN found - direct user to email/password login
+      console.log("No local MPIN data found for this user");
+      
+      // Update recent login tracker even though MPIN failed
+      await AsyncStorage.setItem('most_recent_user_email', userEmail);
+      console.log(`Set most recent user email to: ${userEmail}`);
+      
+      Alert.alert(
+        "MPIN Setup Required",
+        "This account doesn't have MPIN quick access set up yet. Please log in with email/password first to enable MPIN access.",
+        [
+          {
+            text: "Go to Email Login",
+            onPress: () => router.replace("/(auth)/login"),
+          },
+        ]
+      );
     } catch (error) {
       console.error("MPIN unlock error:", error);
       Alert.alert(
@@ -263,7 +279,7 @@ const MPin = () => {
             style={styles.backToLogin}
             onPress={() => router.replace("/login")}
           >
-            ← Back to Login
+            ← Use Email/Password Instead
           </ThemedText>
         </View>
       )}

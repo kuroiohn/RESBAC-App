@@ -41,21 +41,36 @@ const Login = () => {
   useEffect(() => {
     const checkForQuickAccess = async () => {
       try {
-        // Check if any stored sessions exist
+        console.log('Checking for quick access...');
+        
+        // Check for most recent user email first 
+        const mostRecentEmail = await AsyncStorage.getItem('most_recent_user_email');
+        console.log('Most recent user email found:', mostRecentEmail);
+        
+        if (mostRecentEmail) {
+          console.log('Setting quick access for most recent user:', mostRecentEmail);
+          setQuickAccessEmail(mostRecentEmail);
+          setLoginMethod("mpin");
+          return;
+        }
+
+        // Fallback to session-based quick access
         const keys = await AsyncStorage.getAllKeys();
-        const sessionKeys = keys.filter((key) =>
-          key.startsWith("session_data")
-        );
-        const mpinKeys = keys.filter((key) => key.startsWith("user_mpin_"));
+        const sessionKeys = keys.filter((key) => key.startsWith("session_data"));
 
         if (sessionKeys.length > 0) {
-          // Prioritize session-based quick access
           const userEmail = await AsyncStorage.getItem("user_email");
           if (userEmail) {
+            console.log('Found session-based quick access for:', userEmail);
             setQuickAccessEmail(userEmail);
             setLoginMethod("mpin");
+            return;
           }
-        } else if (mpinKeys.length > 0) {
+        }
+
+        // Final fallback to MPIN timestamp comparison
+        const mpinKeys = keys.filter((key) => key.startsWith("user_mpin_"));
+        if (mpinKeys.length > 0) {
           let mostRecentEmail = null;
           let mostRecentTime = 0;
 
@@ -77,10 +92,13 @@ const Login = () => {
           }
 
           if (mostRecentEmail) {
+            console.log('Fallback: Found most recent MPIN user:', mostRecentEmail);
             setQuickAccessEmail(mostRecentEmail);
             setLoginMethod("mpin");
           }
         }
+        
+        console.log('No quick access options found');
       } catch (error) {
         console.log("Error checking for quick access:", error);
       }
@@ -134,6 +152,10 @@ const Login = () => {
       const result = await login(email.trim(), password);
       console.log("Login successful");
 
+      // ALWAYS update most recent user email for quick access
+      await AsyncStorage.setItem('most_recent_user_email', email.trim());
+      console.log(`Set most recent user email to: ${email.trim()}`);
+
       // Check if user has a locally stored MPIN from registration
       const localMpinData = await AsyncStorage.getItem(
         `user_mpin_${email.trim()}`
@@ -144,29 +166,66 @@ const Login = () => {
         const { mpin } = mpinDataParsed;
         console.log("Found locally stored MPIN, enabling quick access");
 
-        // Store MPIN with password for automatic login
+        // Store MPIN with password for automatic login and update lastLogin
         await AsyncStorage.setItem(
           `user_mpin_${email.trim()}`,
           JSON.stringify({
             mpin: mpin,
             password: password, // Store password for auto-login
             email: email.trim(),
-            createdAt: new Date().toISOString(),
-            lastLogin: new Date().toISOString(),
+            createdAt: mpinDataParsed.createdAt || new Date().toISOString(),
+            lastLogin: new Date().toISOString(), // Always update lastLogin on successful login
           })
         )
         
         console.log('MPIN data updated with password for auto-login')
         
         router.replace('/(dashboard)/home')
-        // Alert.alert(
-        //   'Quick Access Enabled!',
-        //   'You can now use your 4-digit MPIN for quick login on this device.',
-          // [{ text: 'OK', onPress: () => router.replace('/(dashboard)/home') }]
-        // )
       } else {
-        // No local MPIN found
-        console.log("No local MPIN found");
+        // Check if user has MPIN in database but no local storage
+        console.log("No local MPIN found, checking database...");
+        
+        try {
+          const { data: dbUser, error: dbError } = await supabase
+            .from("user")
+            .select("mpin")
+            .eq("userID", result.user.id)
+            .single();
+            
+          if (dbError) {
+            console.log("Database query error:", dbError);
+          }
+            
+          if (dbUser?.mpin) {
+            console.log("Found database MPIN, creating local storage");
+            // User has MPIN in database, create local storage
+            await AsyncStorage.setItem(
+              `user_mpin_${email.trim()}`,
+              JSON.stringify({
+                mpin: dbUser.mpin,
+                password: password,
+                email: email.trim(),
+                createdAt: new Date().toISOString(),
+                lastLogin: new Date().toISOString(),
+              })
+            );
+            console.log('Created local MPIN storage for existing user');
+            
+            Alert.alert(
+              'MPIN Access Enabled!',
+              'Your MPIN quick access has been set up. You can now use your 4-digit MPIN for quick login.',
+              [{ text: 'OK', onPress: () => router.replace('/(dashboard)/home') }]
+            );
+            return;
+          } else {
+            console.log("No MPIN found in database either");
+          }
+        } catch (error) {
+          console.log("Error checking database MPIN:", error);
+        }
+        
+        // No local MPIN found and no database MPIN
+        console.log("No MPIN found anywhere, proceeding to dashboard");
         router.replace("/(dashboard)/home");
       }
     } catch (error) {
@@ -235,7 +294,7 @@ const Login = () => {
                 setQuickAccessEmail(null);
               }}
             >
-              Use different account or email login
+              Use email/password instead
             </ThemedText>
           </View>
         ) : (
@@ -345,7 +404,7 @@ const Login = () => {
                 </ThemedButton>
 
                 <ThemedText style={styles.mpinNote}>
-                  Forgot your MPIN? Use email login above
+                  Don't remember your MPIN? Use email/password above
                 </ThemedText>
               </View>
             )}

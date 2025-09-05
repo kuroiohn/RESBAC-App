@@ -32,14 +32,16 @@ import { Space } from "lucide-react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import LocationPermissionInput from "../../components/LocationPermissionInput";
 import { useRouter } from "expo-router";
-import PasswordChangeModal from '../../components/PasswordChangeModal'
-import ChangeMpinModal from '../../components/ChangeMpinModal'
-
+import PasswordChangeModal from "../../components/PasswordChangeModal";
+import ChangeMpinModal from "../../components/ChangeMpinModal";
+import DropDownPicker from "react-native-dropdown-picker";
 
 const Profile = () => {
   const { user, logout } = useUser();
   const queryClient = useQueryClient();
   const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [openSex, setOpenSex] = useState(false);
 
   // added to remove header in profile tab
   const navigation = useNavigation();
@@ -244,7 +246,6 @@ const Profile = () => {
   });
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showMpinModal, setShowMpinModal] = useState(false);
-
 
   //reads from supabase
 
@@ -715,7 +716,10 @@ const Profile = () => {
       await supabase
         .from("vulnerabilityList")
         .update({
-          elderly: (differenceInYears(new Date(), new Date(userData.dob)) >= 60 ? true : false),
+          elderly:
+            differenceInYears(new Date(), new Date(userData.dob)) >= 60
+              ? true
+              : false,
           pregnantInfant: userVul.pregnantInfant,
           physicalPWD: userVul.physicalPWD,
           psychPWD: userVul.psychPWD,
@@ -757,10 +761,10 @@ const Profile = () => {
           return {
             ...prev,
             [field]: value
-            .split(",")
-            // .map(v => v.trim())
-            .filter(v => v.length > 0)
-          }
+              .split(",")
+              // .map(v => v.trim())
+              .filter((v) => v.length > 0),
+          };
         }
         return { ...prev, [field]: value };
       });
@@ -774,25 +778,60 @@ const Profile = () => {
     value,
     editable = true,
     keyboardType = "default"
-  ) => (
-    <View style={styles.rowItem}>
-      <Text style={styles.label}>{label}</Text>
-      <TextInput
-        style={[
-          styles.input,
-          editable
-            ? editingSections[section]
-              ? styles.editableInput
-              : styles.disabledInput
-            : styles.disabledInput,
-        ]}
-        value={value || ""}
-        editable={editingSections[section] && editable}
-        onChangeText={(text) => editable && updateField(section, field, text)}
-        keyboardType={keyboardType}
-      />
-    </View>
-  );
+  ) => {
+    // Special case: render dropdown for "sex"
+    if (field === "sex") {
+      return (
+        <View style={styles.rowItem}>
+          <Text style={styles.label}>{label}</Text>
+
+          {editingSections[section] && editable ? (
+            // Show dropdown only when editing
+            <DropDownPicker
+              open={openSex}
+              value={value || null}
+              items={[
+                { label: "Male", value: "Male" },
+                { label: "Female", value: "Female" },
+              ]}
+              setOpen={setOpenSex}
+              setValue={(callback) => {
+                const newValue = callback(value);
+                updateField(section, field, newValue);
+              }}
+              placeholder={value ? value : "Select sex"}
+              style={[styles.dropdown, styles.editableInput]}
+              dropDownContainerStyle={styles.dropdownContainer}
+            />
+          ) : (
+            // Show plain text when not editing
+            <Text style={styles.valueText}>{value || "Not specified"}</Text>
+          )}
+        </View>
+      );
+    }
+
+    // Default case: TextInput
+    return (
+      <View style={styles.rowItem}>
+        <Text style={styles.label}>{label}</Text>
+        <TextInput
+          style={[
+            styles.input,
+            editable
+              ? editingSections[section]
+                ? styles.editableInput
+                : styles.disabledInput
+              : styles.disabledInput,
+          ]}
+          value={value || ""}
+          editable={editingSections[section] && editable}
+          onChangeText={(text) => editable && updateField(section, field, text)}
+          keyboardType={keyboardType}
+        />
+      </View>
+    );
+  };
 
   const handleLogout = async () => {
     Alert.alert("Logout", "Are you sure you want to logout?", [
@@ -962,9 +1001,10 @@ const Profile = () => {
         </View>
       </View>
 
-        <View style={styles.row}>
-          {renderField("userData", "sex", "Sex", userData.sex)}
-        </View>
+      <View style={styles.row}>
+        {renderField("userData", "sex", "Sex", userData.sex)}
+      </View>
+
       {/* DOB and Age */}
       <View style={styles.row}>
         <View style={styles.rowItem}>
@@ -972,7 +1012,7 @@ const Profile = () => {
           {editingSections.userData ? (
             <View style={[styles.input, styles.editableInput]}>
               <DatePickerInput
-                minimumDate={new Date(1900,0,1)}
+                minimumDate={new Date(1900, 0, 1)}
                 value={userData.dob ? new Date(userData.dob) : null}
                 onChange={(date) => {
                   if (date) {
@@ -1242,10 +1282,13 @@ const Profile = () => {
           <Feather name='lock' size={20} color='#fff' />
           <Text style={styles.editButtonText}>Change Password</Text>
         </TouchableOpacity>
-      
-      {/* Change MPIN Button */}
-        <TouchableOpacity style={[styles.editButton, { backgroundColor: "#6c757d" }]} onPress={() => setShowMpinModal(true)}>
-          <Feather name="shield" size={20} color="#fff" />
+
+        {/* Change MPIN Button */}
+        <TouchableOpacity
+          style={[styles.editButton, { backgroundColor: "#6c757d" }]}
+          onPress={() => setShowMpinModal(true)}
+        >
+          <Feather name='shield' size={20} color='#fff' />
           <Text style={styles.editButtonText}>Change MPIN</Text>
         </TouchableOpacity>
       </View>
@@ -1262,14 +1305,14 @@ const Profile = () => {
         <Text style={styles.editButtonText}>Logout</Text>
       </TouchableOpacity>
 
-      <PasswordChangeModal 
-        visible={showPasswordModal} 
-        onClose={() => setShowPasswordModal(false)} 
+      <PasswordChangeModal
+        visible={showPasswordModal}
+        onClose={() => setShowPasswordModal(false)}
       />
 
-      <ChangeMpinModal 
-        visible={showMpinModal} 
-        onClose={() => setShowMpinModal(false)} 
+      <ChangeMpinModal
+        visible={showMpinModal}
+        onClose={() => setShowMpinModal(false)}
       />
     </ScrollView>
   );
@@ -1392,5 +1435,20 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 6,
     elevation: 3,
+  },
+
+  label: {
+    fontSize: 16,
+    fontWeight: "600",
+    marginBottom: 8,
+  },
+  dropdown: {
+    borderColor: "#ccc",
+    borderRadius: 12,
+    backgroundColor: "#fff",
+  },
+  dropdownContainer: {
+    borderColor: "#ccc",
+    borderRadius: 12,
   },
 });

@@ -42,6 +42,11 @@ const Profile = () => {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [openSex, setOpenSex] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [openDropdowns, setOpenDropdowns] = useState({}); // dynamic for multiple dropdowns
+  const [dropdownValues, setDropdownValues] = useState({
+    sex: userData?.sex || null, // safe optional chaining
+  });
 
   // added to remove header in profile tab
   const navigation = useNavigation();
@@ -776,59 +781,55 @@ const Profile = () => {
     field,
     label,
     value,
-    editable = true,
-    keyboardType = "default"
+    editable = false,
+    keyboardType = "default",
+    dropdownItems = null // optional: pass array of {label, value} for dropdown
   ) => {
-    // Special case: render dropdown for "sex"
-    if (field === "sex") {
-      return (
-        <View style={styles.rowItem}>
-          <Text style={styles.label}>{label}</Text>
+    const isEditing = editingSections[section] && editable;
 
-          {editingSections[section] && editable ? (
-            // Show dropdown only when editing
-            <DropDownPicker
-              open={openSex}
-              value={value || null}
-              items={[
-                { label: "Male", value: "Male" },
-                { label: "Female", value: "Female" },
-              ]}
-              setOpen={setOpenSex}
-              setValue={(callback) => {
-                const newValue = callback(value);
-                updateField(section, field, newValue);
-              }}
-              placeholder={value ? value : "Select sex"}
-              style={[styles.dropdown, styles.editableInput]}
-              dropDownContainerStyle={styles.dropdownContainer}
-            />
-          ) : (
-            // Show plain text when not editing
-            <Text style={styles.valueText}>{value || "Not specified"}</Text>
-          )}
+    // If dropdownItems are provided, render a dropdown instead of text input
+    if (dropdownItems && isEditing) {
+      return (
+        <View style={[styles.rowItem, { zIndex: 1000 }]}>
+          <Text style={styles.label}>{label}</Text>
+          <DropDownPicker
+            open={openDropdowns[field] || false}
+            value={dropdownValues[field]}
+            items={dropdownItems}
+            setOpen={(open) =>
+              setOpenDropdowns((prev) => ({ ...prev, [field]: open }))
+            }
+            setValue={(callback) => {
+              const newValue = callback(dropdownValues[field]);
+              setDropdownValues((prev) => ({ ...prev, [field]: newValue }));
+              updateField(section, field, newValue);
+            }}
+            placeholder={value || `Select ${label}`}
+            style={[styles.dropdown, styles.editableInput]}
+            dropDownContainerStyle={styles.dropdownContainer}
+          />
         </View>
       );
     }
 
-    // Default case: TextInput
+    if (isEditing) {
+      return (
+        <View style={styles.rowItem}>
+          <Text style={styles.label}>{label}</Text>
+          <TextInput
+            style={[styles.input, styles.editableInput]}
+            value={value}
+            onChangeText={(text) => updateField(section, field, text)}
+            keyboardType={keyboardType}
+          />
+        </View>
+      );
+    }
+
     return (
       <View style={styles.rowItem}>
         <Text style={styles.label}>{label}</Text>
-        <TextInput
-          style={[
-            styles.input,
-            editable
-              ? editingSections[section]
-                ? styles.editableInput
-                : styles.disabledInput
-              : styles.disabledInput,
-          ]}
-          value={value || ""}
-          editable={editingSections[section] && editable}
-          onChangeText={(text) => editable && updateField(section, field, text)}
-          keyboardType={keyboardType}
-        />
+        <Text style={styles.valueText}>{value || "—"}</Text>
       </View>
     );
   };
@@ -943,66 +944,94 @@ const Profile = () => {
       {/* Personal Information */}
       {/* USER DATA */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Personal Information</Text>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Personal Information</Text>
+
+          {/* Ellipsis on the far right */}
+          <TouchableOpacity
+            style={styles.ellipsisButton}
+            onPress={() => toggleSectionEdit("userData")}
+          >
+            <Text style={styles.ellipsisText}>⋯</Text>
+          </TouchableOpacity>
+        </View>
+
         <View style={styles.divider} />
 
-        {/* Edit Personal Info Button */}
-        <TouchableOpacity
-          style={[
-            styles.editButton,
-            {
-              backgroundColor: editingSections.userData ? "#28a745" : "#007bff",
-            },
-          ]}
-          onPress={() =>
-            editingSections.userData
-              ? saveChanges()
-              : toggleSectionEdit("userData")
-          }
-        >
-          <Feather
-            name={editingSections.userData ? "check" : "edit"}
-            size={20}
-            color='#fff'
-          />
-          <Text style={styles.editButtonText}>
-            {editingSections.userData ? "Save Changes" : "Edit Personal Info"}
-          </Text>
-        </TouchableOpacity>
+        {/* Only show editable fields if editingSections.userData is true */}
+        {editingSections.userData && (
+          <View style={styles.editActions}>
+            <Text style={styles.editLabel}>Edit Personal Info</Text>
+            <TouchableOpacity
+              style={[styles.saveButton, { backgroundColor: "#28a745" }]}
+              onPress={saveChanges}
+            >
+              <Feather name='check' size={18} color='#fff' />
+              <Text style={styles.saveButtonText}>Save Changes</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         <Spacer height={10} />
 
         {/* Name Fields */}
-        <View style={styles.row}>
-          {renderField(
-            "userData",
-            "firstName",
-            "First Name",
-            userData.firstName
-          )}
-        </View>
-        <View style={styles.row}>
-          {userData.middleName !== null
-            ? renderField(
+        {editingSections.userData && (
+          <>
+            <View style={styles.row}>
+              {renderField(
                 "userData",
-                "middleName",
-                "Middle Name",
-                userData.middleName
-              )
-            : renderField(
-                "userData",
-                "middleName",
-                "Middle Name",
-                userData.middleName
+                "firstName",
+                "First Name",
+                userData.firstName,
+                true
               )}
-        </View>
-        <View style={styles.row}>
-          {renderField("userData", "surname", "Surname", userData.surname)}
-        </View>
+            </View>
+            <View style={styles.row}>
+              {renderField(
+                "userData",
+                "middleName",
+                "Middle Name",
+                userData.middleName,
+                true
+              )}
+            </View>
+            <View style={styles.row}>
+              {renderField(
+                "userData",
+                "surname",
+                "Surname",
+                userData.surname,
+                true
+              )}
+            </View>
+          </>
+        )}
       </View>
 
+      {/* Sex and Household Size */}
       <View style={styles.row}>
-        {renderField("userData", "sex", "Sex", userData.sex)}
+        {renderField(
+          "userData",
+          "sex",
+          "Sex",
+          userData.sex,
+          true, // editable
+          "default",
+          [
+            { label: "Male", value: "Male" },
+            { label: "Female", value: "Female" },
+            { label: "Other", value: "Other" },
+          ] // dropdown items
+        )}
+
+        {renderField(
+          "userData",
+          "householdSize",
+          "Household Size",
+          userData.householdSize.toString(),
+          true,
+          "number-pad"
+        )}
       </View>
 
       {/* DOB and Age */}
@@ -1026,34 +1055,28 @@ const Profile = () => {
               />
             </View>
           ) : (
-            <TextInput
-              style={[styles.input, styles.disabledInput]}
-              value={userData.dob || ""}
-              editable={false}
-            />
+            <Text style={styles.valueText}>{userData.dob || "—"}</Text>
           )}
         </View>
 
         <View style={styles.rowItem}>
           <Text style={styles.label}>Age</Text>
-          <TextInput
-            style={[styles.input, styles.disabledInput]}
-            value={userData.age?.toString() || ""}
-            editable={false}
-          />
+          {editingSections.userData ? (
+            <TextInput
+              style={[styles.input, styles.editableInput]}
+              value={userData.age?.toString() || ""}
+              editable={false} // optional: could be read-only
+            />
+          ) : (
+            <Text style={styles.valueText}>
+              {userData.age?.toString() || "—"}
+            </Text>
+          )}
         </View>
       </View>
 
       {/* Household Information */}
       <View style={styles.row}>
-        {renderField(
-          "userData",
-          "householdSize",
-          "Household Size",
-          userData.householdSize.toString(),
-          true,
-          "number-pad"
-        )}
         <View style={styles.row}>
           {renderField(
             "userData",
@@ -1108,10 +1131,8 @@ const Profile = () => {
           {renderField("address", "brgyName", "Barangay", userAddress.brgyName)}
           {renderField("address", "cityName", "City", userAddress.cityName)}
 
-          {
-            editingSections.address === true &&
-            (
-              <LocationPermissionInput
+          {editingSections.address === true && (
+            <LocationPermissionInput
               value={locationData}
               onChange={(data) => {
                 setLocationData(data);
@@ -1119,9 +1140,7 @@ const Profile = () => {
               placeholder='Edit Location Coordinates'
               disabled={!editingSections.address}
             />
-            )
-          }
-          
+          )}
 
           <View style={styles.row}>
             {renderField(
@@ -1372,7 +1391,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     flexWrap: "wrap",
-    marginBottom: 12,
+    marginBottom: 0,
   },
   rowItem: { flex: 1, marginRight: 8, marginBottom: 12 },
   label: { fontSize: 12, color: "#555", marginBottom: 4 },
@@ -1442,11 +1461,11 @@ const styles = StyleSheet.create({
     padding: 6,
     elevation: 3,
   },
-
   label: {
-    fontSize: 16,
+    fontSize: 12,
     fontWeight: "600",
-    marginBottom: 8,
+    color: "#6B6B6B",
+    marginBottom: 2,
   },
   dropdown: {
     borderColor: "#ccc",
@@ -1456,5 +1475,51 @@ const styles = StyleSheet.create({
   dropdownContainer: {
     borderColor: "#ccc",
     borderRadius: 12,
+  },
+  valueText: {
+    fontSize: 19,
+  },
+  sectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between", // ensures ellipsis is at the far right
+    marginBottom: 5,
+  },
+
+  ellipsisButton: {
+    paddingHorizontal: 8,
+    paddingVertical: 0,
+  },
+
+  ellipsisText: {
+    fontSize: 24,
+    color: "#007bff",
+  },
+
+  editActions: {
+    marginTop: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-start",
+    gap: 10,
+  },
+
+  editLabel: {
+    fontSize: 16,
+    color: "#007bff",
+    fontWeight: "500",
+  },
+
+  saveButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 6,
+  },
+
+  saveButtonText: {
+    color: "#fff",
+    marginLeft: 5,
   },
 });

@@ -972,8 +972,6 @@ const Profile = () => {
           </View>
         )}
 
-        <Spacer height={10} />
-
         {/* Name Fields */}
         {editingSections.userData && (
           <>
@@ -1020,7 +1018,6 @@ const Profile = () => {
           [
             { label: "Male", value: "Male" },
             { label: "Female", value: "Female" },
-            { label: "Other", value: "Other" },
           ] // dropdown items
         )}
 
@@ -1092,44 +1089,55 @@ const Profile = () => {
       <View style={styles.row}></View>
       <View style={styles.row}>
         <View style={styles.rowItem}>
-          <Text style={styles.sectionTitle}>Address Information</Text>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Address Information</Text>
+
+            {/* Ellipsis on the far right */}
+            <TouchableOpacity
+              style={styles.ellipsisButton}
+              onPress={() => toggleSectionEdit("address")}
+            >
+              <Text style={styles.ellipsisText}>⋯</Text>
+            </TouchableOpacity>
+          </View>
+
           <View style={styles.divider} />
 
-          {/* Edit Address Info Button */}
-          <TouchableOpacity
-            style={[
-              styles.editButton,
-              {
-                backgroundColor: editingSections.address
-                  ? "#28a745"
-                  : "#007bff",
-              },
-            ]}
-            onPress={() =>
-              editingSections.address
-                ? saveChanges()
-                : toggleSectionEdit("address")
-            }
-          >
-            <Feather
-              name={editingSections.address ? "check" : "edit"}
-              size={20}
-              color='#fff'
-            />
-            <Text style={styles.editButtonText}>
-              {editingSections.address ? "Save Changes" : "Edit Address Info"}
-            </Text>
-          </TouchableOpacity>
+          {/* Only show editable fields if editingSections.address is true */}
+          {editingSections.address && (
+            <View style={styles.editActions}>
+              <Text style={styles.editLabel}>Edit Address Info</Text>
+              <TouchableOpacity
+                style={[styles.saveButton, { backgroundColor: "#28a745" }]}
+                onPress={saveChanges}
+              >
+                <Feather name='check' size={18} color='#fff' />
+                <Text style={styles.saveButtonText}>Save Changes</Text>
+              </TouchableOpacity>
+            </View>
+          )}
 
-          <Spacer height={10} />
           {renderField(
             "address",
             "streetName",
             "Street",
-            userAddress.streetName
+            userAddress.streetName,
+            true
           )}
-          {renderField("address", "brgyName", "Barangay", userAddress.brgyName)}
-          {renderField("address", "cityName", "City", userAddress.cityName)}
+          {renderField(
+            "address",
+            "brgyName",
+            "Barangay",
+            userAddress.brgyName,
+            true
+          )}
+          {renderField(
+            "address",
+            "cityName",
+            "City",
+            userAddress.cityName,
+            true
+          )}
 
           {editingSections.address === true && (
             <LocationPermissionInput
@@ -1148,7 +1156,8 @@ const Profile = () => {
               "completeAddress",
               "Complete Address",
               locationData?.formattedAddress ||
-                `${userAddress.streetName}, ${userAddress.brgyName}, ${userAddress.cityName} City`
+                `${userAddress.streetName}, ${userAddress.brgyName}, ${userAddress.cityName} City`,
+              true
             )}
           </View>
           {/* <Text style={styles.label}>Barangay</Text> */}
@@ -1159,42 +1168,48 @@ const Profile = () => {
 
       {userData.hasGuardian === true && (
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Guardian Information</Text>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Guardian Information</Text>
+
+            {/* Ellipsis on the far right */}
+            <TouchableOpacity
+              style={styles.ellipsisButton}
+              onPress={() => toggleSectionEdit("guardian")}
+            >
+              <Text style={styles.ellipsisText}>⋯</Text>
+            </TouchableOpacity>
+          </View>
+
           <View style={styles.divider} />
 
-          {/* Edit Guardian Info Button */}
-          <TouchableOpacity
-            style={[
-              styles.editButton,
-              {
-                backgroundColor: editingSections.guardian
-                  ? "#28a745"
-                  : "#007bff",
-              },
-            ]}
-            onPress={() =>
-              editingSections.guardian
-                ? saveChanges()
-                : toggleSectionEdit("guardian")
-            }
-          >
-            <Feather
-              name={editingSections.guardian ? "check" : "edit"}
-              size={20}
-              color='#fff'
-            />
-            <Text style={styles.editButtonText}>
-              {editingSections.guardian ? "Save Changes" : "Edit Guardian Info"}
-            </Text>
-          </TouchableOpacity>
+          {/* Only show editable fields if editingSections.guardian is true */}
+          {editingSections.guardian && (
+            <View style={styles.editActions}>
+              <Text style={styles.editLabel}>Edit Guardian Info</Text>
+              <TouchableOpacity
+                style={[styles.saveButton, { backgroundColor: "#28a745" }]}
+                onPress={saveChanges}
+              >
+                <Feather name='check' size={18} color='#fff' />
+                <Text style={styles.saveButtonText}>Save Changes</Text>
+              </TouchableOpacity>
+            </View>
+          )}
 
           <View style={styles.row}>
-            {renderField("guardian", "fullName", "Name", userGuardian.fullName)}
+            {renderField(
+              "guardian",
+              "fullName",
+              "Name",
+              userGuardian.fullName,
+              true
+            )}
             {renderField(
               "guardian",
               "relationship",
               "Relationship",
-              userGuardian.relationship
+              userGuardian.relationship,
+              true
             )}
           </View>
           <View style={styles.row}>
@@ -1202,7 +1217,8 @@ const Profile = () => {
               "guardian",
               "guardianContact",
               "Contact",
-              userGuardian.guardianContact
+              userGuardian.guardianContact,
+              true
             )}
           </View>
           <View style={styles.row}>
@@ -1210,7 +1226,8 @@ const Profile = () => {
               "guardian",
               "guardianAddress",
               "Address",
-              userGuardian.guardianAddress
+              userGuardian.guardianAddress,
+              true
             )}
           </View>
         </View>
@@ -1367,9 +1384,12 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: "700",
     marginBottom: 4,
+    textAlign: "center",
   },
+
   statusContainer: {
     alignItems: "center",
+    justifyContent: "center",
     marginBottom: 12,
   },
   statusText: {
@@ -1382,8 +1402,11 @@ const styles = StyleSheet.create({
   addressRow: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
     marginTop: 4,
+    textAlign: "center",
   },
+
   section: { marginBottom: 20 },
   sectionTitle: { fontSize: 13, fontWeight: "600", color: "#007bff" },
   divider: { height: 1, backgroundColor: "#007bff", marginVertical: 8 },
@@ -1469,12 +1492,13 @@ const styles = StyleSheet.create({
   },
   dropdown: {
     borderColor: "#ccc",
-    borderRadius: 12,
+    borderRadius: 8,
     backgroundColor: "#fff",
   },
   dropdownContainer: {
     borderColor: "#ccc",
-    borderRadius: 12,
+    borderRadius: 8,
+    height: 44,
   },
   valueText: {
     fontSize: 19,
@@ -1483,7 +1507,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between", // ensures ellipsis is at the far right
-    marginBottom: 5,
+    marginBottom: -5,
   },
 
   ellipsisButton: {

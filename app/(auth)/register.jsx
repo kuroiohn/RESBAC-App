@@ -28,6 +28,8 @@ import Spacer from "../../components/Spacer";
 import ThemedLogo from "../../components/ThemedLogo";
 import TitleText from "../../components/TitleText";
 import BackNextButtons from "../../components/buttons/BackNextButtons";
+import BarangayDropdown from "../../components/BarangayDropdown";
+
 // Custom hook for user authentication
 import { useUser } from "../../hooks/useUser";
 import GenderSelector from "../../components/GenderSelector";
@@ -70,6 +72,7 @@ const Register = () => {
   const [age, setAge] = useState(0); // set age
   const [email, setEmail] = useState(""); // User's email address (used for authentication)
   const [contactNumber, setContactNumber] = useState(""); // User's contact phone number
+  const [barangay, setBarangay] = useState(null); // state for barangay dropdown
   const [address, setAddress] = useState(""); // User's physical address
   const [locationData, setLocationData] = useState(null); // GPS location data
   const [sex, setSex] = useState(""); // User's sex/gender
@@ -84,6 +87,8 @@ const Register = () => {
   const { user, register } = useUser(); // Custom hook for user registration functionality
   // state for checkbox
   const [isAgreed, setIsAgreed] = useState(false);
+
+
 
   /**
    * Validates all form fields and returns whether the form is valid
@@ -121,6 +126,11 @@ const Register = () => {
       errors.contactNumber = "Contact Number is required";
     } else if (!/^\d{10,11}$/.test(contactNumber.replace(/[^0-9]/g, ""))) {
       errors.contactNumber = "Contact Number is invalid";
+    }
+
+    // Barangay Validation
+    if (!barangay) {
+      errors.barangay = "Barangay is required";
     }
 
     // Address validation
@@ -187,6 +197,7 @@ const Register = () => {
       email,
       password,
       contactNumber,
+      barangay, //newly added
       address, // User's manually typed address
       location: locationData
         ? {
@@ -342,6 +353,19 @@ const Register = () => {
             />
             {formErrors.contactNumber && (
               <Text style={styles.fieldError}>{formErrors.contactNumber}</Text>
+            )}
+
+            {/* Barangay input field - ALWAYS REQUIRED */}
+            <BarangayDropdown
+              value={barangay}
+              onChange={(value) => {
+                setBarangay(value);
+                clearFieldError("barangay");
+              }}
+              disabled={!isAgreed}
+            />
+            {formErrors.barangay && (
+                <Text style={styles.fieldError}>{formErrors.barangay}</Text>
             )}
 
             {/* Address input field - ALWAYS REQUIRED */}

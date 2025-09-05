@@ -221,6 +221,7 @@ const Register = () => {
       pathname: "./vulnerable",
       params: {
         userData: JSON.stringify(basicUserData),
+        from: "register"
       },
     });
   };

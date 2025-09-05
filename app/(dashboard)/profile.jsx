@@ -65,6 +65,7 @@ const Profile = () => {
     surname: "",
     dob: "",
     age: 0,
+    sex: "",
     mpin: "",
     userNumber: "",
     householdSize: 0,
@@ -267,6 +268,7 @@ const Profile = () => {
       surname: data.surname || "",
       dob: data.dateOfBirth || "",
       age: data.age || 0,
+      sex: data.sex || "",
       mpin: data.mpin || "",
       userNumber: data.userNumber || "",
       householdSize: data.householdSize || 0,
@@ -314,6 +316,7 @@ const Profile = () => {
         surname: profileData.surname || "",
         dob: profileData.dateOfBirth || "",
         age: profileData.age || 0,
+        sex: profileData.sex || "None",
         mpin: profileData.mpin || "",
         userNumber: profileData.userNumber || "",
         householdSize: profileData.householdSize || 0,
@@ -666,13 +669,6 @@ const Profile = () => {
   const saveChanges = async () => {
     try {
       const newAge = differenceInYears(new Date(), new Date(userData.dob));
-      // update email ################################################
-      // const {error:emailError} = await supabase.auth.updateUser({
-      //   email: userData.email
-      // })
-      // if (emailError) {
-      //   console.error("Email update error", error);
-      // }
 
       // Update user table ############################################
       await supabase
@@ -682,6 +678,7 @@ const Profile = () => {
           middleName: userData.middleName,
           surname: userData.surname,
           age: newAge,
+          sex: userData.sex,
           dateOfBirth: userData.dob,
           userNumber: userData.userNumber,
           householdSize: userData.householdSize,
@@ -965,6 +962,9 @@ const Profile = () => {
         </View>
       </View>
 
+        <View style={styles.row}>
+          {renderField("userData", "sex", "Sex", userData.sex)}
+        </View>
       {/* DOB and Age */}
       <View style={styles.row}>
         <View style={styles.rowItem}>

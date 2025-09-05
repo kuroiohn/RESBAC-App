@@ -23,6 +23,7 @@ import { Dropdown } from "react-native-element-dropdown";
 import CheckboxComponent from "../../components/CheckboxComponent";
 import { useRoute } from "@react-navigation/native";
 import { useState, useEffect } from "react";
+import supabase from "../../contexts/supabaseClient";
 
 const Vulnerable = () => {
     const router = useRouter();
@@ -176,7 +177,7 @@ const Vulnerable = () => {
         }
     };
 
-    const handleNext = () => {
+    const handleNext = async () => {
         console.log("Collecting vulnerability data...");
 
         // Get sex from userData (should be available from register screen)
@@ -213,13 +214,50 @@ const Vulnerable = () => {
 
         console.log("Complete user data with vulnerability:", completeUserData);
 
-        // Navigate to upload screen with all data
-        router.push({
-            pathname: "./uploadID",
-            params: {
-                userData: JSON.stringify(completeUserData),
-            },
-        });
+
+        if (from === "register") {
+
+            // Navigate to upload screen with all data
+            router.push({
+                pathname: "./uploadID",
+                params: {
+                    userData: JSON.stringify(completeUserData),
+                },
+            });
+        } else if (from === "profile") {
+            try {
+                const {data, error} = await supabase
+                .from('user')
+                .select('*')
+                .eq("userID", user.id)
+                .single();
+                
+                if(error){
+                    console.error("Error in fetching dateOfBirth in edit profile: ",  error);
+                }
+                
+                // Update vulnerability table ###################################
+                    await supabase
+                    .from("vulnerabilityList")
+                    .update({
+                        elderly: (differenceInYears(new Date(), new Date(data.dateOfBirth)) >= 60 ? true : false),
+                        pregnantInfant: data.sex === "Female" ? [pregnancy || "no", hasInfant || "no"] :
+                        ["no","no"],
+                        physicalPWD: physicalDisability,
+                        psychPWD: psychologicalDisability,
+                        sensoryPWD: sensoryDisability,
+                        medDep: healthCondition,
+                        // locationRiskLevel: userVul.locationRiskLevel,
+                    })
+                    .eq("userID", user.id);
+            
+                    Alert.alert("Success", "Profile updated!");                
+            } catch (error) {
+                console.error("Error updating profile:", error);
+                Alert.alert("Error", "Failed to update profile. Please try again.");
+            }
+            
+        }
     };
 
     //renders vulnerability assessment form
@@ -669,6 +707,7 @@ const Vulnerable = () => {
                         />
                     </View>
 
+                    {/* //FIXME - add condition to go back to edit profile */}
                     {/* Back and Next navigation buttons */}
                     <BackNextButtons
                         onBack={() => router.back()}

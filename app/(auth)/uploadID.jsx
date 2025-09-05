@@ -392,6 +392,7 @@ export default function uploadID() {
           firstName: completeUserData.firstName || "Unknown",
           middleName: completeUserData.middleName || "",
           surname: completeUserData.surname || "User",
+          sex: completeUserData.sex || "",
           dateOfBirth: completeUserData.dob || new Date("2025-01-01"),
           age: completeUserData.age || 0,
           mpin: Math.floor(1000 + Math.random() * 9000).toString(),

@@ -6,7 +6,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import supabase from "../contexts/supabaseClient";
 
 
-const EvacuationCenterCard = ({ style }) => {
+const PickupLocationsCard = ({ style }) => {
   const router = useRouter();
 
   const handlePress = () => {
@@ -30,6 +30,24 @@ const EvacuationCenterCard = ({ style }) => {
     queryFn: fetchEvacData,
   });
 
+  // reads from supabase
+  const fetchPickupData = async () => {
+    const { data, error } = await supabase.from("pickupLocations").select();
+
+    if (error) {
+      console.error("Fetch error in supabase pickup: ", error);
+    }
+    console.log("Successful fetch", data);
+    return data;
+  };
+  // use data here to map the values and read
+  const { data: pickupData, error: pickupError } = useQuery({
+    queryKey: ["pickupLocations"],
+    queryFn: fetchPickupData,
+  });
+
+  console.log("DAta: ", pickupData);
+  
   // subscribe to realtime
   useEffect(() => {
     const evacChannel = supabase
@@ -46,8 +64,23 @@ const EvacuationCenterCard = ({ style }) => {
       )
       .subscribe();
 
+    const pickupChannel = supabase
+      .channel("pickup-changes")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "pickupLocations" },
+        (payload) => {
+          console.log("Realtime change received:", payload);
+
+          // Ask react-query to refetch alerts when a row is inserted/updated/deleted
+          queryClient.invalidateQueries(["pickupLocations"]);
+        }
+      )
+      .subscribe();
+
     return () => {
       supabase.removeChannel(evacChannel);
+      supabase.removeChannel(pickupChannel);
     };
   }, [queryClient]);
 
@@ -55,8 +88,8 @@ const EvacuationCenterCard = ({ style }) => {
     <TouchableOpacity onPress={handlePress} activeOpacity={0.9} style={style}>
       {/* Card with gradient border */}
         {
-          evacData?.map(evac => (
-            <View key={evac.id}>
+          pickupData?.map(pickup => (
+            <View key={pickup.id}>
               <LinearGradient
                 colors={["#0060FF", "rgba(0, 58, 153, 0)"]}
                 start={{ x: 0.5, y: 0 }}
@@ -65,7 +98,7 @@ const EvacuationCenterCard = ({ style }) => {
               >
                 <View style={styles.innerCard}>
                   <Image
-                    source={{uri: evac.evacImage}}
+                    source={{uri: pickup.pickupImage}}
                     style={styles.image}
                     resizeMode='cover'
                   />
@@ -74,9 +107,9 @@ const EvacuationCenterCard = ({ style }) => {
 
               {/* Text outside the card */}
               <View style={styles.textSection}>
-                <Text style={styles.header}>{evac.evacName}</Text>
+                <Text style={styles.header}>{pickup.pickupName}</Text>
                 <Text style={styles.subtext}>
-                  {evac.evacAddress}
+                  {pickup.pickupAddress}
                 </Text>
               </View>
             </View>
@@ -87,7 +120,7 @@ const EvacuationCenterCard = ({ style }) => {
   );
 };
 
-export default EvacuationCenterCard;
+export default PickupLocationsCard;
 
 const styles = StyleSheet.create({
   borderWrapper: {

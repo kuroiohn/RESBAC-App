@@ -16,6 +16,7 @@ import AlertCard from "../../components/AlertCard";
 import EvacuationCenterCard from "../../components/EvacuationCenterCard";
 import { useUser } from "../../hooks/useUser";
 import supabase from "../../contexts/supabaseClient";
+import PickupLocationsCard from "../../components/PickupLocationsCard";
 
 const Home = () => {
   const { user } = useUser();
@@ -167,8 +168,6 @@ const Home = () => {
               contentContainerStyle={{ paddingHorizontal: 12 }}
             >
               <EvacuationCenterCard style={{ marginRight: 16 }} />
-              <EvacuationCenterCard style={{ marginRight: 16 }} />
-              <EvacuationCenterCard />
             </ScrollView>
 
             <ThemedText style={styles.textLeft}>Pickup Locations</ThemedText>
@@ -177,9 +176,7 @@ const Home = () => {
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={{ paddingHorizontal: 12 }}
             >
-              <EvacuationCenterCard style={{ marginRight: 16 }} />
-              <EvacuationCenterCard style={{ marginRight: 16 }} />
-              <EvacuationCenterCard />
+              <PickupLocationsCard style={{ marginRight: 16 }} />
             </ScrollView>
           </>
         )}

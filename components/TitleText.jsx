@@ -27,6 +27,12 @@ const styles = StyleSheet.create({
     color: '#161616',
     fontSize: 11,
   },
+  title5: {
+    color: "#0060FF",
+    fontSize: 13,
+    fontWeight: 'bold',
+    alignSelf: 'flex-start',
+  },
 })
 
 export default TitleText

@@ -11,27 +11,30 @@ import TitleText from "../components/TitleText";
 
 const RadioGroup = ({ label, options, selectedValue, onValueChange }) => {
   return (
-    <View style={styles.container}>
-      {/* Using the TitleText component for the label */}
-      <TitleText type='title3' style={styles.label}>
-        {label}
-      </TitleText>
-      {options.map((option) => (
-        <TouchableOpacity
-          key={option.value}
-          style={styles.optionContainer}
-          onPress={() => onValueChange(option.value)}
-        >
-          <View style={styles.radioCircle}>
-            {/* The inner circle is rendered only when an option is selected */}
-            {selectedValue === option.value && (
-              <View style={styles.selectedRadioCircle} />
-            )}
-          </View>
-          <Text style={styles.optionText}>{option.label}</Text>
-        </TouchableOpacity>
-      ))}
-    </View>
+      <View style={styles.container}>
+        {/* Using the TitleText component for the label */}
+        <TitleText type='title3' style={styles.label}>
+          {label}
+        </TitleText>
+        {/* Wrap the options in a new View with a horizontal layout */}
+        <View style={styles.optionsWrapper}>
+          {options.map((option) => (
+              <TouchableOpacity
+                  key={option.value}
+                  style={styles.optionContainer}
+                  onPress={() => onValueChange(option.value)}
+              >
+                <View style={styles.radioCircle}>
+                  {/* The inner circle is rendered only when an option is selected */}
+                  {selectedValue === option.value && (
+                      <View style={styles.selectedRadioCircle} />
+                  )}
+                </View>
+                <Text style={styles.optionText}>{option.label}</Text>
+              </TouchableOpacity>
+          ))}
+        </View>
+      </View>
   );
 };
 
@@ -44,9 +47,15 @@ const styles = StyleSheet.create({
   label: {
     marginBottom: 10,
   },
+  // New style to wrap the options and display them horizontally
+  optionsWrapper: {
+    flexDirection: 'row',
+    justifyContent: 'space-between', // Distributes options with space between them
+  },
   optionContainer: {
-    flexDirection: "row",
+    flexDirection: "row", // Change this to 'row' to put the circle and text side by side
     alignItems: "center",
+    width: "45%",
     marginBottom: 20,
     padding: 15,
     backgroundColor: "#F5F5F5",

@@ -111,6 +111,21 @@ const Vulnerable = () => {
     const [showSensoryDisabilityForm, setShowSensoryDisabilityForm] = useState(false);
     const [showHealthConditionForm, setShowHealthConditionForm] = useState(false);
 
+    // usestates for others checkbox trigger
+    const [physicalTrigger,setPhysicalTrigger] = useState(false)
+    const [psychTrigger,setPsychTrigger] = useState(false)
+    const [sensoryTrigger,setSensoryTrigger] = useState(false)
+    const [medDepTrigger,setMedDepTrigger] = useState(false)
+
+    useEffect(() => {
+        if (!sensoryTrigger) {
+            setOtherSensoryDisability("");
+            setSensoryDisability((prev) =>
+            prev.filter((item) => item !== otherSensoryDisability)
+            );
+        }
+    }, [sensoryTrigger]);
+
     //new data for pregnancy options
     const pregnancyOptions = [
         { label: "Yes", value: "yes" },
@@ -165,13 +180,26 @@ const Vulnerable = () => {
 
     // Function to handle selections for Sensory disabilities
     const toggleSensoryDisability = (disability) => {
-        if (sensoryDisability.includes(disability)) {
-            setSensoryDisability(
-                sensoryDisability.filter((item) => item !== disability)
-            );
-        } else {
-            setSensoryDisability([...sensoryDisability, disability]);
-        }
+        // if (disability === "Others"){
+        //     if (sensoryDisability.some((item) => item.startsWith("Other: "))) {
+        //         // remove "Others" if it's already there
+        //         setSensoryDisability(
+        //             sensoryDisability.filter((item) => !item.startsWith("Other: "))
+        //         );
+        //     } else {
+        //     // add a placeholder first (or empty string if you want)
+        //     setSensoryDisability([...sensoryDisability, `Other: ${otherSensoryDisability || ""}`]);
+        //     }
+        // }
+        // else {
+            if (sensoryDisability.includes(disability)) {
+                setSensoryDisability(
+                    sensoryDisability.filter((item) => item !== disability)
+                );
+            } else {
+                setSensoryDisability([...sensoryDisability, disability]);
+            }
+        // }
     };
 
     // Function to handle selections for Health conditions
@@ -235,6 +263,7 @@ const Vulnerable = () => {
                 otherSensoryDisability,
                 pregnancy: userSex === "Female" ? pregnancy : null,
                 dueDate: pregnancy === "yes" ? dueDate : null,
+                trimester: pregnancy === "yes" ? trimester : null,
                 healthCondition,
                 mobilityStatus,
             },
@@ -254,6 +283,15 @@ const Vulnerable = () => {
             });
         } else if (from === "profile") {
             try {
+                if (pregnancy === "yes") {
+                    await supabase
+                    .from('pregnant')
+                    .update({
+                        dueDate: dueDate,
+                        trimester: trimester
+                    })
+                    .eq("userID", user.id);
+                }
                 const data = await fetchSex()
                 // Update vulnerability table ###################################
                     await supabase
@@ -261,16 +299,14 @@ const Vulnerable = () => {
                     .update({
                         elderly: (differenceInYears(new Date(), new Date(data.dateOfBirth)) >= 60 ? true : false),
                         pregnantInfant: data.sex === "Female" ? [pregnancy || "no", hasInfant || "no"] :
-                        ["no","no"],
+                        [],
                         physicalPWD: physicalDisability,
                         psychPWD: psychologicalDisability,
                         sensoryPWD: sensoryDisability,
                         medDep: healthCondition,
                         // locationRiskLevel: userVul.locationRiskLevel,
                     })
-                    .eq("userID", user.id);
-
-                    
+                    .eq("userID", user.id);                    
             
                     Alert.alert("Success", "Profile updated!",
                         [
@@ -506,17 +542,24 @@ const Vulnerable = () => {
                                 />
                                 <CheckboxComponent
                                     label={"Others"}
-                                    isChecked={physicalDisability.includes("Others")}
-                                    onValueChange={() => togglePhysicalDisability("Others")}
+                                    isChecked={physicalTrigger}
+                                    onValueChange={() => setPhysicalTrigger((prev) => !prev)}
                                     style={styles.halfWidthCheckbox}
                                 />
                             </View>
-                            {physicalDisability.includes("Others") && (
+                            {physicalTrigger && (
                                 <ThemedTextInput
                                     style={{ width: "80%", marginBottom: 5 }}
                                     placeholder='Please specify'
                                     value={otherPhysicalDisability}
-                                    onChangeText={setOtherPhysicalDisability}
+                                    onChangeText={(text) => {
+                                        setOtherPhysicalDisability(text)
+
+                                        setPhysicalDisability((prev) => {
+                                            const filtered = prev.filter((item) => item !== otherPhysicalDisability)
+                                            return text.trim() ? [...filtered, text] : filtered
+                                        })
+                                    }}
                                 />
                             )}
                         </View>
@@ -586,18 +629,25 @@ const Vulnerable = () => {
                                     style={styles.halfWidthCheckbox}
                                 />
                                 <CheckboxComponent
-                                    label='Other'
-                                    isChecked={psychologicalDisability.includes("Other")}
-                                    onValueChange={() => togglePsychologicalDisability("Other")}
+                                    label='Others'
+                                    isChecked={psychTrigger}
+                                    onValueChange={() => setPsychTrigger((prev) => !prev)}
                                     style={styles.halfWidthCheckbox}
                                 />
                             </View>
-                            {psychologicalDisability.includes("Other") && (
+                            {psychTrigger && (
                                 <ThemedTextInput
                                     style={{ width: "80%", marginBottom: 5 }}
                                     placeholder='Please specify'
                                     value={otherPsychologicalDisability}
-                                    onChangeText={setOtherPsychologicalDisability}
+                                    onChangeText={(text) => {
+                                        setOtherPsychologicalDisability(text)
+
+                                        setPsychologicalDisability((prev) => {
+                                            const filtered = prev.filter((item) => item !== otherPsychologicalDisability)
+                                            return text.trim() ? [...filtered, text] : filtered
+                                        })
+                                    }}
                                 />
                             )}
                         </View>
@@ -652,17 +702,24 @@ const Vulnerable = () => {
                                 />
                                 <CheckboxComponent
                                     label='Others'
-                                    isChecked={sensoryDisability.includes("Others")}
-                                    onValueChange={() => toggleSensoryDisability("Others")}
+                                    isChecked={sensoryTrigger}
+                                    onValueChange={() => setSensoryTrigger((prev) => !prev)}
                                     style={styles.halfWidthCheckbox}
                                 />
                             </View>
-                            {sensoryDisability.includes("Others") && (
+                            {sensoryTrigger && (
                                 <ThemedTextInput
                                     style={{ width: "80%", marginBottom: 5 }}
                                     placeholder='Please specify'
                                     value={otherSensoryDisability}
-                                    onChangeText={setOtherSensoryDisability}
+                                    onChangeText={(text) => {
+                                        setOtherSensoryDisability(text)
+
+                                        setSensoryDisability((prev) => {
+                                            const filtered = prev.filter((item) => item !== otherSensoryDisability)
+                                            return text.trim() ? [...filtered, text] : filtered
+                                        })
+                                    }}
                                 />
                             )}
                         </View>
@@ -717,17 +774,24 @@ const Vulnerable = () => {
                                 </View>
                                 <CheckboxComponent
                                     label='others'
-                                    isChecked={healthCondition.includes("others")}
-                                    onValueChange={() => toggleHealthCondition("others")}
+                                    isChecked={medDepTrigger}
+                                    onValueChange={() => setMedDepTrigger((prev) => !prev)}
                                     style={styles.halfWidthCheckbox}
                                 />
                             </View>
-                            {healthCondition.includes("others") && (
+                            {medDepTrigger && (
                                 <ThemedTextInput
                                     style={{ width: "80%", marginBottom: 5 }}
                                     placeholder='Please specify'
                                     value={otherHealthCondition}
-                                    onChangeText={setOtherHealthCondition}
+                                    onChangeText={(text) => {
+                                        setOtherHealthCondition(text)
+
+                                        setHealthCondition((prev) => {
+                                            const filtered = prev.filter((item) => item !== otherHealthCondition)
+                                            return text.trim() ? [...filtered, text] : filtered
+                                        })
+                                    }}
                                 />
                             )}
                         </View>

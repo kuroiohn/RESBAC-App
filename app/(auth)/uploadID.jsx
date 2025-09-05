@@ -24,6 +24,7 @@ import { decode as atob, encode as btoa } from "base-64";
 import { ImageManipulator, SaveFormat } from "expo-image-manipulator";
 
 export default function uploadID() {
+  let pregnantID = null;  // not insecure, its sandwiched anyways
   const {user} = useUser()
   const [image, setImage] = useState(null);
   const [isCreating, setIsCreating] = useState(false);
@@ -301,6 +302,28 @@ export default function uploadID() {
             })()
           : null;
 
+      if (completeUserData.sex === "Female" && completeUserData.vulnerability?.pregnancy === "yes") {
+        const { data: pregnantData, error: pregnantError } =
+          await supabase
+            .from("pregnant")
+            .insert({
+              dueDate: completeUserData.vulnerability?.dueDate,
+              trimester: completeUserData.vulnerability?.trimester,
+              userID: authResult.user.id,
+            })
+            .select("*")
+            .single();
+
+        if (pregnantError) {
+          console.error("Error inserting to pregnant table:", pregnantError);
+          throw new Error("Failed to create in pregnant table");
+        }
+
+        console.log("Pregnant entry created:", pregnantData);   
+        pregnantID = pregnantData.id    
+      }
+      
+
       // Create vulnerability list record - with explicit userID
       const { data: vulnerabilityListData, error: vulListError } =
         await supabase
@@ -320,6 +343,7 @@ export default function uploadID() {
             medDep: completeUserData.vulnerability?.healthCondition || [],
             locationRiskLevel: "Low",
             userID: authResult.user.id,
+            pregnantID: pregnantID
           })
           .select("*")
           .single();
@@ -351,6 +375,22 @@ export default function uploadID() {
         throw new Error("Failed to create vulnerability record");
       }
 
+    // console.log(authResult.user.id);
+    //   // Create vulnerability record - with explicit userID
+    //   const { data: pregnantIDData, error: pregnantIDError } = await supabase
+    //     .from("vulnerabilityList")
+    //     .update({
+    //       pregnantID: pregnantData.id,
+    //       // userID: user.id,
+    //     })
+    //     .eq("userID",authResult.user.id)
+    //     .select("*")
+    //     .single();
+    //   if (pregnantIDError) {
+    //     console.error("Error isnerting pregnantID to vul table", pregnantIDError);
+    //     throw new Error("Failed to insert pregnantID to vul table");
+    //   }
+
       //TODO - add verification table insert somewhere here
       const { data: verifData, error: verifError } = await supabase
         .from("verification")
@@ -368,22 +408,6 @@ export default function uploadID() {
       }
 
       console.log("Verification created:", verifData);
-
-      //NOTE - not used
-      const nameParts = (completeUserData.name || "").split(" ");
-      const tempMpin = `temp${Date.now().toString().slice(-4)}`;
-
-      //NOTE - apparently redundant since verifData already contains the inserted row
-      // //TODO - fetch the verification table and update the insert of the user
-      // const { data:fetchVerifData, error: fetchVerifError } = await supabase
-      // .from('verification')
-      // .select('*')
-      // .eq("userID",authResult.user.id)
-      // .single()
-
-      // if(fetchVerifError){
-      //   console.error("Error in fetching verification id for user table:", fetchVerifError);
-      // }
 
       const { error: userError } = await supabase
         .from("user")

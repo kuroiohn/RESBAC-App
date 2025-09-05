@@ -1108,14 +1108,20 @@ const Profile = () => {
           {renderField("address", "brgyName", "Barangay", userAddress.brgyName)}
           {renderField("address", "cityName", "City", userAddress.cityName)}
 
-          <LocationPermissionInput
-            value={locationData}
-            onChange={(data) => {
-              setLocationData(data);
-            }}
-            placeholder='Edit Location Coordinates'
-            disabled={!editingSections.address}
-          />
+          {
+            editingSections.address === true &&
+            (
+              <LocationPermissionInput
+              value={locationData}
+              onChange={(data) => {
+                setLocationData(data);
+              }}
+              placeholder='Edit Location Coordinates'
+              disabled={!editingSections.address}
+            />
+            )
+          }
+          
 
           <View style={styles.row}>
             {renderField(

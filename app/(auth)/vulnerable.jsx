@@ -8,6 +8,7 @@ import {
     Keyboard,
     View,
     Button,
+    Alert,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import BackNextButtons from "../../components/buttons/BackNextButtons";
@@ -24,8 +25,11 @@ import CheckboxComponent from "../../components/CheckboxComponent";
 import { useRoute } from "@react-navigation/native";
 import { useState, useEffect } from "react";
 import supabase from "../../contexts/supabaseClient";
+import { useUser } from "../../hooks/useUser";
+import { differenceInYears } from "date-fns";
 
 const Vulnerable = () => {
+    const {user} = useUser()
     const router = useRouter();
     const { userData } = useLocalSearchParams();
 
@@ -60,6 +64,8 @@ const Vulnerable = () => {
         }
     };
 
+    //NOTE - Added by raven
+    const [userSex,setUserSex] = useState("")
     // Parse incoming data from register screen
     const existingUserData = userData ? JSON.parse(userData) : {};
     console.log("Received user data in vulnerable screen:", existingUserData);
@@ -177,6 +183,29 @@ const Vulnerable = () => {
         }
     };
 
+    const fetchSex = async () => {
+        const {data, error} = await supabase
+                .from('user')
+                .select('*')
+                .eq("userID", user.id)
+                .single();
+                    
+        if(error){
+            console.error("Error in fetching dateOfBirth in edit profile: ",  error);
+        }
+        
+        setUserSex(data.sex)
+        console.log("Sex: ", userSex);
+
+        return data
+    }
+
+    useEffect(() => {
+        if (from === "profile") {
+            fetchSex();
+        }
+    }, [from]);
+
     const handleNext = async () => {
         console.log("Collecting vulnerability data...");
 
@@ -214,7 +243,6 @@ const Vulnerable = () => {
 
         console.log("Complete user data with vulnerability:", completeUserData);
 
-
         if (from === "register") {
 
             // Navigate to upload screen with all data
@@ -226,16 +254,7 @@ const Vulnerable = () => {
             });
         } else if (from === "profile") {
             try {
-                const {data, error} = await supabase
-                .from('user')
-                .select('*')
-                .eq("userID", user.id)
-                .single();
-                
-                if(error){
-                    console.error("Error in fetching dateOfBirth in edit profile: ",  error);
-                }
-                
+                const data = await fetchSex()
                 // Update vulnerability table ###################################
                     await supabase
                     .from("vulnerabilityList")
@@ -250,8 +269,19 @@ const Vulnerable = () => {
                         // locationRiskLevel: userVul.locationRiskLevel,
                     })
                     .eq("userID", user.id);
+
+                    
             
-                    Alert.alert("Success", "Profile updated!");                
+                    Alert.alert("Success", "Profile updated!",
+                        [
+                            {
+                                text: "Back to profile",
+                                onPress: () => router.replace("/(dashboard)/profile")
+                            }
+                        ],
+                        { cancelable: false }
+                    );                
+
             } catch (error) {
                 console.error("Error updating profile:", error);
                 Alert.alert("Error", "Failed to update profile. Please try again.");
@@ -259,6 +289,8 @@ const Vulnerable = () => {
             
         }
     };
+
+    
 
     //renders vulnerability assessment form
     return (
@@ -285,80 +317,88 @@ const Vulnerable = () => {
                         </TitleText>
                     )}
 
-                    <View style={styles.sectionHeader}>
-                        <TitleText type='title5'>Presence of Guardian</TitleText>
-                        <View style={styles.headerLine}></View>
-                    </View>
 
-                    {/*start of the form*/}
-                    {/*Set guardian information*/}
-                    <RadioGroup
-                        label='Do you currently live with a guardian?'
-                        options={guardianOptions}
-                        selectedValue={hasGuardian}
-                        onValueChange={setHasGuardian}
-                    />
+                    {
+                        //NOTE - not applicable if edit profile
+                        from === "register" && (
+                            <>
+                            <View style={styles.sectionHeader}>
+                                <TitleText type='title5'>Presence of Guardian</TitleText>
+                                <View style={styles.headerLine}></View>
+                            </View>
 
-                    {/*Condition for asking the guardian information if the answer is yes*/}
-                    {hasGuardian === "yes" && (
-                        <>
-                            <ThemedTextInput
-                                style={{ width: "80%", marginBottom: 5 }}
-                                placeholder='Guardian Name'
-                                value={guardianName}
-                                onChangeText={setGuardianName}
+                            {/*start of the form*/}
+                            {/*Set guardian information*/}
+                            <RadioGroup
+                                label='Do you currently live with a guardian?'
+                                options={guardianOptions}
+                                selectedValue={hasGuardian}
+                                onValueChange={setHasGuardian}
                             />
-                            <ThemedTextInput
-                                style={{ width: "80%", marginBottom: 5 }}
-                                placeholder='Guardian Contact Number'
-                                value={guardianContact}
-                                onChangeText={setGuardianContact}
-                                keyboardType='phone-pad'
-                            />
-                            <ThemedTextInput
-                                style={{ width: "80%", marginBottom: 5 }}
-                                placeholder='Relationship'
-                                value={guardianRelation}
-                                onChangeText={setGuardianRelation}
-                            />
-                            <ThemedTextInput
-                                style={{ width: "80%", marginBottom: 5 }}
-                                placeholder='Guardian Address'
-                                value={guardianAddress}
-                                onChangeText={setGuardianAddress}
-                            />
-                        </>
-                    )}
 
-                    {/* Household count dropdown */}
-                    <View style={styles.dropdownContainer}>
-                        <TitleText type='title3'>
-                            How many people live in the same household?
-                        </TitleText>
-                        <Dropdown
-                            style={styles.dropdown}
-                            placeholderStyle={styles.dropdownPlaceholder}
-                            selectedTextStyle={styles.dropdownSelectedText}
-                            data={householdData}
-                            maxHeight={200}
-                            labelField='label'
-                            valueField='value'
-                            placeholder='Select count'
-                            value={householdCount}
-                            onChange={(item) => {
-                                setHouseholdCount(item.value);
-                            }}
-                        />
-                    </View>
+                            {/*Condition for asking the guardian information if the answer is yes*/}
+                            {hasGuardian === "yes" && (
+                                <>
+                                    <ThemedTextInput
+                                        style={{ width: "80%", marginBottom: 5 }}
+                                        placeholder='Guardian Name'
+                                        value={guardianName}
+                                        onChangeText={setGuardianName}
+                                    />
+                                    <ThemedTextInput
+                                        style={{ width: "80%", marginBottom: 5 }}
+                                        placeholder='Guardian Contact Number'
+                                        value={guardianContact}
+                                        onChangeText={setGuardianContact}
+                                        keyboardType='phone-pad'
+                                    />
+                                    <ThemedTextInput
+                                        style={{ width: "80%", marginBottom: 5 }}
+                                        placeholder='Relationship'
+                                        value={guardianRelation}
+                                        onChangeText={setGuardianRelation}
+                                    />
+                                    <ThemedTextInput
+                                        style={{ width: "80%", marginBottom: 5 }}
+                                        placeholder='Guardian Address'
+                                        value={guardianAddress}
+                                        onChangeText={setGuardianAddress}
+                                    />
+                                </>
+                            )}
 
-                    <View style={styles.sectionHeader}>
-                        <TitleText type='title5'>Pregnancy and Infant</TitleText>
-                        <View style={styles.headerLine}></View>
-                    </View>
+                            {/* Household count dropdown */}
+                            <View style={styles.dropdownContainer}>
+                                <TitleText type='title3'>
+                                    How many people live in the same household?
+                                </TitleText>
+                                <Dropdown
+                                    style={styles.dropdown}
+                                    placeholderStyle={styles.dropdownPlaceholder}
+                                    selectedTextStyle={styles.dropdownSelectedText}
+                                    data={householdData}
+                                    maxHeight={200}
+                                    labelField='label'
+                                    valueField='value'
+                                    placeholder='Select count'
+                                    value={householdCount}
+                                    onChange={(item) => {
+                                        setHouseholdCount(item.value);
+                                    }}
+                                />
+                            </View>
+                            </>
+                        )
+                    }
+
 
                     {/* Pregnancy - should only appear if sex selected is female */}
-                    {existingUserData.sex === "Female" && (
+                    {(existingUserData.sex?.toLowerCase() === "female" || userSex?.toLowerCase() === "female") && (
                         <>
+                            <View style={styles.sectionHeader}>
+                                <TitleText type='title5'>Pregnancy and Infant</TitleText>
+                                <View style={styles.headerLine}></View>
+                            </View>
                             <RadioGroup
                                 label='Are you currently pregnant?'
                                 options={pregnancyOptions}
@@ -687,7 +727,7 @@ const Vulnerable = () => {
                                     style={{ width: "80%", marginBottom: 5 }}
                                     placeholder='Please specify'
                                     value={otherHealthCondition}
-                                    onChangeText={setOtherHealthCondition()}
+                                    onChangeText={setOtherHealthCondition}
                                 />
                             )}
                         </View>

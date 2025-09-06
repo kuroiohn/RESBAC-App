@@ -337,16 +337,16 @@ const styles = StyleSheet.create({
     width: 70,
     height: 70,
     borderRadius: 35,
-    backgroundColor: "#fff", // default white circle
+    backgroundColor: "#fff",
     justifyContent: "center",
     alignItems: "center",
     margin: 5,
 
     // subtle bottom shadow
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
+    shadowOffset: { width: 0, height: 0.5 },
+    shadowOpacity: 0.25,
+    shadowRadius: 0.5,
     elevation: 2,
   },
 

@@ -167,6 +167,7 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     borderRadius: 10,
     padding: 12,
+    paddingVertical: 16,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 0.5 },
     shadowOpacity: 0.25,
@@ -179,7 +180,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   profileImage: {
-    width: 90, // smaller image
+    width: 120, //
     borderRadius: 10,
     backgroundColor: "#e5e7eb",
   },
@@ -187,7 +188,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   name: {
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: "600",
     color: "#0060FF",
     marginBottom: 2,

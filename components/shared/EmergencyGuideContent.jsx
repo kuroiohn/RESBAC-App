@@ -72,7 +72,7 @@ export default EmergencyGuideContent;
 const styles = StyleSheet.create({
   pageContainer: {
     paddingVertical: 20,
-    paddingHorizontal: 20, // 👈 consistent global padding
+    paddingHorizontal: 19, // 👈 consistent global padding
     backgroundColor: "#fafafa",
   },
   container: {

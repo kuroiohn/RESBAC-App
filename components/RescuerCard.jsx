@@ -11,11 +11,12 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { Phone, MessageCircle } from "lucide-react-native";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import supabase from "../contexts/supabaseClient";
 
 export default function RescuerCard() {
   const queryClient = useQueryClient();
+  const [rightHeight, setRightHeight] = useState(0);
 
   // reads from supabase
   const fetchContact = async () => {
@@ -90,56 +91,63 @@ export default function RescuerCard() {
       {emerPData?.map((emerP) => (
         <LinearGradient
           key={emerP.id}
-          colors={["#0060FF", "rgba(0, 58, 153, 0)"]}
+          colors={["#0060FF", "rgba(0, 96, 255, 0)"]}
           start={{ x: 0.5, y: 0 }}
           end={{ x: 0.5, y: 1 }}
           style={styles.borderWrapper}
         >
-          <ImageBackground
-            source={require("../assets/hbesbg.png")}
-            style={styles.card}
-            imageStyle={styles.backgroundImage}
-          >
-            <View style={styles.contentRow}>
-              {/* Rescuer Profile */}
+          <View style={styles.card}>
+            <View style={styles.row}>
+              {/* Left image */}
               <Image
                 source={{ uri: emerP.emerPImage }}
-                style={styles.profileImage}
+                style={[styles.profileImage, { height: rightHeight }]}
+                resizeMode='cover'
               />
 
-              {/* Rescuer Details */}
-              <View style={styles.infoWrapper}>
+              {/* Right column */}
+              <View
+                style={styles.rightColumn}
+                onLayout={(event) =>
+                  setRightHeight(event.nativeEvent.layout.height)
+                }
+              >
                 <Text style={styles.name}>{emerP.emerPName}</Text>
                 <Text style={styles.position}>{emerP.emerPRole}</Text>
                 <Text style={styles.barangay}>{emerP.emerPBrgy}</Text>
+
+                <LinearGradient
+                  colors={["#0060FF", "#003A99"]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.callButton}
+                >
+                  <TouchableOpacity
+                    activeOpacity={0.7}
+                    onPress={() => handleContactBtn(emerP.emerPNumber)}
+                    style={styles.callBtnContent}
+                  >
+                    <Phone color='#fff' size={16} style={{ marginRight: 4 }} />
+                    <Text style={styles.callText}>
+                      Call {emerP.emerPNumber}
+                    </Text>
+                  </TouchableOpacity>
+                </LinearGradient>
+
+                <TouchableOpacity
+                  style={styles.messageButton}
+                  activeOpacity={0.7}
+                  onPress={() => handleMsgBtn(emerP.emerPMessLink)}
+                >
+                  <Image
+                    source={require("../assets/messenger-icon.png")}
+                    style={{ width: 16, height: 16, marginRight: 4 }}
+                  />
+                  <Text style={styles.messageText}>Click here to message</Text>
+                </TouchableOpacity>
               </View>
             </View>
-
-            {/* Buttons */}
-            <View style={styles.buttonRow}>
-              <TouchableOpacity
-                style={[styles.button, styles.callButton]}
-                activeOpacity={0.7}
-                onPress={() => handleContactBtn(emerP.emerPNumber)}
-              >
-                <Phone color='#0060ff' size={18} style={{ marginRight: 6 }} />
-                <Text style={styles.callText}>Call {emerP.emerPNumber}</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[styles.button, styles.messageButton]}
-                activeOpacity={0.7}
-                onPress={() => handleMsgBtn(emerP.emerPMessLink)}
-              >
-                <MessageCircle
-                  color='#0060FF'
-                  size={18}
-                  style={{ marginRight: 6 }}
-                />
-                <Text style={styles.messageText}>Click here to message </Text>
-              </TouchableOpacity>
-            </View>
-          </ImageBackground>
+          </View>
         </LinearGradient>
       ))}
     </>
@@ -148,76 +156,87 @@ export default function RescuerCard() {
 
 const styles = StyleSheet.create({
   borderWrapper: {
-    borderRadius: 16,
-    padding: 2,
-    margin: 8,
-    width: "95%",
-    marginBottom: 5,
+    borderRadius: 12,
+    padding: 1,
+    marginVertical: 6,
+    width: 320, // smaller width for horizontal scroll
+    marginRight: 12,
+    overflow: "hidden",
   },
   card: {
-    borderRadius: 16,
-    overflow: "hidden",
+    backgroundColor: "white",
+    borderRadius: 10,
     padding: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 0.5 },
+    shadowOpacity: 0.25,
+    shadowRadius: 0.5,
+    elevation: 3,
   },
-  backgroundImage: {
-    borderRadius: 16,
-  },
-  contentRow: {
+  row: {
     flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 12,
+    alignItems: "flex-start",
+    gap: 12,
   },
   profileImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    marginRight: 12,
+    width: 90, // smaller image
+    borderRadius: 10,
     backgroundColor: "#e5e7eb",
   },
-  infoWrapper: {
+  rightColumn: {
     flex: 1,
   },
   name: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "600",
-    color: "white",
+    color: "#0060FF",
+    marginBottom: 2,
   },
   position: {
-    fontSize: 14,
-    color: "white",
+    fontSize: 12,
+    color: "#1f2937",
+    marginBottom: 2,
   },
   barangay: {
-    fontSize: 14,
-    color: "white",
+    fontSize: 12,
+    color: "#6b7280",
+    marginBottom: 8,
   },
-  buttonRow: {
-    flexDirection: "column",
-    gap: 8,
+  callButton: {
+    borderRadius: 6,
+    marginBottom: 6,
   },
-  button: {
+  callBtnContent: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 10,
-    borderRadius: 8,
-    marginVertical: 0,
-  },
-  callButton: {
-    backgroundColor: "white",
+    paddingVertical: 6,
+    borderRadius: 6,
   },
   callText: {
-    color: "#0060ff",
-    fontSize: 14,
+    color: "#fff",
     fontWeight: "600",
+    fontSize: 12,
   },
   messageButton: {
-    borderWidth: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "white",
+    borderRadius: 6,
+    borderWidth: 0,
     borderColor: "#0060FF",
-    backgroundColor: "#fff",
+    paddingVertical: 6,
+    paddingHorizontal: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 0.5 },
+    shadowOpacity: 0.25,
+    shadowRadius: 0.5,
+    elevation: 2,
   },
   messageText: {
     color: "#0060FF",
-    fontSize: 14,
     fontWeight: "600",
+    fontSize: 12,
   },
 });

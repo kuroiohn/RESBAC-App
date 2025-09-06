@@ -177,7 +177,7 @@ const Home = () => {
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={{ paddingHorizontal: 12 }}
             >
-              <PickupLocationsCard style={{ marginRight: 16 }} />
+              <PickupLocationsCard style={{ marginRight: 16, marginLeft: 0 }} />
             </ScrollView>
           </>
         )}

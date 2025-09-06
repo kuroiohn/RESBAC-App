@@ -20,6 +20,7 @@ import ThemedLogo from "../../components/ThemedLogo";
 import ThemedView from "../../components/ThemedView";
 import ThemedText from "../../components/ThemedText";
 import Spacer from "../../components/Spacer";
+import ThemedLoader from "../../components/ThemedLoader";
 
 const MPin = () => {
   const router = useRouter();
@@ -82,18 +83,17 @@ const MPin = () => {
   const updateMostRecentLogin = async (userEmail) => {
     try {
       const currentTime = new Date().toISOString();
-      
+
       // Update the specific user's lastLogin time
       const targetKey = `user_mpin_${userEmail}`;
       const existingData = await AsyncStorage.getItem(targetKey);
-      
+
       if (existingData) {
         const parsed = JSON.parse(existingData);
         parsed.lastLogin = currentTime;
         await AsyncStorage.setItem(targetKey, JSON.stringify(parsed));
         console.log(`Updated lastLogin for ${userEmail} to ${currentTime}`);
       }
-      
     } catch (error) {
       console.error("Error updating most recent login:", error);
     }
@@ -124,7 +124,7 @@ const MPin = () => {
           console.log("Local MPIN verified - performing automatic login");
 
           // ALWAYS update the most recent user email for quick access
-          await AsyncStorage.setItem('most_recent_user_email', userEmail);
+          await AsyncStorage.setItem("most_recent_user_email", userEmail);
           console.log(`Set most recent user email to: ${userEmail}`);
 
           // Update the specific user's lastLogin time
@@ -176,11 +176,11 @@ const MPin = () => {
 
       // No local MPIN found - direct user to email/password login
       console.log("No local MPIN data found for this user");
-      
+
       // Update recent login tracker even though MPIN failed
-      await AsyncStorage.setItem('most_recent_user_email', userEmail);
+      await AsyncStorage.setItem("most_recent_user_email", userEmail);
       console.log(`Set most recent user email to: ${userEmail}`);
-      
+
       Alert.alert(
         "MPIN Setup Required",
         "This account doesn't have MPIN quick access set up yet. Please log in with email/password first to enable MPIN access.",
@@ -210,11 +210,21 @@ const MPin = () => {
       style={({ pressed }) => [
         styles.key,
         isSpecial && styles.specialKey,
-        pressed && { opacity: 0.6 },
+        pressed && styles.keyPressed, // pressed effect
       ]}
       disabled={isLoading}
     >
-      <Text style={styles.keyText}>{label}</Text>
+      {({ pressed }) => (
+        <Text
+          style={[
+            styles.keyText,
+            isSpecial && styles.specialKeyText,
+            pressed && styles.keyTextPressed, // text turns white when pressed
+          ]}
+        >
+          {label}
+        </Text>
+      )}
     </Pressable>
   );
 
@@ -223,7 +233,9 @@ const MPin = () => {
       <ThemedLogo />
       <Spacer height={20} />
 
-      <ThemedText style={styles.title2}>Enter MPIN</ThemedText>
+      <ThemedText style={{ ...styles.title2, color: "#0060ff" }}>
+        Enter MPIN
+      </ThemedText>
       <ThemedText style={styles.title3}>
         Quick access for {userEmail}
       </ThemedText>
@@ -260,7 +272,13 @@ const MPin = () => {
             )}
             {renderKey("⌫", handleDelete, true)}
             {renderKey("0", () => handleKeyPress("0"))}
-            {renderKey(isLoading ? "⏳" : "✓", handleMpinSubmit, true)}
+            {isLoading ? (
+              <View style={styles.loaderWrapper}>
+                <ThemedLoader size={28} />
+              </View>
+            ) : (
+              renderKey("✓", handleMpinSubmit, true)
+            )}
           </View>
 
           <Spacer height={20} />
@@ -330,21 +348,51 @@ const styles = StyleSheet.create({
     width: 70,
     height: 70,
     borderRadius: 35,
-    backgroundColor: "#e4e4e4",
+    backgroundColor: "#fff", // default white circle
     justifyContent: "center",
     alignItems: "center",
     margin: 5,
+
+    // subtle bottom shadow
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
   },
+
+  keyPressed: {
+    backgroundColor: Colors.primary, // blue when pressed
+  },
+
+  keyTextPressed: {
+    color: "#fff", // white text when pressed
+  },
+
   specialKey: {
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.primary, // blue for special keys
   },
   keyText: {
     fontSize: 24,
-    color: "#161616",
+    color: Colors.primary, // default blue for numbers
+    fontWeight: "600",
+  },
+  specialKeyText: {
+    color: "#fff", // white text for special keys
+    fontSize: 24,
+    fontWeight: "600",
   },
   backToLogin: {
     color: Colors.primary,
     fontSize: 16,
     textDecorationLine: "underline",
+  },
+  loaderWrapper: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    justifyContent: "center",
+    alignItems: "center",
+    margin: 5,
   },
 });

@@ -10,6 +10,7 @@ import { useState, useRef, useEffect } from "react";
 import Spacer from "../../components/Spacer";
 import ThemedText from "../../components/ThemedText";
 import ThemedView from "../../components/ThemedView";
+import ThemedButton from "../../components/ThemedButton";
 import CallButton from "../../components/CallBtn";
 import MarkSafeBtn from "../../components/MarkSafeBtn";
 import AlertCard from "../../components/AlertCard";
@@ -167,7 +168,7 @@ const Home = () => {
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={{ paddingHorizontal: 12 }}
             >
-              <EvacuationCenterCard style={{ marginRight: 16 }} />
+              <EvacuationCenterCard />
             </ScrollView>
 
             <ThemedText style={styles.textLeft}>Pickup Locations</ThemedText>

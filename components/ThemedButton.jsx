@@ -1,34 +1,47 @@
-import { Pressable, StyleSheet } from "react-native";
+import { Pressable, StyleSheet, Text } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { Colors } from "../constants/Colors";
 
 function ThemedButton({ style, children, ...props }) {
   return (
-    <Pressable
-      style={({ pressed }) => [styles.btn, pressed && styles.pressed, style]}
-      {...props}
-    >
-      {/* Wrap children in <Text> if it's a string */}
-      {/* finally!! naayos ang error about <Text> */}
-      {typeof children === "string" ? (
-        <Text style={styles.text}>{children}</Text>
-      ) : (
-        children
+    <Pressable style={styles.wrapper} {...props}>
+      {({ pressed }) => (
+        <LinearGradient
+          colors={
+            pressed
+              ? ["#003a99", "#0052e0"] // darker blue when pressed
+              : ["#0047cc", Colors.primary] // normal subtle gradient
+          }
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[styles.btn, style]}
+        >
+          {typeof children === "string" ? (
+            <Text style={styles.text}>{children}</Text>
+          ) : (
+            children
+          )}
+        </LinearGradient>
       )}
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  btn: {
-    backgroundColor: Colors.primary,
-    padding: 15,
-    borderRadius: 7,
-    marginVertical: 5,
+  wrapper: {
     width: "80%",
-    alignItems: "center",
+    marginVertical: 5,
+    borderRadius: 7,
+    overflow: "hidden", // keeps gradient & ripple inside rounded corners
   },
-  pressed: {
-    opacity: 0.5,
+  btn: {
+    padding: 15,
+    alignItems: "center",
+    borderRadius: 7,
+  },
+  text: {
+    color: "#f2f2f2",
+    fontWeight: "600",
   },
 });
 

@@ -15,6 +15,7 @@ import { useUser } from "../../hooks/useUser";
 import { SecureStorage } from "../../utils/secureStorage";
 import supabase from "../../contexts/supabaseClient";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { MaterialIcons } from "@expo/vector-icons";
 
 //themed components
 import ThemedLogo from "../../components/ThemedLogo";
@@ -41,14 +42,19 @@ const Login = () => {
   useEffect(() => {
     const checkForQuickAccess = async () => {
       try {
-        console.log('Checking for quick access...');
-        
-        // Check for most recent user email first 
-        const mostRecentEmail = await AsyncStorage.getItem('most_recent_user_email');
-        console.log('Most recent user email found:', mostRecentEmail);
-        
+        console.log("Checking for quick access...");
+
+        // Check for most recent user email first
+        const mostRecentEmail = await AsyncStorage.getItem(
+          "most_recent_user_email"
+        );
+        console.log("Most recent user email found:", mostRecentEmail);
+
         if (mostRecentEmail) {
-          console.log('Setting quick access for most recent user:', mostRecentEmail);
+          console.log(
+            "Setting quick access for most recent user:",
+            mostRecentEmail
+          );
           setQuickAccessEmail(mostRecentEmail);
           setLoginMethod("mpin");
           return;
@@ -56,12 +62,14 @@ const Login = () => {
 
         // Fallback to session-based quick access
         const keys = await AsyncStorage.getAllKeys();
-        const sessionKeys = keys.filter((key) => key.startsWith("session_data"));
+        const sessionKeys = keys.filter((key) =>
+          key.startsWith("session_data")
+        );
 
         if (sessionKeys.length > 0) {
           const userEmail = await AsyncStorage.getItem("user_email");
           if (userEmail) {
-            console.log('Found session-based quick access for:', userEmail);
+            console.log("Found session-based quick access for:", userEmail);
             setQuickAccessEmail(userEmail);
             setLoginMethod("mpin");
             return;
@@ -92,13 +100,16 @@ const Login = () => {
           }
 
           if (mostRecentEmail) {
-            console.log('Fallback: Found most recent MPIN user:', mostRecentEmail);
+            console.log(
+              "Fallback: Found most recent MPIN user:",
+              mostRecentEmail
+            );
             setQuickAccessEmail(mostRecentEmail);
             setLoginMethod("mpin");
           }
         }
-        
-        console.log('No quick access options found');
+
+        console.log("No quick access options found");
       } catch (error) {
         console.log("Error checking for quick access:", error);
       }
@@ -153,7 +164,7 @@ const Login = () => {
       console.log("Login successful");
 
       // ALWAYS update most recent user email for quick access
-      await AsyncStorage.setItem('most_recent_user_email', email.trim());
+      await AsyncStorage.setItem("most_recent_user_email", email.trim());
       console.log(`Set most recent user email to: ${email.trim()}`);
 
       // Check if user has a locally stored MPIN from registration
@@ -176,26 +187,26 @@ const Login = () => {
             createdAt: mpinDataParsed.createdAt || new Date().toISOString(),
             lastLogin: new Date().toISOString(), // Always update lastLogin on successful login
           })
-        )
-        
-        console.log('MPIN data updated with password for auto-login')
-        
-        router.replace('/(dashboard)/home')
+        );
+
+        console.log("MPIN data updated with password for auto-login");
+
+        router.replace("/(dashboard)/home");
       } else {
         // Check if user has MPIN in database but no local storage
         console.log("No local MPIN found, checking database...");
-        
+
         try {
           const { data: dbUser, error: dbError } = await supabase
             .from("user")
             .select("mpin")
             .eq("userID", result.user.id)
             .single();
-            
+
           if (dbError) {
             console.log("Database query error:", dbError);
           }
-            
+
           if (dbUser?.mpin) {
             console.log("Found database MPIN, creating local storage");
             // User has MPIN in database, create local storage
@@ -209,12 +220,17 @@ const Login = () => {
                 lastLogin: new Date().toISOString(),
               })
             );
-            console.log('Created local MPIN storage for existing user');
-            
+            console.log("Created local MPIN storage for existing user");
+
             Alert.alert(
-              'MPIN Access Enabled!',
-              'Your MPIN quick access has been set up. You can now use your 4-digit MPIN for quick login.',
-              [{ text: 'OK', onPress: () => router.replace('/(dashboard)/home') }]
+              "MPIN Access Enabled!",
+              "Your MPIN quick access has been set up. You can now use your 4-digit MPIN for quick login.",
+              [
+                {
+                  text: "OK",
+                  onPress: () => router.replace("/(dashboard)/home"),
+                },
+              ]
             );
             return;
           } else {
@@ -223,7 +239,7 @@ const Login = () => {
         } catch (error) {
           console.log("Error checking database MPIN:", error);
         }
-        
+
         // No local MPIN found and no database MPIN
         console.log("No MPIN found anywhere, proceeding to dashboard");
         router.replace("/(dashboard)/home");
@@ -263,43 +279,54 @@ const Login = () => {
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <ThemedView style={styles.container} safe={true}>
         <ThemedLogo />
-        <Spacer height={20} />
-
-        <TitleText type='title1'>RESBAC</TitleText>
-
-        <TitleText type='title3'>Sign in to start your session</TitleText>
-
-        <Spacer />
 
         {quickAccessEmail && loginMethod === "mpin" ? (
           // Quick Access Mode - Show MPIN directly for known user
           <View style={styles.quickAccessSection}>
             <ThemedText style={styles.quickAccessWelcome}>
-              Welcome back!
+              Welcome back,
             </ThemedText>
             <ThemedText style={styles.quickAccessEmail}>
               {quickAccessEmail}
             </ThemedText>
+            <Spacer height={200} />
             <ThemedButton
               onPress={handleMpinLogin}
               style={styles.quickAccessButton}
             >
-              <Text style={{ color: "#f2f2f2" }}>Use MPIN</Text>
+              <MaterialIcons
+                name='dialpad'
+                size={20}
+                color='#f2f2f2'
+                style={styles.icon}
+              />
+              <Text style={styles.buttonText}>Use MPIN</Text>
             </ThemedButton>
 
-            <ThemedText
-              style={styles.switchToEmailLogin}
+            <ThemedButton
               onPress={() => {
                 setLoginMethod("email");
                 setQuickAccessEmail(null);
               }}
+              style={styles.switchToEmailLoginBtn}
             >
-              Use email/password instead
-            </ThemedText>
+              <MaterialIcons
+                name='email'
+                size={20}
+                color='#f2f2f2'
+                style={styles.icon}
+              />
+              <Text style={styles.buttonText}>Use email/password instead</Text>
+            </ThemedButton>
           </View>
         ) : (
           // Standard Login Mode
           <>
+            <Text style={styles.quickAccessWelcome}>RESBAC</Text>
+            <Text style={styles.quickAccessEmail}>
+              Sign in to start your session.
+            </Text>
+
             {/* Login Method Selector */}
             <View style={styles.methodSelector}>
               <TouchableOpacity
@@ -335,6 +362,8 @@ const Login = () => {
                 </Text>
               </TouchableOpacity>
             </View>
+
+            <Spacer height={100} />
 
             <Spacer height={20} />
 
@@ -399,8 +428,15 @@ const Login = () => {
                 <ThemedButton
                   onPress={handleMpinLogin}
                   disabled={!email.trim()}
+                  style={styles.quickAccessButton}
                 >
-                  <Text style={{ color: "#f2f2f2" }}>Enter MPIN</Text>
+                  <MaterialIcons
+                    name='dialpad'
+                    size={20}
+                    color='#f2f2f2'
+                    style={styles.icon}
+                  />
+                  <Text style={styles.buttonText}>Enter MPIN</Text>
                 </ThemedButton>
 
                 <ThemedText style={styles.mpinNote}>
@@ -410,8 +446,6 @@ const Login = () => {
             )}
           </>
         )}
-
-        <Spacer />
 
         <TitleText type='title4' style={{ marginRight: 111 }}>
           Don't have an Account?{" "}
@@ -464,7 +498,7 @@ const styles = StyleSheet.create({
   },
   mpinSection: {
     alignItems: "center",
-    width: "80%",
+    width: "100%",
   },
   mpinInstructions: {
     textAlign: "center",
@@ -480,14 +514,15 @@ const styles = StyleSheet.create({
   },
   quickAccessSection: {
     alignItems: "center",
-    width: "80%",
-    paddingVertical: 20,
+    width: "100%",
+    paddingVertical: 10,
   },
   quickAccessWelcome: {
-    fontSize: 20,
+    fontSize: 33,
     fontWeight: "bold",
-    marginBottom: 8,
+    marginBottom: 0,
     textAlign: "center",
+    color: Colors.primary,
   },
   quickAccessEmail: {
     fontSize: 16,
@@ -525,5 +560,23 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     marginHorizontal: 10,
     textAlign: "center",
+  },
+  buttonText: {
+    color: "#f2f2f2",
+    fontWeight: "600",
+  },
+  quickAccessButton: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    width: "100%",
+    gap: 8,
+  },
+  switchToEmailLoginBtn: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    width: "100%",
+    gap: 8,
   },
 });

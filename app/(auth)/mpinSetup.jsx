@@ -19,6 +19,7 @@ import ThemedLogo from "../../components/ThemedLogo";
 import ThemedView from "../../components/ThemedView";
 import ThemedText from "../../components/ThemedText";
 import Spacer from "../../components/Spacer";
+import ThemedLoader from "../../components/ThemedLoader";
 
 const MpinSetup = () => {
   const router = useRouter();
@@ -119,48 +120,46 @@ const MpinSetup = () => {
           password: completeUserData.password,
           createdAt: new Date().toISOString(),
         })
-      )
-      
-      console.log('MPIN stored locally for:', completeUserData.email)
-      
-      const userid = completeUserData.userID
-      
+      );
+
+      console.log("MPIN stored locally for:", completeUserData.email);
+
+      const userid = completeUserData.userID;
+
       // Update the database MPIN to replace the random one
       if (userid) {
-        console.log('Updating database MPIN from random to user-selected:', mpin)
-        
+        console.log(
+          "Updating database MPIN from random to user-selected:",
+          mpin
+        );
+
         const { error: updateError } = await supabase
           .from("user")
           .update({ mpin: mpin })
           .eq("userID", userid);
 
         if (updateError) {
-          console.error('Database MPIN update failed:', updateError)
-          throw new Error('Failed to save your MPIN. Please try again.')
+          console.error("Database MPIN update failed:", updateError);
+          throw new Error("Failed to save your MPIN. Please try again.");
         } else {
-          console.log('MPIN successfully saved to database')
+          console.log("MPIN successfully saved to database");
         }
       } else {
-        throw new Error('User ID not found. Cannot save MPIN.')
+        throw new Error("User ID not found. Cannot save MPIN.");
       }
-      
-      Alert.alert(
-        'Registration Complete!', 
-        'Your account is ready.',
-        [
-          {
-            text: 'Continue',
-            onPress: () => router.replace('/(dashboard)/home')
-          }
-        ]
-      )
-      
+
+      Alert.alert("Registration Complete!", "Your account is ready.", [
+        {
+          text: "Continue",
+          onPress: () => router.replace("/(dashboard)/home"),
+        },
+      ]);
     } catch (error) {
-      console.error('Error completing registration:', error)
+      console.error("Error completing registration:", error);
       Alert.alert(
-        'Error', 
-        error.message || 'Failed to complete registration. Please try again.'
-      )
+        "Error",
+        error.message || "Failed to complete registration. Please try again."
+      );
     } finally {
       setIsCreating(false);
     }
@@ -173,11 +172,21 @@ const MpinSetup = () => {
       style={({ pressed }) => [
         styles.key,
         isSpecial && styles.specialKey,
-        pressed && { opacity: 0.6 },
+        pressed && styles.keyPressed, // pressed effect
       ]}
       disabled={isCreating}
     >
-      <Text style={styles.keyText}>{label}</Text>
+      {({ pressed }) => (
+        <Text
+          style={[
+            styles.keyText,
+            isSpecial && styles.specialKeyText,
+            pressed && styles.keyTextPressed, // text turns white when pressed
+          ]}
+        >
+          {label}
+        </Text>
+      )}
     </Pressable>
   );
 
@@ -200,7 +209,14 @@ const MpinSetup = () => {
 
       {/* Debug info */}
       {completeUserData.firstName && (
-        <Text style={{textAlign: 'center', color: 'green', marginBottom: 10, fontSize: 12}}>
+        <Text
+          style={{
+            textAlign: "center",
+            color: "green",
+            marginBottom: 10,
+            fontSize: 12,
+          }}
+        >
           Setting up MPIN for: {completeUserData.firstName}
         </Text>
       )}
@@ -250,17 +266,17 @@ const MpinSetup = () => {
         )}
         {renderKey("⌫", handleDelete, true)}
         {renderKey("0", () => handleKeyPress("0"))}
-        {renderKey(
-          isCreating ? "⏳" : step === "create" ? "→" : "✓",
-          handleNext,
-          true
+        {isCreating ? (
+          <View style={styles.loaderWrapper}>
+            <ThemedLoader size={28} />
+          </View>
+        ) : (
+          renderKey(step === "create" ? "→" : "✓", handleNext, true)
         )}
       </View>
 
       {isCreating && (
-        <ThemedText style={styles.creatingText}>
-          Saving your MPIN...
-        </ThemedText>
+        <ThemedText style={styles.creatingText}>Saving your MPIN...</ThemedText>
       )}
     </ThemedView>
   );
@@ -292,17 +308,23 @@ const styles = StyleSheet.create({
     gap: 20,
     marginVertical: 30,
   },
-  dot: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    backgroundColor: Colors.primary,
-  },
   createdMpinLabel: {
     color: "#666",
     fontSize: 12,
     marginTop: 20,
     marginBottom: -10,
+  },
+  dotsContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 20,
+    marginVertical: 30,
+  },
+  dot: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: Colors.primary,
   },
   keypad: {
     width: "80%",
@@ -315,21 +337,51 @@ const styles = StyleSheet.create({
     width: 70,
     height: 70,
     borderRadius: 35,
-    backgroundColor: "#e4e4e4",
+    backgroundColor: "#fff", // default white circle
     justifyContent: "center",
     alignItems: "center",
     margin: 5,
+
+    // subtle bottom shadow
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
   },
+
+  keyPressed: {
+    backgroundColor: Colors.primary, // blue when pressed
+  },
+
+  keyTextPressed: {
+    color: "#fff", // white text when pressed
+  },
+
   specialKey: {
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.primary, // blue for special keys
   },
   keyText: {
     fontSize: 24,
-    color: "#161616",
+    color: Colors.primary, // default blue for numbers
+    fontWeight: "600",
   },
-  creatingText: {
-    marginTop: 20,
-    color: "#666",
-    fontSize: 14,
+  specialKeyText: {
+    color: "#fff", // white text for special keys
+    fontSize: 24,
+    fontWeight: "600",
+  },
+  backToLogin: {
+    color: Colors.primary,
+    fontSize: 16,
+    textDecorationLine: "underline",
+  },
+  loaderWrapper: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    justifyContent: "center",
+    alignItems: "center",
+    margin: 5,
   },
 });

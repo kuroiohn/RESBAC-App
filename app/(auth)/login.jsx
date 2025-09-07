@@ -7,6 +7,7 @@ import {
   View,
   TouchableOpacity,
   Alert,
+  Pressable,
 } from "react-native";
 import { Link, useRouter } from "expo-router";
 import { Colors } from "../../constants/Colors";
@@ -278,6 +279,13 @@ const Login = () => {
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <ThemedView style={styles.container} safe={true}>
+        {/* Back Button fixed at top-left */}
+        <Pressable
+          onPress={() => router.back()}
+          style={{ position: "absolute", top: 70, left: 10, padding: 10 }}
+        >
+          <Text style={{ color: "#0060ff", fontSize: 16 }}>← Back</Text>
+        </Pressable>
         <ThemedLogo />
 
         {quickAccessEmail && loginMethod === "mpin" ? (

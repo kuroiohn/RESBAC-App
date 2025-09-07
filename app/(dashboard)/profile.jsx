@@ -35,6 +35,7 @@ import { useRouter } from "expo-router";
 import PasswordChangeModal from "../../components/PasswordChangeModal";
 import ChangeMpinModal from "../../components/ChangeMpinModal";
 import DropDownPicker from "react-native-dropdown-picker";
+import { MaterialIcons } from "@expo/vector-icons";
 
 const Profile = () => {
   const { user, logout } = useUser();
@@ -45,7 +46,7 @@ const Profile = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [openDropdowns, setOpenDropdowns] = useState({}); // dynamic for multiple dropdowns
   const [dropdownValues, setDropdownValues] = useState({
-    sex: userData?.sex || null, // safe optional chaining
+    sex: " ",
   });
 
   // added to remove header in profile tab
@@ -794,17 +795,19 @@ const Profile = () => {
           <Text style={styles.label}>{label}</Text>
           <DropDownPicker
             open={openDropdowns[field] || false}
-            value={dropdownValues[field]}
+            value={dropdownValues[field] ?? value} // controlled value
             items={dropdownItems}
             setOpen={(open) =>
               setOpenDropdowns((prev) => ({ ...prev, [field]: open }))
             }
             setValue={(callback) => {
-              const newValue = callback(dropdownValues[field]);
-              setDropdownValues((prev) => ({ ...prev, [field]: newValue }));
-              updateField(section, field, newValue);
+              setDropdownValues((prev) => {
+                const newValue = callback(prev[field] ?? value); // compute new value
+                updateField(section, field, newValue);
+                return { ...prev, [field]: newValue };
+              });
             }}
-            placeholder={value || `Select ${label}`}
+            placeholder={`Select ${label}`}
             style={[styles.dropdown, styles.editableInput]}
             dropDownContainerStyle={styles.dropdownContainer}
           />
@@ -946,13 +949,18 @@ const Profile = () => {
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Personal Information</Text>
-
-          {/* Ellipsis on the far right */}
+          {/* Edit na to */}
           <TouchableOpacity
             style={styles.ellipsisButton}
             onPress={() => toggleSectionEdit("userData")}
           >
-            <Text style={styles.ellipsisText}>⋯</Text>
+            <MaterialIcons
+              name='edit'
+              size={18}
+              color='#0060ff'
+              style={{ marginRight: 4 }}
+            />
+            <Text style={styles.ellipsisText}>Edit</Text>
           </TouchableOpacity>
         </View>
 
@@ -962,13 +970,26 @@ const Profile = () => {
         {editingSections.userData && (
           <View style={styles.editActions}>
             <Text style={styles.editLabel}>Edit Personal Info</Text>
-            <TouchableOpacity
-              style={[styles.saveButton, { backgroundColor: "#28a745" }]}
-              onPress={saveChanges}
-            >
-              <Feather name='check' size={18} color='#fff' />
-              <Text style={styles.saveButtonText}>Save Changes</Text>
-            </TouchableOpacity>
+
+            <View style={{ flexDirection: "row", gap: 10 }}>
+              {/* Cancel Button */}
+              <TouchableOpacity
+                style={[styles.saveButton, { backgroundColor: "#aaa" }]}
+                onPress={() => toggleSectionEdit("userData")} // close edit mode
+              >
+                <Feather name='x' size={18} color='#fff' />
+                <Text style={styles.saveButtonText}>Cancel</Text>
+              </TouchableOpacity>
+
+              {/* Save Button */}
+              <TouchableOpacity
+                style={[styles.saveButton, { backgroundColor: "#0060ff" }]}
+                onPress={saveChanges}
+              >
+                <Feather name='check' size={18} color='#fff' />
+                <Text style={styles.saveButtonText}>Save Changes</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         )}
 
@@ -1018,6 +1039,7 @@ const Profile = () => {
           [
             { label: "Male", value: "Male" },
             { label: "Female", value: "Female" },
+            { label: "Others", value: "Others" },
           ] // dropdown items
         )}
 
@@ -1092,28 +1114,46 @@ const Profile = () => {
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Address Information</Text>
 
-            {/* Ellipsis on the far right */}
+            {/* Edit na rin */}
             <TouchableOpacity
               style={styles.ellipsisButton}
               onPress={() => toggleSectionEdit("address")}
             >
-              <Text style={styles.ellipsisText}>⋯</Text>
+              <MaterialIcons
+                name='edit'
+                size={18}
+                color='#0060ff'
+                style={{ marginRight: 4 }}
+              />
+              <Text style={styles.ellipsisText}>Edit</Text>
             </TouchableOpacity>
           </View>
 
           <View style={styles.divider} />
 
-          {/* Only show editable fields if editingSections.address is true */}
           {editingSections.address && (
             <View style={styles.editActions}>
               <Text style={styles.editLabel}>Edit Address Info</Text>
-              <TouchableOpacity
-                style={[styles.saveButton, { backgroundColor: "#28a745" }]}
-                onPress={saveChanges}
-              >
-                <Feather name='check' size={18} color='#fff' />
-                <Text style={styles.saveButtonText}>Save Changes</Text>
-              </TouchableOpacity>
+
+              <View style={{ flexDirection: "row", gap: 10 }}>
+                {/* Cancel Button */}
+                <TouchableOpacity
+                  style={[styles.saveButton, { backgroundColor: "#aaa" }]}
+                  onPress={() => toggleSectionEdit("address")} // close edit mode
+                >
+                  <Feather name='x' size={18} color='#fff' />
+                  <Text style={styles.saveButtonText}>Cancel</Text>
+                </TouchableOpacity>
+
+                {/* Save Button */}
+                <TouchableOpacity
+                  style={[styles.saveButton, { backgroundColor: "#0060ff" }]}
+                  onPress={saveChanges}
+                >
+                  <Feather name='check' size={18} color='#fff' />
+                  <Text style={styles.saveButtonText}>Save Changes</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           )}
 
@@ -1171,12 +1211,18 @@ const Profile = () => {
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Guardian Information</Text>
 
-            {/* Ellipsis on the far right */}
+            {/* edit guardian */}
             <TouchableOpacity
               style={styles.ellipsisButton}
               onPress={() => toggleSectionEdit("guardian")}
             >
-              <Text style={styles.ellipsisText}>⋯</Text>
+              <MaterialIcons
+                name='edit'
+                size={18}
+                color='#0060ff'
+                style={{ marginRight: 4 }}
+              />
+              <Text style={styles.ellipsisText}>Edit</Text>
             </TouchableOpacity>
           </View>
 
@@ -1186,13 +1232,26 @@ const Profile = () => {
           {editingSections.guardian && (
             <View style={styles.editActions}>
               <Text style={styles.editLabel}>Edit Guardian Info</Text>
-              <TouchableOpacity
-                style={[styles.saveButton, { backgroundColor: "#28a745" }]}
-                onPress={saveChanges}
-              >
-                <Feather name='check' size={18} color='#fff' />
-                <Text style={styles.saveButtonText}>Save Changes</Text>
-              </TouchableOpacity>
+
+              <View style={{ flexDirection: "row", gap: 10 }}>
+                {/* Cancel Button */}
+                <TouchableOpacity
+                  style={[styles.saveButton, { backgroundColor: "#aaa" }]}
+                  onPress={() => toggleSectionEdit("guardian")} // close edit mode
+                >
+                  <Feather name='x' size={18} color='#fff' />
+                  <Text style={styles.saveButtonText}>Cancel</Text>
+                </TouchableOpacity>
+
+                {/* Save Button */}
+                <TouchableOpacity
+                  style={[styles.saveButton, { backgroundColor: "#0060ff" }]}
+                  onPress={saveChanges}
+                >
+                  <Feather name='check' size={18} color='#fff' />
+                  <Text style={styles.saveButtonText}>Save Changes</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           )}
 
@@ -1233,21 +1292,34 @@ const Profile = () => {
         </View>
       )}
 
-      <Text style={styles.sectionTitle}>Vulnerability Information</Text>
-      <View style={styles.divider} />
-
-      <TouchableOpacity
-        style={[styles.editButton, { backgroundColor: "#007bff" }]}
-        onPress={() =>
-          router.push({
-            pathname: "/(auth)/vulnerable",
-            params: { from: "profile" },
-          })
-        }
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
       >
-        <Feather name='edit' size={20} color='#fff' />
-        <Text style={styles.editButtonText}>Edit Vulnerability Info</Text>
-      </TouchableOpacity>
+        <Text style={styles.sectionTitle}>Vulnerability Information</Text>
+        <TouchableOpacity
+          style={styles.ellipsisButton}
+          onPress={() =>
+            router.push({
+              pathname: "/(auth)/vulnerable",
+              params: { from: "profile" },
+            })
+          }
+        >
+          <MaterialIcons
+            name='edit'
+            size={18}
+            color='#0060ff'
+            style={{ marginRight: 4 }}
+          />
+          <Text style={styles.ellipsisText}>Edit</Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.divider} />
 
       <View style={styles.row}>
         {renderField(
@@ -1511,12 +1583,12 @@ const styles = StyleSheet.create({
   },
 
   ellipsisButton: {
-    paddingHorizontal: 8,
-    paddingVertical: 0,
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 8,
   },
-
   ellipsisText: {
-    fontSize: 24,
+    fontSize: 13,
     color: "#007bff",
   },
 
@@ -1529,9 +1601,9 @@ const styles = StyleSheet.create({
   },
 
   editLabel: {
-    fontSize: 16,
+    fontSize: 13,
     color: "#007bff",
-    fontWeight: "500",
+    fontWeight: "600",
   },
 
   saveButton: {

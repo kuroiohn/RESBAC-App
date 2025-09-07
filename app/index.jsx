@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import { StyleSheet, Text, Animated } from "react-native";
+import { StyleSheet, Text, Animated, Easing } from "react-native";
 import { Link } from "expo-router";
 
 // themed components
@@ -16,20 +16,23 @@ const Home = () => {
   const imageAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    Animated.sequence([
+    Animated.stagger(150, [
       Animated.timing(loginAnim, {
         toValue: 1,
-        duration: 400,
+        duration: 300,
+        easing: Easing.out(Easing.ease),
         useNativeDriver: true,
       }),
       Animated.timing(registerAnim, {
         toValue: 1,
-        duration: 400,
+        duration: 300,
+        easing: Easing.out(Easing.ease),
         useNativeDriver: true,
       }),
       Animated.timing(imageAnim, {
         toValue: 1,
-        duration: 400,
+        duration: 300,
+        easing: Easing.out(Easing.ease),
         useNativeDriver: true,
       }),
     ]).start();

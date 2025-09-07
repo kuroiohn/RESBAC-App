@@ -188,10 +188,12 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#000",
     marginBottom: 6,
+    paddingHorizontal: 5,
   },
   addressRow: {
     flexDirection: "row",
     alignItems: "flex-start",
+    paddingHorizontal: 5,
   },
   locationIcon: {
     marginTop: 2,

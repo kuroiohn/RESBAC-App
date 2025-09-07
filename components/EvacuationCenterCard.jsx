@@ -145,7 +145,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "600",
     color: "#0060FF",
-    backgroundColor: "rgba(0, 96, 255, 0.1)",
+    backgroundColor: "#F6F5FA",
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 6,
@@ -155,10 +155,12 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#000",
     marginBottom: 6,
+    paddingHorizontal: 5,
   },
   addressRow: {
     flexDirection: "row",
     alignItems: "flex-start",
+    paddingHorizontal: 5,
   },
   locationIcon: {
     marginTop: 2,

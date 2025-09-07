@@ -511,6 +511,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#666",
     fontStyle: "italic",
+    marginRight: 15,
   },
   quickAccessSection: {
     alignItems: "center",

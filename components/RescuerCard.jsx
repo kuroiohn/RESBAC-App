@@ -116,34 +116,33 @@ export default function RescuerCard() {
                 <Text style={styles.position}>{emerP.emerPRole}</Text>
                 <Text style={styles.barangay}>{emerP.emerPBrgy}</Text>
 
-                <LinearGradient
-                  colors={["#0060FF", "#003A99"]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  style={styles.callButton}
+                {/* Call Button */}
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={() => handleContactBtn(emerP.emerPNumber)}
                 >
-                  <TouchableOpacity
-                    activeOpacity={0.7}
-                    onPress={() => handleContactBtn(emerP.emerPNumber)}
-                    style={styles.callBtnContent}
+                  <LinearGradient
+                    colors={["#0060FF", "#0040B5"]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={styles.callButton}
                   >
-                    <Phone color='#fff' size={16} style={{ marginRight: 4 }} />
-                    <Text style={styles.callText}>
-                      Call {emerP.emerPNumber}
-                    </Text>
-                  </TouchableOpacity>
-                </LinearGradient>
+                    <Phone color='#fff' size={16} style={{ marginRight: 6 }} />
+                    <Text style={styles.callText}>Call</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
 
+                {/* Message Button */}
                 <TouchableOpacity
                   style={styles.messageButton}
-                  activeOpacity={0.7}
+                  activeOpacity={0.8}
                   onPress={() => handleMsgBtn(emerP.emerPMessLink)}
                 >
                   <Image
                     source={require("../assets/messenger-icon.png")}
-                    style={{ width: 16, height: 16, marginRight: 4 }}
+                    style={{ width: 16, height: 16, marginRight: 6 }}
                   />
-                  <Text style={styles.messageText}>Click here to message</Text>
+                  <Text style={styles.messageText}>Message</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -156,88 +155,81 @@ export default function RescuerCard() {
 
 const styles = StyleSheet.create({
   borderWrapper: {
-    borderRadius: 12,
+    borderRadius: 14,
     padding: 1,
     marginVertical: 6,
-    width: 320, // smaller width for horizontal scroll
-    marginRight: 12,
+    width: 300,
+    marginRight: 16,
     overflow: "hidden",
   },
   card: {
     backgroundColor: "white",
-    borderRadius: 10,
+    borderRadius: 12,
     padding: 12,
-    paddingVertical: 16,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 0.5 },
-    shadowOpacity: 0.25,
-    shadowRadius: 0.5,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.15,
+    shadowRadius: 2,
     elevation: 3,
   },
   row: {
     flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 12,
+    alignItems: "center",
+    gap: 14,
   },
   profileImage: {
-    width: 120, //
-    borderRadius: 10,
+    width: 90,
+    borderRadius: 12,
     backgroundColor: "#e5e7eb",
   },
   rightColumn: {
     flex: 1,
   },
   name: {
-    fontSize: 20,
-    fontWeight: "600",
-    color: "#0060FF",
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#111827",
     marginBottom: 2,
   },
   position: {
-    fontSize: 12,
-    color: "#1f2937",
+    fontSize: 13,
+    color: "#374151",
     marginBottom: 2,
   },
   barangay: {
     fontSize: 12,
     color: "#6b7280",
-    marginBottom: 8,
+    marginBottom: 10,
   },
   callButton: {
-    borderRadius: 6,
-    marginBottom: 6,
-  },
-  callBtnContent: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 6,
-    borderRadius: 6,
+    paddingVertical: 8,
+    borderRadius: 8,
   },
   callText: {
     color: "#fff",
     fontWeight: "600",
-    fontSize: 12,
+    fontSize: 13,
   },
   messageButton: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "white",
-    borderRadius: 6,
-    borderWidth: 0,
-    borderColor: "#0060FF",
-    paddingVertical: 6,
-    paddingHorizontal: 8,
+    backgroundColor: "#f9fafb",
+    borderRadius: 8,
+    paddingVertical: 8,
+    marginTop: 6,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 0.5 },
-    shadowOpacity: 0.25,
-    shadowRadius: 0.5,
+    shadowOpacity: 0.15,
+    shadowRadius: 1,
     elevation: 2,
   },
   messageText: {
     color: "#0060FF",
     fontWeight: "600",
-    fontSize: 12,
+    fontSize: 13,
   },
 });

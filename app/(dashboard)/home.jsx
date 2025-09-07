@@ -5,7 +5,7 @@ import {
   Text,
   StyleSheet,
 } from "react-native";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, use } from "react";
 
 import Spacer from "../../components/Spacer";
 import ThemedText from "../../components/ThemedText";
@@ -18,12 +18,29 @@ import EvacuationCenterCard from "../../components/EvacuationCenterCard";
 import { useUser } from "../../hooks/useUser";
 import supabase from "../../contexts/supabaseClient";
 import PickupLocationsCard from "../../components/PickupLocationsCard";
+import { useNavigation } from "@react-navigation/native";
 
 const Home = () => {
   const { user } = useUser();
   const [animating, setAnimating] = useState(false);
   const [callRequested, setCallRequested] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const navigation = useNavigation();
+
+  // click handler for evac center
+  const handleEvacClick = (evacId) => {
+    navigation.navigate("PickUpLocation", {
+      tab: "evacuationCenter",
+      id: evacId,
+    });
+  };
+
+  const handlePickupClick = (pickupId) => {
+    navigation.navigate("PickUpLocation", {
+      tab: "pickupLocations",
+      id: pickupId,
+    });
+  };
 
   useEffect(() => {
     const userid = user.id;
@@ -160,25 +177,6 @@ const Home = () => {
             {/* Alerts + Guide only in initial state */}
             <ThemedText style={styles.textLeft}>Alerts</ThemedText>
             <AlertCard />
-
-            {/* Evacuation Centers horizontal scroll */}
-            <ThemedText style={styles.textLeft}>Evacuation Centers</ThemedText>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ paddingHorizontal: 12 }}
-            >
-              <EvacuationCenterCard />
-            </ScrollView>
-
-            <ThemedText style={styles.textLeft}>Pickup Locations</ThemedText>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ paddingHorizontal: 12 }}
-            >
-              <PickupLocationsCard style={{ marginRight: 16, marginLeft: 0 }} />
-            </ScrollView>
           </>
         )}
 

@@ -105,13 +105,15 @@ const PickUpLocation = () => {
     if (flatListRef.current) {
       flatListRef.current.scrollToIndex({ index: 0, animated: false });
     }
-  }, [activeTab]);
+  }, [activeTab, data]);
 
   const data = activeTab === "evacuationCenter" ? evacData : pickupData;
 
   if (!data || data.length === 0) return null;
 
-  const currentLocation = data[activeIndex];
+  const currentLocation = data[activeIndex] || {};
+
+  if (!currentLocation) return null;
 
   const renderLocation = ({ item: location }) => (
     <View style={styles.frame}>
@@ -129,22 +131,12 @@ const PickUpLocation = () => {
           colors={["#0060FF", "transparent"]}
           style={styles.gradientOverlay}
         />
-
-        {/* Ellipsis inside the picture at the bottom */}
-        <View style={styles.ellipsis}>
-          {data.map((_, i) => (
-            <View
-              key={i}
-              style={[styles.dot, i === activeIndex && styles.activeDot]}
-            />
-          ))}
-        </View>
       </View>
     </View>
   );
 
   return (
-    <View style={{ backgroundColor: "#fff" }}>
+    <View style={{ flex: 1, backgroundColor: "#fff" }}>
       {/* Image Slider */}
       <FlatList
         data={data}
@@ -176,7 +168,7 @@ const PickUpLocation = () => {
         <View style={styles.capacityRow}>
           <Ionicons name='people' size={16} color='#0060FF' />
           <Text style={styles.capacityText}>
-            {currentLocation.capacity || "N/A"} Capacity
+            {currentLocation.capacity ?? "N/A"} Capacity
           </Text>
         </View>
       </View>
@@ -184,8 +176,8 @@ const PickUpLocation = () => {
       {/* Title + Address + Phone */}
       <Text style={styles.header}>
         {activeTab === "evacuationCenter"
-          ? currentLocation.evacName
-          : currentLocation.pickupName}
+          ? currentLocation.evacName ?? "No name"
+          : currentLocation.pickupName ?? "No name"}
       </Text>
 
       <Text style={styles.address}>
@@ -276,7 +268,7 @@ const styles = StyleSheet.create({
   },
   evacImage: {
     width,
-    height: height * 0.5,
+    height: height * 0.7,
     resizeMode: "cover",
   },
   gradientOverlay: {

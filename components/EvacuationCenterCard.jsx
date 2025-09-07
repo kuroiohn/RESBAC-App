@@ -58,38 +58,43 @@ const EvacuationCenterCard = ({ evac, style, onPress }) => {
           key={evac.id}
           onPress={() => router.push("/pickUpLocations")}
           activeOpacity={0.9}
-          style={{ marginRight: 16 }} // spacing for scroll
+          style={{ marginRight: 16 }}
         >
-          <View style={[styles.cardWrapper, style]}>
-            <View style={styles.innerCard}>
+          <LinearGradient
+            colors={["#0060FF", "rgba(0,96,255,0)"]}
+            start={{ x: 0.5, y: 0 }}
+            end={{ x: 0.5, y: 1 }}
+            style={styles.borderWrapper}
+          >
+            <View style={styles.card}>
               <View style={styles.imageWrapper}>
                 <Image
                   source={{ uri: evac.evacImage }}
                   style={styles.image}
                   resizeMode='cover'
                 />
+
+                {/* Status overlay */}
+                <View style={styles.statusOverlay}>
+                  <Text style={styles.statusTag}>Open</Text>
+                </View>
               </View>
 
               <View style={styles.contentSection}>
-                <View style={styles.topRow}>
-                  <Text style={styles.statusTag}>Open</Text>
-                </View>
                 <Text style={styles.header}>{evac.evacName}</Text>
 
                 <View style={styles.addressRow}>
-                  <MaterialIcons
+                  {/*<MaterialIcons
                     name='location-pin'
                     size={18}
                     color='#0060FF'
                     style={styles.locationIcon}
-                  />
-                  <Text style={styles.subtext} numberOfLines={3}>
-                    {evac.evacAddress}
-                  </Text>
+                  /> */}
+                  <Text style={styles.subtext}>{evac.evacAddress}</Text>
                 </View>
               </View>
             </View>
-          </View>
+          </LinearGradient>
         </TouchableOpacity>
       ))}
     </>
@@ -99,35 +104,29 @@ const EvacuationCenterCard = ({ evac, style, onPress }) => {
 export default EvacuationCenterCard;
 
 const styles = StyleSheet.create({
-  cardWrapper: {
+  borderWrapper: {
     borderRadius: 12,
-    backgroundColor: "#fff",
-
-    // shadow (iOS)
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 1.5,
-
-    // shadow (Android)
-    elevation: 3,
-    marginBottom: 15,
-  },
-  innerCard: {
-    width: 260,
-    backgroundColor: "#fff",
-    borderRadius: 12,
+    padding: 1,
+    marginVertical: 0,
+    width: 300, // match your card width
+    marginRight: 0,
     overflow: "hidden",
+  },
+  card: {
+    backgroundColor: "white",
+    borderRadius: 10,
+    paddingBottom: 10,
 
-    // subtle bottom shadow
+    // shadows
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.15,
-    shadowRadius: 1.5,
+    shadowOffset: { width: 0, height: 0.5 },
+    shadowOpacity: 0.25,
+    shadowRadius: 0.5,
     elevation: 3,
   },
   imageWrapper: {
     padding: 8,
+    position: "relative",
   },
   image: {
     width: "100%",
@@ -150,11 +149,19 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: 6,
   },
+  statusOverlay: {
+    position: "absolute",
+    bottom: 12,
+    left: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
   header: {
     fontSize: 16,
     fontWeight: "600",
     color: "#000",
-    marginBottom: 6,
+    marginBottom: 0,
     paddingHorizontal: 5,
   },
   addressRow: {
@@ -164,7 +171,7 @@ const styles = StyleSheet.create({
   },
   locationIcon: {
     marginTop: 2,
-    width: 18, // reserve space so text wraps with indent
+    width: 18,
   },
   subtext: {
     flex: 1,

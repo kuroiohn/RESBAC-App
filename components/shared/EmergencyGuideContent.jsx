@@ -19,6 +19,8 @@ import Money from "../../assets/Money.png";
 import Batteries from "../../assets/Batteries.png";
 
 import RescuerCard from "../../components/RescuerCard";
+import EvacuationCenterCard from "../EvacuationCenterCard";
+import PickupLocationsCard from "../PickupLocationsCard";
 
 const EmergencyGuideContent = () => {
   return (
@@ -62,6 +64,34 @@ const EmergencyGuideContent = () => {
         >
           <RescuerCard />
         </ScrollView>
+
+        {/* Evacuation Centers horizontal scroll */}
+        <ThemedText style={styles.textLeft}>Evacuation Centers</ThemedText>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ paddingHorizontal: 5 }}
+        >
+          <EvacuationCenterCard />
+        </ScrollView>
+
+        <ThemedText style={styles.textLeft}>Pickup Locations</ThemedText>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ paddingHorizontal: 5 }}
+          onPress={() => {
+            setActiveTab("pickupLocations");
+            if (flatListRef.current) {
+              flatListRef.current.scrollToIndex({
+                index: 0,
+                animated: true,
+              });
+            }
+          }}
+        >
+          <PickupLocationsCard />
+        </ScrollView>
       </ThemedView>
     </ScrollView>
   );
@@ -82,8 +112,8 @@ const styles = StyleSheet.create({
   textLeft: {
     textAlign: "left",
     alignSelf: "stretch",
-    marginLeft: 10,
-    fontSize: 19,
+    marginLeft: 5,
+    fontSize: 15,
     marginTop: 10,
     marginBottom: 5,
   },

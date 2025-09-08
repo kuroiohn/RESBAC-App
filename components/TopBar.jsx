@@ -5,9 +5,56 @@ import ProfilePic from "../assets/ProfilePic.png";
 //themed components
 import ThemedView from "../components/ThemedView";
 import { useNavigation } from "@react-navigation/native"; // import navigation hook
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
+import { useUser } from "../hooks/useUser";
+import supabase from "../contexts/supabaseClient";
 
 const TopBar = () => {
   const navigation = useNavigation(); // initialize navigation
+  const {user} = useUser()
+  
+  const queryClient = useQueryClient();
+  // reads from supabase
+  const fetchUserData = async () => {
+    const { data, error } = await supabase
+    .from("user")
+    .select('*')
+    .eq("userID",user.id)
+    .single()
+
+    if (error) {
+      console.error("Fetch error in supabase pickup: ", error);
+    }
+    console.log("Successful fetch", data);
+    return data;
+  };
+  // use data here to map the values and read
+  const { data: userData, error: userError } = useQuery({
+    queryKey: ["user"],
+    queryFn: fetchUserData,
+  });
+
+  // subscribe to realtime
+  useEffect(() => {
+    const userChannel = supabase
+      .channel("user-changes")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "user", filter: `userID=eq.${user.id}` },
+        (payload) => {
+          console.log("Realtime change received:", payload);
+
+          // Ask react-query to refetch alerts when a row is inserted/updated/deleted
+          queryClient.invalidateQueries(["user"]);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(userChannel);
+    };
+  }, [queryClient]);
 
   const goToProfile = () => {
     navigation.navigate("profile"); // navigate to Profile tab
@@ -20,7 +67,7 @@ const TopBar = () => {
         <Text style={styles.title}>RESBAC</Text>
       </View>
       <TouchableOpacity onPress={goToProfile}>
-        <Image source={ProfilePic} style={styles.profile} />
+        <Image source={{ uri: userData.profilePic.toString() }} style={styles.profile} />
       </TouchableOpacity>
     </ThemedView>
   );

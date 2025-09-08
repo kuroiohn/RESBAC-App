@@ -75,7 +75,7 @@ export default function uploadID() {
     return {
       streetName: gpsStreetName,
       cityName: gpsCityName,
-      brgyName: gpsBrgyName,
+      brgyName: completeUserData.barangay,
       coordinates: gpsCoordinates,
     };
   };

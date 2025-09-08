@@ -67,7 +67,7 @@ const TopBar = () => {
         <Text style={styles.title}>RESBAC</Text>
       </View>
       <TouchableOpacity onPress={goToProfile}>
-        <Image source={{ uri: userData.profilePic.toString() }} style={styles.profile} />
+        <Image source={{ uri: userData?.profilePic }} style={styles.profile} />
       </TouchableOpacity>
     </ThemedView>
   );

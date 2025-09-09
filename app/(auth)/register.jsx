@@ -88,8 +88,6 @@ const Register = () => {
   // state for checkbox
   const [isAgreed, setIsAgreed] = useState(false);
 
-
-
   /**
    * Validates all form fields and returns whether the form is valid
    * Populates formErrors state with validation error messages
@@ -221,7 +219,7 @@ const Register = () => {
       pathname: "./vulnerable",
       params: {
         userData: JSON.stringify(basicUserData),
-        from: "register"
+        from: "register",
       },
     });
   };
@@ -366,7 +364,7 @@ const Register = () => {
               disabled={!isAgreed}
             />
             {formErrors.barangay && (
-                <Text style={styles.fieldError}>{formErrors.barangay}</Text>
+              <Text style={styles.fieldError}>{formErrors.barangay}</Text>
             )}
 
             {/* Address input field - ALWAYS REQUIRED */}

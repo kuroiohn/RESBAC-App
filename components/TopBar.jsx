@@ -12,16 +12,16 @@ import supabase from "../contexts/supabaseClient";
 
 const TopBar = () => {
   const navigation = useNavigation(); // initialize navigation
-  const {user} = useUser()
-  
+  const { user } = useUser();
+
   const queryClient = useQueryClient();
   // reads from supabase
   const fetchUserData = async () => {
     const { data, error } = await supabase
-    .from("user")
-    .select('*')
-    .eq("userID",user.id)
-    .single()
+      .from("user")
+      .select("*")
+      .eq("userID", user.id)
+      .single();
 
     if (error) {
       console.error("Fetch error in supabase pickup: ", error);
@@ -41,7 +41,12 @@ const TopBar = () => {
       .channel("user-changes")
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "user", filter: `userID=eq.${user.id}` },
+        {
+          event: "*",
+          schema: "public",
+          table: "user",
+          filter: `userID=eq.${user.id}`,
+        },
         (payload) => {
           console.log("Realtime change received:", payload);
 
@@ -67,10 +72,14 @@ const TopBar = () => {
         <Text style={styles.title}>RESBAC</Text>
       </View>
       <TouchableOpacity onPress={goToProfile}>
-        <Image source={
-          userData?.profilepPic !== null ?
-          { uri: userData?.profilePic } : 
-          ProfilePic} style={styles.profile} />
+        <Image
+          source={
+            userData?.profilepPic !== null
+              ? { uri: userData?.profilePic }
+              : ProfilePic
+          }
+          style={styles.profile}
+        />
       </TouchableOpacity>
     </ThemedView>
   );
@@ -108,8 +117,9 @@ const styles = StyleSheet.create({
     includeFontPadding: false, // removes extra font padding
   },
   profile: {
-    width: 40,
-    height: 40,
+    width: 35,
+    height: 35,
     borderRadius: 20,
+    marginRight: 10,
   },
 });

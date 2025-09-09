@@ -3,6 +3,7 @@ import { ScrollView, StyleSheet, Image, View } from "react-native";
 import Spacer from "../../components/Spacer";
 import ThemedText from "../../components/ThemedText";
 import ThemedView from "../../components/ThemedView";
+import { useEffect, useState } from "react";
 
 // asset imports
 import DuringFlood from "../../assets/DuringFlood.png";
@@ -21,8 +22,24 @@ import Batteries from "../../assets/Batteries.png";
 import RescuerCard from "../../components/RescuerCard";
 import EvacuationCenterCard from "../EvacuationCenterCard";
 import PickupLocationsCard from "../PickupLocationsCard";
+import ThemedLoader from "../ThemedLoader";
 
 const EmergencyGuideContent = () => {
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // simulate loading
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (loading) {
+    return <ThemedLoader />;
+  }
+
   return (
     <ScrollView contentContainerStyle={styles.pageContainer}>
       <ThemedView style={styles.container}>

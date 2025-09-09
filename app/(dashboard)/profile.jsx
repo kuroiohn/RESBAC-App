@@ -36,6 +36,7 @@ import PasswordChangeModal from "../../components/PasswordChangeModal";
 import ChangeMpinModal from "../../components/ChangeMpinModal";
 import DropDownPicker from "react-native-dropdown-picker";
 import { MaterialIcons } from "@expo/vector-icons";
+import BarangayDropdown from "../../components/BarangayDropdown";
 
 const Profile = () => {
   const { user, logout } = useUser();
@@ -73,7 +74,7 @@ const Profile = () => {
     surname: "",
     dob: "",
     age: 0,
-    sex: "",
+    sex: null,
     mpin: "",
     userNumber: "",
     householdSize: 0,
@@ -784,25 +785,41 @@ const Profile = () => {
     value,
     editable = false,
     keyboardType = "default",
-    dropdownItems = null // optional: pass array of {label, value} for dropdown
+    dropdownItems = null // optional: array of {label, value}
   ) => {
     const isEditing = editingSections[section] && editable;
 
-    // If dropdownItems are provided, render a dropdown instead of text input
-    if (dropdownItems && isEditing) {
+    if (field === "brgyName" && isEditing) {
       return (
-        <View style={[styles.rowItem, { zIndex: 1000 }]}>
+        <View style={styles.rowItem}>
+          <Text style={styles.label}>{label}</Text>
+          <BarangayDropdown
+            value={value}
+            onChange={(newValue) => updateField(section, field, newValue)}
+            disabled={false} // or control with your logic
+          />
+        </View>
+      );
+    }
+
+    // Dropdown case
+    if (dropdownItems && isEditing) {
+      console.log("Dropdown items for", field, ":", dropdownItems);
+
+      return (
+        <View style={[styles.rowItem, { zIndex: 3000 }]}>
           <Text style={styles.label}>{label}</Text>
           <DropDownPicker
             open={openDropdowns[field] || false}
             value={dropdownValues[field] ?? value} // controlled value
             items={dropdownItems}
+            listMode='SCROLLVIEW'
             setOpen={(open) =>
               setOpenDropdowns((prev) => ({ ...prev, [field]: open }))
             }
             setValue={(callback) => {
               setDropdownValues((prev) => {
-                const newValue = callback(prev[field] ?? value); // compute new value
+                const newValue = callback(prev[field]);
                 updateField(section, field, newValue);
                 return { ...prev, [field]: newValue };
               });
@@ -810,11 +827,14 @@ const Profile = () => {
             placeholder={`Select ${label}`}
             style={[styles.dropdown, styles.editableInput]}
             dropDownContainerStyle={styles.dropdownContainer}
+            zIndex={2000}
+            zIndexInverse={1000}
           />
         </View>
       );
     }
 
+    // Text input case
     if (isEditing) {
       return (
         <View style={styles.rowItem}>
@@ -829,6 +849,7 @@ const Profile = () => {
       );
     }
 
+    // Read-only case
     return (
       <View style={styles.rowItem}>
         <Text style={styles.label}>{label}</Text>
@@ -873,7 +894,10 @@ const Profile = () => {
   // Frontend Starts Here
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView
+      nestedScrollEnabled={true}
+      contentContainerStyle={styles.container}
+    >
       {/* header */}
       <Spacer height={50} />
       <View style={styles.header}>
@@ -921,10 +945,6 @@ const Profile = () => {
               userData.surname.slice(1)}
           </Text>
 
-          <Text style={[styles.address, { color: "#007bff" }]}>
-            {userData.email}
-          </Text>
-
           <View style={styles.addressRow}>
             <Feather name='map-pin' size={14} color='#007bff' />
             <Text style={styles.address}>
@@ -969,8 +989,6 @@ const Profile = () => {
         {/* Only show editable fields if editingSections.userData is true */}
         {editingSections.userData && (
           <View style={styles.editActions}>
-            <Text style={styles.editLabel}>Edit Personal Info</Text>
-
             <View style={{ flexDirection: "row", gap: 10 }}>
               {/* Cancel Button */}
               <TouchableOpacity
@@ -1029,19 +1047,10 @@ const Profile = () => {
 
       {/* Sex and Household Size */}
       <View style={styles.row}>
-        {renderField(
-          "userData",
-          "sex",
-          "Sex",
-          userData.sex,
-          true, // editable
-          "default",
-          [
-            { label: "Male", value: "Male" },
-            { label: "Female", value: "Female" },
-            { label: "Others", value: "Others" },
-          ] // dropdown items
-        )}
+        {renderField("userData", "sex", "Sex", userData.sex, true, "default", [
+          { label: "Male", value: "Male" },
+          { label: "Female", value: "Female" },
+        ])}
 
         {renderField(
           "userData",
@@ -1058,8 +1067,21 @@ const Profile = () => {
         <View style={styles.rowItem}>
           <Text style={styles.label}>Date of Birth</Text>
           {editingSections.userData ? (
-            <View style={[styles.input, styles.editableInput]}>
+            <View
+              style={[
+                styles.input,
+                styles.editableInput,
+                { flexDirection: "row", alignItems: "center" },
+              ]}
+            >
+              <MaterialIcons
+                name='calendar-today'
+                size={20}
+                color='#3b82f6'
+                style={{ marginRight: 8 }}
+              />
               <DatePickerInput
+                style={{ flex: 1, backgroundColor: "transparent" }}
                 minimumDate={new Date(1900, 0, 1)}
                 value={userData.dob ? new Date(userData.dob) : null}
                 onChange={(date) => {
@@ -1082,7 +1104,7 @@ const Profile = () => {
           <Text style={styles.label}>Age</Text>
           {editingSections.userData ? (
             <TextInput
-              style={[styles.input, styles.editableInput]}
+              style={[styles.input, styles.disabledInput]}
               value={userData.age?.toString() || ""}
               editable={false} // optional: could be read-only
             />
@@ -1105,9 +1127,23 @@ const Profile = () => {
             true,
             "phone-pad"
           )}
-          {/* <View style={styles.row}>{renderField("userData","email", "Email", userData.email, false)}</View> */}
+        </View>
+        <View style={styles.rowItem}>
+          <Text style={styles.label}>Email</Text>
+          {editingSections.userData ? (
+            <TextInput
+              style={[styles.input, styles.disabledInput]}
+              value={userData.email || ""}
+              editable={false}
+              keyboardType='email-address'
+              autoCapitalize='none'
+            />
+          ) : (
+            <Text style={styles.valueText}>{userData.email || "-"}</Text>
+          )}
         </View>
       </View>
+
       <View style={styles.row}></View>
       <View style={styles.row}>
         <View style={styles.rowItem}>
@@ -1133,8 +1169,6 @@ const Profile = () => {
 
           {editingSections.address && (
             <View style={styles.editActions}>
-              <Text style={styles.editLabel}>Edit Address Info</Text>
-
               <View style={{ flexDirection: "row", gap: 10 }}>
                 {/* Cancel Button */}
                 <TouchableOpacity
@@ -1171,6 +1205,7 @@ const Profile = () => {
             userAddress.brgyName,
             true
           )}
+
           {renderField(
             "address",
             "cityName",
@@ -1335,7 +1370,9 @@ const Profile = () => {
           "vulnerability",
           "pregnantInfant",
           "Pregnant/Infant",
-          userVul.pregnantInfant.toString(),
+          Array.isArray(userVul.pregnantInfant)
+            ? userVul.pregnantInfant.join(", ")
+            : userVul.pregnantInfant?.toString() || "",
           true
         )}
       </View>
@@ -1345,7 +1382,9 @@ const Profile = () => {
           "vulnerability",
           "physicalPWD",
           "Physical Disability",
-          userVul.physicalPWD.toString(),
+          Array.isArray(userVul.physicalPWD)
+            ? userVul.physicalPWD.join(", ")
+            : userVul.physicalPWD?.toString() || "",
           true
         )}
       </View>
@@ -1354,7 +1393,10 @@ const Profile = () => {
           "vulnerability",
           "psychPWD",
           "Psychological Disability",
-          userVul.psychPWD.toString(),
+          // TODO di malagyan ng space
+          Array.isArray(userVul.psychPWD)
+            ? userVul.psychPWD.join(", ")
+            : userVul.psychPWD?.toString() || "",
           true
         )}
       </View>
@@ -1363,7 +1405,9 @@ const Profile = () => {
           "vulnerability",
           "sensoryPWD",
           "Sensory Disability",
-          userVul.sensoryPWD.toString(),
+          Array.isArray(userVul.sensoryPWD)
+            ? userVul.sensoryPWD.join(", ")
+            : userVul.sensoryPWD?.toString() || "",
           true
         )}
       </View>
@@ -1373,7 +1417,9 @@ const Profile = () => {
           "vulnerability",
           "medDep",
           "Medically Dependent",
-          userVul.medDep.toString(),
+          Array.isArray(userVul.medDep)
+            ? userVul.medDep.join(", ")
+            : userVul.medDep?.toString() || "",
           true
         )}
       </View>
@@ -1475,12 +1521,17 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 4,
+    marginTop: 0,
     textAlign: "center",
   },
 
   section: { marginBottom: 20 },
-  sectionTitle: { fontSize: 13, fontWeight: "600", color: "#007bff" },
+  sectionTitle: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#007bff",
+    marginBottom: -15,
+  },
   divider: { height: 1, backgroundColor: "#007bff", marginVertical: 8 },
   row: {
     flexDirection: "row",
@@ -1525,6 +1576,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 8,
+    marginBottom: -15,
   },
   editButtonText: { color: "#fff", fontWeight: "600", marginLeft: 8 },
 
@@ -1570,7 +1622,7 @@ const styles = StyleSheet.create({
   dropdownContainer: {
     borderColor: "#ccc",
     borderRadius: 8,
-    height: 44,
+    height: 88,
   },
   valueText: {
     fontSize: 19,
@@ -1604,6 +1656,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "#007bff",
     fontWeight: "600",
+    marginBottom: -15,
   },
 
   saveButton: {
@@ -1612,6 +1665,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 6,
+    marginBottom: 10,
   },
 
   saveButtonText: {

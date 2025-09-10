@@ -40,9 +40,10 @@ const CallButton = ({ onAnimationStart, onAnimationFinish, disabled }) => {
     //   console.error("Error fetching auth user: ", userError);
     // }
 
+    const now = new Date()
     const { data, error } = await supabase
       .from("user")
-      .update({ pressedCallBtn: new Date().toISOString() })
+      .update({ pressedCallBtn: new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0,-1) })
       .eq("userID", user.id)
       .select();
 

@@ -42,7 +42,7 @@ const CallButton = ({ onAnimationStart, onAnimationFinish, disabled }) => {
 
     const { data, error } = await supabase
       .from("user")
-      .update({ pressedCallBtn: true })
+      .update({ pressedCallBtn: new Date().toISOString() })
       .eq("userID", user.id)
       .select();
 

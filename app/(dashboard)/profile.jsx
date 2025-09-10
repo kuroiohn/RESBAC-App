@@ -796,7 +796,7 @@ const Profile = () => {
           <BarangayDropdown
             value={value}
             onChange={(newValue) => updateField(section, field, newValue)}
-            disabled={false} // or control with your logic
+            disabled={false} 
           />
         </View>
       );
@@ -952,8 +952,7 @@ const Profile = () => {
                 userAddress.streetName.slice(1)}
               ,
               {" " +
-                userAddress.brgyName.charAt(0).toUpperCase() +
-                userAddress.brgyName.slice(1)}
+                userAddress.brgyName}
               ,
               {" " +
                 userAddress.cityName.charAt(0).toUpperCase() +

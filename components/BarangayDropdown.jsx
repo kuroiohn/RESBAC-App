@@ -32,7 +32,10 @@ const BarangayDropdown = ({ value, onChange, disabled }) => {
             value={value}
             items={barangays}
             setOpen={setOpen}
-            setValue={onChange}
+            setValue={(callback) => {
+                const newValue = callback(value)
+                onChange(newValue)
+            }}
             placeholder='Select Barangay'
             disabled={disabled}
             listMode="SCROLLVIEW"

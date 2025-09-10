@@ -27,6 +27,7 @@ const Home = () => {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const navigation = useNavigation();
 
+  //FIXME -  remove? na-move naman na ung locatiobn eh
   // click handler for evac center
   const handleEvacClick = (evacId) => {
     navigation.navigate("PickUpLocation", {
@@ -66,7 +67,7 @@ const Home = () => {
         console.error("Fetch error in supabase pressedCallBtn: ", error);
       }
       console.log("Successful fetch", data.pressedCallBtn);
-      setCallRequested(data.pressedCallBtn);
+      setCallRequested((data.pressedCallBtn ? true : false));
       return data;
     };
 
@@ -86,7 +87,7 @@ const Home = () => {
           console.log("Change received!", payload);
 
           if (payload.new?.pressedCallBtn !== undefined) {
-            setCallRequested(payload.new.pressedCallBtn);
+            setCallRequested((payload.new.pressedCallBtn ? true : false));
             console.log("Realtime pressedCall: ", callRequested);
           }
         }
@@ -137,7 +138,7 @@ const Home = () => {
 
     const { data, error } = await supabase
       .from("user")
-      .update({ pressedCallBtn: false })
+      .update({ pressedCallBtn: null })
       .eq("userID", user.id)
       .select();
 

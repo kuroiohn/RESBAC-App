@@ -41,7 +41,15 @@ const AlertCard = ({ alertLevel = 1 }) => {
           console.log("Realtime change received:", payload);
 
           // Ask react-query to refetch alerts when a row is inserted/updated/deleted
-          queryClient.invalidateQueries(["alerts"]);
+          // queryClient.invalidateQueries(["alerts"]);
+        queryClient.setQueryData(["alerts"], (oldData) => {
+          if (!oldData) return [payload.new]; // initial
+          const index = oldData.findIndex(a => a.id === payload.new.id);
+          if (index > -1) oldData[index] = payload.new;
+          else oldData.push(payload.new);
+          return [...oldData];
+        });
+
         }
       )
       .subscribe();

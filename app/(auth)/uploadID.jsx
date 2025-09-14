@@ -175,11 +175,6 @@ export default function uploadID() {
       return null;
     }
 
-    // setUserData((prev) => ({
-    //   ...prev,
-    //   profilePic: data.signedUrl,
-    // }));
-
     await supabase
       .from("verification")
       .update({

@@ -132,9 +132,9 @@ const Register = () => {
     }
 
     // Address validation
-    if (!address || address.trim() === "") {
-      errors.address = "Address is required";
-    }
+    // if (!address || address.trim() === "") {
+    //   errors.address = "Address is required";
+    // }
 
     // Location verification
     if (!locationData || !locationData.coordinates) {
@@ -368,7 +368,7 @@ const Register = () => {
             )}
 
             {/* Address input field - ALWAYS REQUIRED */}
-            <ThemedTextInput
+            {/* <ThemedTextInput
               style={{ width: "80%", marginBottom: 5 }}
               placeholder='Address'
               value={address}
@@ -380,7 +380,7 @@ const Register = () => {
             />
             {formErrors.address && (
               <Text style={styles.fieldError}>{formErrors.address}</Text>
-            )}
+            )} */}
 
             {/* Location Permission Component */}
             <Text style={styles.locationLabel}>

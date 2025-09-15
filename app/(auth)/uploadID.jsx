@@ -324,7 +324,7 @@ export default function uploadID() {
         await supabase
           .from("vulnerabilityList")
           .insert({
-            elderly: false,
+            elderly: completeUserData.vulnerability?.elderly,
             pregnantInfant:
               completeUserData.vulnerability?.pregnancy === "yes"
                 ? ["pregnant"]
@@ -369,22 +369,6 @@ export default function uploadID() {
         console.error("Error creating vulnerability:", vulError);
         throw new Error("Failed to create vulnerability record");
       }
-
-    // console.log(authResult.user.id);
-    //   // Create vulnerability record - with explicit userID
-    //   const { data: pregnantIDData, error: pregnantIDError } = await supabase
-    //     .from("vulnerabilityList")
-    //     .update({
-    //       pregnantID: pregnantData.id,
-    //       // userID: user.id,
-    //     })
-    //     .eq("userID",authResult.user.id)
-    //     .select("*")
-    //     .single();
-    //   if (pregnantIDError) {
-    //     console.error("Error isnerting pregnantID to vul table", pregnantIDError);
-    //     throw new Error("Failed to insert pregnantID to vul table");
-    //   }
 
       //TODO - add verification table insert somewhere here
       const { data: verifData, error: verifError } = await supabase

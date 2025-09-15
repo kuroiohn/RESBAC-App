@@ -239,6 +239,7 @@ const Vulnerable = () => {
 
         // Get sex from userData (should be available from register screen)
         const userSex = existingUserData.sex;
+        const userDob = existingUserData.dob;
 
         // Combine existing data with vulnerability data
         const completeUserData = {
@@ -256,6 +257,7 @@ const Vulnerable = () => {
                         }
                         : null,
                 householdCount,
+                elderly: (differenceInYears(new Date(), new Date(userDob)) >= 60 ? true : false),
                 physicalDisability,
                 otherPhysicalDisability,
                 psychologicalDisability,
@@ -798,7 +800,7 @@ const Vulnerable = () => {
                     )}
 
                     {/* mobility status */}
-                    <View style={styles.sectionHeader}>
+                    {/* <View style={styles.sectionHeader}>
                         <TitleText type='title5'>Mobility Status</TitleText>
                         <View style={styles.headerLine}></View>
                     </View>
@@ -809,7 +811,7 @@ const Vulnerable = () => {
                             selectedValue={mobilityStatus}
                             onValueChange={setMobilityStatus}
                         />
-                    </View>
+                    </View> */}
 
                     {/* //FIXME - add condition to go back to edit profile */}
                     {/* Back and Next navigation buttons */}

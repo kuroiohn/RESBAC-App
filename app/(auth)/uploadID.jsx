@@ -318,6 +318,24 @@ export default function uploadID() {
         pregnantID = pregnantData.id    
       }
       
+      const {data: vulStatusData, error: vulStatusError } = 
+        await supabase
+          .from('vulStatus')
+          .insert({
+            physicalStatus: completeUserData.vulnerability?.isPDPermanent,
+            psychStatus: completeUserData.vulnerability?.isPSYPermament,
+            sensoryStatus: completeUserData.vulnerability?.isSDPermament,
+            medDepStatus: completeUserData.vulnerability?.isMDPermament,
+            userID: authResult.user.id,
+          })
+          .select()
+          .single()
+
+      if(vulStatusError){
+        console.error("Error in insert in vulstatus table: ", vulStatusError);
+      }
+      console.log("Vulnerability list created:", vulnerabilityListData);
+
 
       // Create vulnerability list record - with explicit userID
       const { data: vulnerabilityListData, error: vulListError } =
@@ -326,9 +344,14 @@ export default function uploadID() {
           .insert({
             elderly: completeUserData.vulnerability?.elderly,
             pregnantInfant:
-              completeUserData.vulnerability?.pregnancy === "yes"
+              [
+                ...(completeUserData.vulnerability?.pregnancy === "yes"
                 ? ["pregnant"]
-                : [],
+                : []),
+                ...(completeUserData.vulnerability?.infant === "yes"
+                ? ["infant"]
+                : [])
+              ],
             physicalPWD:
               completeUserData.vulnerability?.physicalDisability || [],
             psychPWD: completeUserData.vulnerability?.psychologicalDisability
@@ -360,6 +383,7 @@ export default function uploadID() {
         .from("vulnerability")
         .insert({
           vulListID: vulnerabilityListData.id,
+          vulStatusID: vulStatusData.id,
           userID: user.id,
         })
         .select("*")

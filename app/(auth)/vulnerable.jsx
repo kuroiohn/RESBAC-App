@@ -263,6 +263,11 @@ const Vulnerable = () => {
                 psychologicalDisability,
                 sensoryDisability,
                 otherSensoryDisability,
+                isPDPermanent,
+                isPSYPermament,
+                isSDPermament,
+                isMDPermament,
+                infant: hasInfant,
                 pregnancy: userSex === "Female" ? pregnancy : null,
                 dueDate: pregnancy === "yes" ? dueDate : null,
                 trimester: pregnancy === "yes" ? trimester : null,
@@ -328,8 +333,6 @@ const Vulnerable = () => {
         }
     };
 
-    
-
     //renders vulnerability assessment form
     return (
         <ScrollView contentContainerStyle={styles.scrollContainer}>
@@ -354,7 +357,6 @@ const Vulnerable = () => {
                             Data for: {existingUserData.name}
                         </TitleText>
                     )}
-
 
                     {
                         //NOTE - not applicable if edit profile

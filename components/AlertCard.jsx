@@ -42,14 +42,13 @@ const AlertCard = ({ alertLevel = 1 }) => {
 
           // Ask react-query to refetch alerts when a row is inserted/updated/deleted
           // queryClient.invalidateQueries(["alerts"]);
-        queryClient.setQueryData(["alerts"], (oldData) => {
-          if (!oldData) return [payload.new]; // initial
-          const index = oldData.findIndex(a => a.id === payload.new.id);
-          if (index > -1) oldData[index] = payload.new;
-          else oldData.push(payload.new);
-          return [...oldData];
-        });
-
+          queryClient.setQueryData(["alerts"], (oldData) => {
+            if (!oldData) return [payload.new]; // initial
+            const index = oldData.findIndex((a) => a.id === payload.new.id);
+            if (index > -1) oldData[index] = payload.new;
+            else oldData.push(payload.new);
+            return [...oldData];
+          });
         }
       )
       .subscribe();
@@ -130,6 +129,19 @@ const AlertCard = ({ alertLevel = 1 }) => {
 
   const waterLevel = getWaterLevel();
 
+  const getAlertIcon = (type) => {
+    switch (type) {
+      case "Flood":
+        return require("../assets/floodIcon.png");
+      case "Fire":
+        return require("../assets/fireIcon.png");
+      case "Earthquake":
+        return require("../assets/EarthquakeIcon.png");
+      default:
+        return require("../assets/storm-cloud.png"); // fallback
+    }
+  };
+
   return (
     <>
       {alertData?.map(
@@ -159,9 +171,10 @@ const AlertCard = ({ alertLevel = 1 }) => {
                 {/* Image + Info Row */}
                 <View style={styles.topRow}>
                   <Image
-                    source={require("../assets/storm-cloud.png")}
+                    source={getAlertIcon(alert.alertType)}
                     style={styles.image}
                   />
+
                   <View style={styles.statusColumn}>
                     <Text style={styles.alertLevel}>
                       {formatTitle(alert.alertTitle)}

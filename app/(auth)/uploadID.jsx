@@ -24,8 +24,8 @@ import { decode as atob, encode as btoa } from "base-64";
 import { ImageManipulator, SaveFormat } from "expo-image-manipulator";
 
 export default function uploadID() {
-  let pregnantID = null;  // not insecure, its sandwiched anyways
-  const {user} = useUser()
+  let pregnantID = null; // not insecure, its sandwiched anyways
+  const { user } = useUser();
   const [image, setImage] = useState(null);
   const [isCreating, setIsCreating] = useState(false);
   const router = useRouter();
@@ -123,7 +123,7 @@ export default function uploadID() {
   };
 
   //ANCHOR - image upload function here
-  const uploadProofs = async (uri,userID) => {
+  const uploadProofs = async (uri, userID) => {
     try {
       if (!userID) throw new Error("No user id!");
 
@@ -153,7 +153,7 @@ export default function uploadID() {
         console.error("Error in supabase bucket upload: ", error);
       }
 
-      await fetchProofs(filename,userID);
+      await fetchProofs(filename, userID);
     } catch (error) {
       console.error("Image upload error in upload proof: ", error);
       Alert.alert("Error", error.message);
@@ -161,7 +161,7 @@ export default function uploadID() {
   };
 
   //ANCHOR - fetch image
-  const fetchProofs = async (path,userID) => {
+  const fetchProofs = async (path, userID) => {
     if (!path) {
       Alert.alert("Null", "No path!");
     }
@@ -297,45 +297,45 @@ export default function uploadID() {
             })()
           : null;
 
-      if (completeUserData.sex === "Female" && completeUserData.vulnerability?.pregnancy === "yes") {
-        const { data: pregnantData, error: pregnantError } =
-          await supabase
-            .from("pregnant")
-            .insert({
-              dueDate: completeUserData.vulnerability?.dueDate,
-              trimester: completeUserData.vulnerability?.trimester,
-              userID: authResult.user.id,
-            })
-            .select("*")
-            .single();
+      if (
+        completeUserData.sex === "Female" &&
+        completeUserData.vulnerability?.pregnancy === "yes"
+      ) {
+        const { data: pregnantData, error: pregnantError } = await supabase
+          .from("pregnant")
+          .insert({
+            dueDate: completeUserData.vulnerability?.dueDate,
+            trimester: completeUserData.vulnerability?.trimester,
+            userID: authResult.user.id,
+          })
+          .select("*")
+          .single();
 
         if (pregnantError) {
           console.error("Error inserting to pregnant table:", pregnantError);
           throw new Error("Failed to create in pregnant table");
         }
 
-        console.log("Pregnant entry created:", pregnantData);   
-        pregnantID = pregnantData.id    
+        console.log("Pregnant entry created:", pregnantData);
+        pregnantID = pregnantData.id;
       }
-      
-      const {data: vulStatusData, error: vulStatusError } = 
-        await supabase
-          .from('vulStatus')
-          .insert({
-            physicalStatus: completeUserData.vulnerability?.isPDPermanent,
-            psychStatus: completeUserData.vulnerability?.isPSYPermament,
-            sensoryStatus: completeUserData.vulnerability?.isSDPermament,
-            medDepStatus: completeUserData.vulnerability?.isMDPermament,
-            userID: authResult.user.id,
-          })
-          .select()
-          .single()
 
-      if(vulStatusError){
+      const { data: vulStatusData, error: vulStatusError } = await supabase
+        .from("vulStatus")
+        .insert({
+          physicalStatus: completeUserData.vulnerability?.isPDPermanent,
+          psychStatus: completeUserData.vulnerability?.isPSYPermament,
+          sensoryStatus: completeUserData.vulnerability?.isSDPermament,
+          medDepStatus: completeUserData.vulnerability?.isMDPermament,
+          userID: authResult.user.id,
+        })
+        .select()
+        .single();
+
+      if (vulStatusError) {
         console.error("Error in insert in vulstatus table: ", vulStatusError);
       }
       console.log("Vulnerability list created:", vulnerabilityListData);
-
 
       // Create vulnerability list record - with explicit userID
       const { data: vulnerabilityListData, error: vulListError } =
@@ -343,15 +343,14 @@ export default function uploadID() {
           .from("vulnerabilityList")
           .insert({
             elderly: completeUserData.vulnerability?.elderly,
-            pregnantInfant:
-              [
-                ...(completeUserData.vulnerability?.pregnancy === "yes"
+            pregnantInfant: [
+              ...(completeUserData.vulnerability?.pregnancy === "yes"
                 ? ["pregnant"]
                 : []),
-                ...(completeUserData.vulnerability?.infant === "yes"
+              ...(completeUserData.vulnerability?.infant === "yes"
                 ? ["infant"]
-                : [])
-              ],
+                : []),
+            ],
             physicalPWD:
               completeUserData.vulnerability?.physicalDisability || [],
             psychPWD: completeUserData.vulnerability?.psychologicalDisability
@@ -361,7 +360,7 @@ export default function uploadID() {
             medDep: completeUserData.vulnerability?.healthCondition || [],
             locationRiskLevel: "Low",
             userID: authResult.user.id,
-            pregnantID: pregnantID
+            pregnantID: pregnantID,
           })
           .select("*")
           .single();
@@ -471,7 +470,7 @@ export default function uploadID() {
       );
 
       // TODO - upload file to supabase storage
-      uploadProofs(image,authResult.user.id)
+      uploadProofs(image, authResult.user.id);
 
       router.replace({
         pathname: "/mpinSetup",
@@ -502,7 +501,7 @@ export default function uploadID() {
         <ThemedText
           style={{ textAlign: "center", fontSize: 27, fontWeight: "600" }}
         >
-          Verification of {"\n"} Account
+          Verification of Account
         </ThemedText>
         <Spacer />
 

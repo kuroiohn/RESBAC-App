@@ -8,6 +8,7 @@ import {
   TextInput,
   ScrollView,
   Alert,
+  Platform,
   Modal,
   Button,
   KeyboardTypeOptions,
@@ -21,6 +22,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { differenceInYears } from "date-fns";
 import ThemedLoader from "../../components/ThemedLoader";
 import DatePickerInput from "../../components/DatePickerInput";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import DOBField from "../../components/DOBField";
 import * as ImagePicker from "expo-image-picker";
 import * as FileSystem from "expo-file-system";
 import mime from "mime";
@@ -796,7 +799,7 @@ const Profile = () => {
           <BarangayDropdown
             value={value}
             onChange={(newValue) => updateField(section, field, newValue)}
-            disabled={false} 
+            disabled={false}
           />
         </View>
       );
@@ -950,10 +953,7 @@ const Profile = () => {
             <Text style={styles.address}>
               {userAddress.streetName.charAt(0).toUpperCase() +
                 userAddress.streetName.slice(1)}
-              ,
-              {" " +
-                userAddress.brgyName}
-              ,
+              ,{" " + userAddress.brgyName},
               {" " +
                 userAddress.cityName.charAt(0).toUpperCase() +
                 userAddress.cityName.slice(1)}{" "}
@@ -1066,34 +1066,19 @@ const Profile = () => {
         <View style={styles.rowItem}>
           <Text style={styles.label}>Date of Birth</Text>
           {editingSections.userData ? (
-            <View
-              style={[
-                styles.input,
-                styles.editableInput,
-                { flexDirection: "row", alignItems: "center" },
-              ]}
-            >
-              <MaterialIcons
-                name='calendar-today'
-                size={20}
-                color='#3b82f6'
-                style={{ marginRight: 8 }}
-              />
-              <DatePickerInput
-                style={{ flex: 1, backgroundColor: "transparent" }}
-                minimumDate={new Date(1900, 0, 1)}
-                value={userData.dob ? new Date(userData.dob) : null}
-                onChange={(date) => {
-                  if (date) {
-                    updateField(
-                      "userData",
-                      "dob",
-                      date.toISOString().split("T")[0]
-                    );
-                  }
-                }}
-              />
-            </View>
+            <DOBField
+              value={userData.dob ? new Date(userData.dob) : null}
+              onChange={(date) => {
+                if (date) {
+                  updateField(
+                    "userData",
+                    "dob",
+                    date.toISOString().split("T")[0]
+                  );
+                }
+              }}
+              editable={true}
+            />
           ) : (
             <Text style={styles.valueText}>{userData.dob || "—"}</Text>
           )}

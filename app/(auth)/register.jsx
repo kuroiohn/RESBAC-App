@@ -19,6 +19,8 @@ import LocationPermissionInput from "../../components/LocationPermissionInput";
 //adding checkbox
 import { Checkbox } from "react-native-paper";
 import { useState, useEffect } from "react";
+import { Ionicons } from "@expo/vector-icons";
+import { RadioButton } from "react-native-paper";
 
 // Custom themed components for consistent UI appearance
 import ThemedView from "../../components/ThemedView";
@@ -240,20 +242,21 @@ const Register = () => {
 
           {/* THE USER AGREEMENT SECTION */}
           <View style={styles.agreementContainer}>
-            <Checkbox
+            <RadioButton
+              value='agree'
               status={isAgreed ? "checked" : "unchecked"}
               onPress={() => {
                 setIsAgreed(!isAgreed);
                 setError(null);
               }}
-              color={Colors.primary} // Adjust color to match your theme
+              color={Colors.primary} // stroke/fill color
             />
             <Text style={styles.agreementText}>
               I agree to the{" "}
               <Text
                 style={styles.linkText}
                 onPress={() => {
-                  /* Navigate to T&C page */
+                  // Navigate to T&C page
                 }}
               >
                 Terms and Conditions
@@ -262,9 +265,13 @@ const Register = () => {
           </View>
 
           <>
+            <View style={styles.sectionHeader}>
+              <TitleText type='title5'>Personal Information</TitleText>
+              <View style={styles.headerLine}></View>
+            </View>
             {/* Name input field */}
             <ThemedTextInput
-              style={{ width: "80%" }}
+              style={{ width: "95%", marginBottom: 10 }}
               placeholder='First Name'
               value={firstName}
               onChangeText={(text) => {
@@ -274,7 +281,7 @@ const Register = () => {
               editable={isAgreed}
             />
             <ThemedTextInput
-              style={{ width: "80%" }}
+              style={{ width: "95%", marginBottom: 10 }}
               placeholder='Middle Name'
               value={middleName}
               onChangeText={(text) => {
@@ -284,7 +291,7 @@ const Register = () => {
               editable={isAgreed}
             />
             <ThemedTextInput
-              style={{ width: "80%" }}
+              style={{ width: "95%", marginBottom: 10 }}
               placeholder='Surname'
               value={surname}
               onChangeText={(text) => {
@@ -322,9 +329,31 @@ const Register = () => {
               <Text style={styles.fieldError}>{formErrors.dob}</Text>
             )}
 
+            {/* Sex input field */}
+            <GenderSelector
+              value={sex}
+              onChange={(item) => {
+                setSex(item);
+                clearFieldError("sex");
+              }}
+              placeholder='Select Sex'
+              disable={!isAgreed}
+            />
+            {formErrors.sex && (
+              <Text style={styles.fieldError}>{formErrors.sex}</Text>
+            )}
+
+            <TitleText type='title4' style={styles.inputHint}>
+              (Please select sex assigned at birth)
+            </TitleText>
+
             {/* Email input field */}
+            <View style={styles.sectionHeader}>
+              <TitleText type='title5'>Contact Information</TitleText>
+              <View style={styles.headerLine}></View>
+            </View>
             <ThemedTextInput
-              style={{ width: "80%", marginBottom: 5 }}
+              style={{ width: "95%", marginBottom: 10 }}
               placeholder='Email'
               keyboardType='email-address'
               onChangeText={(text) => {
@@ -340,7 +369,7 @@ const Register = () => {
 
             {/* Contact Number input field */}
             <ThemedTextInput
-              style={{ width: "80%", marginBottom: 5 }}
+              style={{ width: "95%", marginBottom: 10 }}
               placeholder='Contact Number'
               value={contactNumber}
               onChangeText={(text) => {
@@ -399,27 +428,13 @@ const Register = () => {
               <Text style={styles.fieldError}>{formErrors.location}</Text>
             )}
 
-            {/* Sex input field */}
-            <GenderSelector
-              value={sex}
-              onChange={(item) => {
-                setSex(item);
-                clearFieldError("sex");
-              }}
-              placeholder='Select Sex'
-              disable={!isAgreed}
-            />
-            {formErrors.sex && (
-              <Text style={styles.fieldError}>{formErrors.sex}</Text>
-            )}
-
-            <TitleText type='title4' style={styles.inputHint}>
-              (Please select sex assigned at birth)
-            </TitleText>
-
             {/* Password input field */}
+            <View style={styles.sectionHeader}>
+              <TitleText type='title5'>Passkey</TitleText>
+              <View style={styles.headerLine}></View>
+            </View>
             <ThemedTextInput
-              style={{ width: "80%", marginBottom: 5 }}
+              style={{ width: "95%", marginBottom: 10 }}
               placeholder='Password'
               onChangeText={(text) => {
                 setPassword(text);
@@ -514,15 +529,32 @@ const styles = StyleSheet.create({
     textDecorationLine: "underline",
   },
   inputHint: {
-    marginLeft: 111,
     fontStyle: "italic",
     marginBottom: 20,
+    textAlign: "right", // align text content
+    marginRight: "20",
+    width: "100%", // make sure it spans full width
   },
+
   locationLabel: {
-    fontSize: 14,
+    fontSize: 12,
     color: "#666",
     marginBottom: 10,
     alignSelf: "flex-start",
-    marginLeft: "10%",
+    marginLeft: "3%",
+    textAlign: "left",
+  },
+  sectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    width: "100%",
+    paddingHorizontal: 20, // Add some padding to match your form
+    marginVertical: 10,
+  },
+  headerLine: {
+    flex: 1, // Takes up the remaining space
+    height: 2, // Thickness of the line
+    backgroundColor: Colors.primary, // Make sure to define a primary blue color in Colors.js
+    marginLeft: 10,
   },
 });

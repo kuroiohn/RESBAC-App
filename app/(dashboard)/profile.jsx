@@ -1250,8 +1250,6 @@ const Profile = () => {
           {/* Only show editable fields if editingSections.guardian is true */}
           {editingSections.guardian && (
             <View style={styles.editActions}>
-              <Text style={styles.editLabel}>Edit Guardian Info</Text>
-
               <View style={{ flexDirection: "row", gap: 10 }}>
                 {/* Cancel Button */}
                 <TouchableOpacity
@@ -1418,35 +1416,43 @@ const Profile = () => {
       </View>
 
       {/* Buttons */}
-      <View style={styles.buttonRow}>
-        <TouchableOpacity
-          style={[styles.editButton, { backgroundColor: "#6c757d" }]}
-          onPress={() => setShowPasswordModal(true)}
-        >
-          <Feather name='lock' size={20} color='#fff' />
-          <Text style={styles.editButtonText}>Change Password</Text>
-        </TouchableOpacity>
+      <View style={styles.divider} />
+      <TouchableOpacity
+        style={styles.rowButton}
+        onPress={() => setShowPasswordModal(true)}
+      >
+        <Feather
+          name='lock'
+          size={20}
+          color='#0060ff'
+          style={{ marginRight: 8 }}
+        />
+        <Text style={styles.rowButtonText}>Change Password</Text>
+      </TouchableOpacity>
 
-        {/* Change MPIN Button */}
-        <TouchableOpacity
-          style={[styles.editButton, { backgroundColor: "#6c757d" }]}
-          onPress={() => setShowMpinModal(true)}
-        >
-          <Feather name='shield' size={20} color='#fff' />
-          <Text style={styles.editButtonText}>Change MPIN</Text>
-        </TouchableOpacity>
-      </View>
+      {/* Change MPIN Button */}
+      <TouchableOpacity
+        style={styles.rowButton}
+        onPress={() => setShowMpinModal(true)}
+      >
+        <Feather
+          name='shield'
+          size={20}
+          color='#0060ff'
+          style={{ marginRight: 8 }}
+        />
+        <Text style={styles.rowButtonText}>Change MPIN</Text>
+      </TouchableOpacity>
 
       {/* Logout Button */}
-      <TouchableOpacity
-        style={[
-          styles.editButton,
-          { backgroundColor: "#dc3545", alignSelf: "center", marginTop: 10 },
-        ]}
-        onPress={handleLogout}
-      >
-        <Feather name='log-out' size={20} color='#fff' />
-        <Text style={styles.editButtonText}>Logout</Text>
+      <TouchableOpacity style={styles.rowButton} onPress={handleLogout}>
+        <Feather
+          name='log-out'
+          size={20}
+          color='#0060ff'
+          style={{ marginRight: 8 }}
+        />
+        <Text style={styles.rowButtonText}>Logout</Text>
       </TouchableOpacity>
 
       <PasswordChangeModal
@@ -1655,5 +1661,15 @@ const styles = StyleSheet.create({
   saveButtonText: {
     color: "#fff",
     marginLeft: 5,
+  },
+
+  rowButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 8,
+  },
+  rowButtonText: {
+    fontSize: 16,
+    color: "#0060ff",
   },
 });

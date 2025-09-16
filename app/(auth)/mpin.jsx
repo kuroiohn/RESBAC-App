@@ -230,10 +230,7 @@ const MPin = () => {
 
   return (
     <ThemedView style={styles.container}>
-      <ThemedLogo />
-      <Spacer height={20} />
-
-      <ThemedText style={{ ...styles.title2, color: "#0060ff" }}>
+      <ThemedText style={{ ...styles.title2, color: "#0060ff", marginTop: 70 }}>
         Enter MPIN
       </ThemedText>
       <ThemedText style={styles.title3}>
@@ -332,8 +329,8 @@ const styles = StyleSheet.create({
     marginVertical: 30,
   },
   dot: {
-    width: 16,
-    height: 16,
+    width: 11,
+    height: 11,
     borderRadius: 8,
     backgroundColor: Colors.primary,
   },
@@ -343,6 +340,7 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     justifyContent: "center",
     gap: 15,
+    marginTop: 100,
   },
   key: {
     width: 70,

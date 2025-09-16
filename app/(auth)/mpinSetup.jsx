@@ -321,8 +321,8 @@ const styles = StyleSheet.create({
     marginVertical: 30,
   },
   dot: {
-    width: 16,
-    height: 16,
+    width: 11,
+    height: 11,
     borderRadius: 8,
     backgroundColor: Colors.primary,
   },

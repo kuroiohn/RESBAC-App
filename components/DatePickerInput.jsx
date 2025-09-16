@@ -13,16 +13,16 @@ import {
 import DateTimePicker from "@react-native-community/datetimepicker";
 import ThemedTextInput from "./ThemedTextInput";
 
-const DatePickerInput = ({ 
-  value, 
-  onChange, 
-  placeholder = 'Select date', 
+const DatePickerInput = ({
+  value,
+  onChange,
+  placeholder = "Select date",
   disabled,
   minimumDate,
-  maximumDate 
+  maximumDate,
 }) => {
-  const [showModal, setShowModal] = useState(false)
-  const [tempDate, setTempDate] = useState(value || new Date())
+  const [showModal, setShowModal] = useState(false);
+  const [tempDate, setTempDate] = useState(value || new Date());
 
   const handleConfirm = () => {
     onChange(tempDate);
@@ -48,12 +48,9 @@ const DatePickerInput = ({
   return (
     <>
       <Pressable
-          onPress={() => setShowModal(true)}
-          disabled={disabled}
-          style={[
-            styles.inputWrapper,
-            disabled && styles.disabledInputWrapper,
-          ]}
+        onPress={() => setShowModal(true)}
+        disabled={disabled}
+        style={[styles.inputWrapper, disabled && styles.disabledInputWrapper]}
       >
         <ThemedTextInput
           style={styles.input}
@@ -76,17 +73,17 @@ const DatePickerInput = ({
             <View style={styles.modalOverlay}>
               <TouchableWithoutFeedback onPress={() => {}}>
                 <View style={styles.modalContent}>
-                    <View style={styles.datePickerWrapper}>
-                        <DateTimePicker
-                          mode="date"
-                          display="spinner"
-                          value={tempDate}
-                          onChange={handleDateChange}
-                          minimumDate={minimumDate}
-                          maximumDate={maximumDate || new Date()}
-                          style={{ width: '100%', height: 220 }}
-                        />
-                    </View>
+                  <View style={styles.datePickerWrapper}>
+                    <DateTimePicker
+                      mode='date'
+                      display='spinner'
+                      value={tempDate}
+                      onChange={handleDateChange}
+                      minimumDate={minimumDate}
+                      maximumDate={maximumDate || new Date()}
+                      style={{ width: "100%", height: 220 }}
+                    />
+                  </View>
 
                   <View style={styles.modalActions}>
                     <TouchableOpacity onPress={handleCancel} style={styles.btn}>
@@ -125,8 +122,8 @@ export default DatePickerInput;
 
 const styles = StyleSheet.create({
   inputWrapper: {
-    width: "80%",
-    marginBottom: 20,
+    width: "95%",
+    marginBottom: 10,
     alignSelf: "center",
   },
   input: {
@@ -175,6 +172,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#eee",
   },
   disabledInput: {
-    color: '#a0a0a0',
+    color: "#a0a0a0",
   },
 });

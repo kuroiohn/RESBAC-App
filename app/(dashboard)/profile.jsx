@@ -8,6 +8,7 @@ import {
   TextInput,
   ScrollView,
   Alert,
+  Platform,
   Modal,
   Button,
   KeyboardTypeOptions,
@@ -21,6 +22,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { differenceInYears } from "date-fns";
 import ThemedLoader from "../../components/ThemedLoader";
 import DatePickerInput from "../../components/DatePickerInput";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import DOBField from "../../components/DOBField";
 import * as ImagePicker from "expo-image-picker";
 import * as FileSystem from "expo-file-system";
 import mime from "mime";
@@ -796,7 +799,7 @@ const Profile = () => {
           <BarangayDropdown
             value={value}
             onChange={(newValue) => updateField(section, field, newValue)}
-            disabled={false} 
+            disabled={false}
           />
         </View>
       );
@@ -950,10 +953,7 @@ const Profile = () => {
             <Text style={styles.address}>
               {userAddress.streetName.charAt(0).toUpperCase() +
                 userAddress.streetName.slice(1)}
-              ,
-              {" " +
-                userAddress.brgyName}
-              ,
+              ,{" " + userAddress.brgyName},
               {" " +
                 userAddress.cityName.charAt(0).toUpperCase() +
                 userAddress.cityName.slice(1)}{" "}
@@ -1066,34 +1066,19 @@ const Profile = () => {
         <View style={styles.rowItem}>
           <Text style={styles.label}>Date of Birth</Text>
           {editingSections.userData ? (
-            <View
-              style={[
-                styles.input,
-                styles.editableInput,
-                { flexDirection: "row", alignItems: "center" },
-              ]}
-            >
-              <MaterialIcons
-                name='calendar-today'
-                size={20}
-                color='#3b82f6'
-                style={{ marginRight: 8 }}
-              />
-              <DatePickerInput
-                style={{ flex: 1, backgroundColor: "transparent" }}
-                minimumDate={new Date(1900, 0, 1)}
-                value={userData.dob ? new Date(userData.dob) : null}
-                onChange={(date) => {
-                  if (date) {
-                    updateField(
-                      "userData",
-                      "dob",
-                      date.toISOString().split("T")[0]
-                    );
-                  }
-                }}
-              />
-            </View>
+            <DOBField
+              value={userData.dob ? new Date(userData.dob) : null}
+              onChange={(date) => {
+                if (date) {
+                  updateField(
+                    "userData",
+                    "dob",
+                    date.toISOString().split("T")[0]
+                  );
+                }
+              }}
+              editable={true}
+            />
           ) : (
             <Text style={styles.valueText}>{userData.dob || "—"}</Text>
           )}
@@ -1265,8 +1250,6 @@ const Profile = () => {
           {/* Only show editable fields if editingSections.guardian is true */}
           {editingSections.guardian && (
             <View style={styles.editActions}>
-              <Text style={styles.editLabel}>Edit Guardian Info</Text>
-
               <View style={{ flexDirection: "row", gap: 10 }}>
                 {/* Cancel Button */}
                 <TouchableOpacity
@@ -1433,35 +1416,43 @@ const Profile = () => {
       </View>
 
       {/* Buttons */}
-      <View style={styles.buttonRow}>
-        <TouchableOpacity
-          style={[styles.editButton, { backgroundColor: "#6c757d" }]}
-          onPress={() => setShowPasswordModal(true)}
-        >
-          <Feather name='lock' size={20} color='#fff' />
-          <Text style={styles.editButtonText}>Change Password</Text>
-        </TouchableOpacity>
+      <View style={styles.divider} />
+      <TouchableOpacity
+        style={styles.rowButton}
+        onPress={() => setShowPasswordModal(true)}
+      >
+        <Feather
+          name='lock'
+          size={20}
+          color='#0060ff'
+          style={{ marginRight: 8 }}
+        />
+        <Text style={styles.rowButtonText}>Change Password</Text>
+      </TouchableOpacity>
 
-        {/* Change MPIN Button */}
-        <TouchableOpacity
-          style={[styles.editButton, { backgroundColor: "#6c757d" }]}
-          onPress={() => setShowMpinModal(true)}
-        >
-          <Feather name='shield' size={20} color='#fff' />
-          <Text style={styles.editButtonText}>Change MPIN</Text>
-        </TouchableOpacity>
-      </View>
+      {/* Change MPIN Button */}
+      <TouchableOpacity
+        style={styles.rowButton}
+        onPress={() => setShowMpinModal(true)}
+      >
+        <Feather
+          name='shield'
+          size={20}
+          color='#0060ff'
+          style={{ marginRight: 8 }}
+        />
+        <Text style={styles.rowButtonText}>Change MPIN</Text>
+      </TouchableOpacity>
 
       {/* Logout Button */}
-      <TouchableOpacity
-        style={[
-          styles.editButton,
-          { backgroundColor: "#dc3545", alignSelf: "center", marginTop: 10 },
-        ]}
-        onPress={handleLogout}
-      >
-        <Feather name='log-out' size={20} color='#fff' />
-        <Text style={styles.editButtonText}>Logout</Text>
+      <TouchableOpacity style={styles.rowButton} onPress={handleLogout}>
+        <Feather
+          name='log-out'
+          size={20}
+          color='#0060ff'
+          style={{ marginRight: 8 }}
+        />
+        <Text style={styles.rowButtonText}>Logout</Text>
       </TouchableOpacity>
 
       <PasswordChangeModal
@@ -1670,5 +1661,15 @@ const styles = StyleSheet.create({
   saveButtonText: {
     color: "#fff",
     marginLeft: 5,
+  },
+
+  rowButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 8,
+  },
+  rowButtonText: {
+    fontSize: 16,
+    color: "#0060ff",
   },
 });

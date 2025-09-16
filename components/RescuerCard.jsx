@@ -157,7 +157,7 @@ const styles = StyleSheet.create({
   borderWrapper: {
     borderRadius: 14,
     padding: 1,
-    marginVertical: 6,
+    marginVertical: 0,
     width: 300,
     marginRight: 16,
     overflow: "hidden",

@@ -166,8 +166,8 @@ const LocationPermissionInput = ({
 
 const styles = StyleSheet.create({
   container: {
-    width: "80%",
-    marginBottom: 15,
+    width: "95%",
+    marginBottom: 10,
   },
   locationButton: {
     backgroundColor: "#f8f9ff",

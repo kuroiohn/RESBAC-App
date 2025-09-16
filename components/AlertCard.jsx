@@ -4,60 +4,62 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import supabase from "../contexts/supabaseClient";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useAlerts } from "../contexts/RealtimeProvider";
 
 const AlertCard = ({ alertLevel = 1 }) => {
   const queryClient = useQueryClient();
-  const [time, setTime] = useState(new Date());
+  const [time, setTime] = useState(new Date()); //NOTE - not used
 
-  // reads from supabase
-  const fetchData = async () => {
-    const { data, error } = await supabase.from("alerts").select();
+  const alertData = useAlerts()
 
-    if (error) {
-      console.error("Fetch error in supabase alert card: ", error);
-    }
-    console.log("Successful fetch", data);
-    return data;
-  };
-  const {
-    data: alertData,
-    isPending,
-    isError,
-    error,
-    refetch,
-  } = useQuery({
-    queryKey: ["alerts"],
-    queryFn: fetchData,
-  });
+  // // reads from supabase
+  // const fetchData = async () => {
+  //   const { data, error } = await supabase.from("alerts").select();
 
-  // Subscribe to realtime changes
-  useEffect(() => {
-    const channel = supabase
-      .channel("alerts-changes")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "alerts" },
-        (payload) => {
-          console.log("Realtime change received:", payload);
+  //   if (error) {
+  //     console.error("Fetch error in supabase alert card: ", error);
+  //   }
+  //   console.log("Successful fetch", data);
+  //   return data;
+  // };
+  // const {
+  //   data: alertData,
+  //   isPending,
+  //   isError,
+  //   error,
+  //   refetch,
+  // } = useQuery({
+  //   queryKey: ["alerts"],
+  //   queryFn: fetchData,
+  // });
 
-          // Ask react-query to refetch alerts when a row is inserted/updated/deleted
-          // queryClient.invalidateQueries(["alerts"]);
-        queryClient.setQueryData(["alerts"], (oldData) => {
-          if (!oldData) return [payload.new]; // initial
-          const index = oldData.findIndex(a => a.id === payload.new.id);
-          if (index > -1) oldData[index] = payload.new;
-          else oldData.push(payload.new);
-          return [...oldData];
-        });
+  // // Subscribe to realtime changes
+  // useEffect(() => {
+  //   const channel = supabase
+  //     .channel("alerts-changes")
+  //     .on(
+  //       "postgres_changes",
+  //       { event: "*", schema: "public", table: "alerts" },
+  //       (payload) => {
+  //         console.log("Realtime change received:", payload);
 
-        }
-      )
-      .subscribe();
+  //         // Ask react-query to refetch alerts when a row is inserted/updated/deleted
+  //         // queryClient.invalidateQueries(["alerts"]);
+  //         queryClient.setQueryData(["alerts"], (oldData) => {
+  //           if (!oldData) return [payload.new]; // initial
+  //           const index = oldData.findIndex((a) => a.id === payload.new.id);
+  //           if (index > -1) oldData[index] = payload.new;
+  //           else oldData.push(payload.new);
+  //           return [...oldData];
+  //         });
+  //       }
+  //     )
+  //     .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [queryClient]);
+  //   return () => {
+  //     supabase.removeChannel(channel);
+  //   };
+  // }, [queryClient]);
 
   // Update clock every second
   useEffect(() => {
@@ -130,6 +132,19 @@ const AlertCard = ({ alertLevel = 1 }) => {
 
   const waterLevel = getWaterLevel();
 
+  const getAlertIcon = (type) => {
+    switch (type) {
+      case "Flood":
+        return require("../assets/floodIcon.png");
+      case "Fire":
+        return require("../assets/fireIcon.png");
+      case "Earthquake":
+        return require("../assets/EarthquakeIcon.png");
+      default:
+        return require("../assets/storm-cloud.png"); // fallback
+    }
+  };
+
   return (
     <>
       {alertData?.map(
@@ -159,9 +174,10 @@ const AlertCard = ({ alertLevel = 1 }) => {
                 {/* Image + Info Row */}
                 <View style={styles.topRow}>
                   <Image
-                    source={require("../assets/storm-cloud.png")}
+                    source={getAlertIcon(alert.alertType)}
                     style={styles.image}
                   />
+
                   <View style={styles.statusColumn}>
                     <Text style={styles.alertLevel}>
                       {formatTitle(alert.alertTitle)}

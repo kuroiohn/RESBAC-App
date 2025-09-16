@@ -676,6 +676,15 @@ const Profile = () => {
     setEditingSections(!editingSections);
   };
 
+  //ANCHOR - invalidates for refetch and get new data
+  useEffect(()=> {
+    queryClient.invalidateQueries(["user", user.id]);
+    queryClient.invalidateQueries(["address"]);
+    queryClient.invalidateQueries(["guardian", user.id]);
+    queryClient.invalidateQueries(["vulnerabilityList"]);
+    queryClient.invalidateQueries(["verification"]);
+  },[])
+
   //ANCHOR - update tables here
   const saveChanges = async () => {
     try {

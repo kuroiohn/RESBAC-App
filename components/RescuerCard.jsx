@@ -13,50 +13,53 @@ import { Phone, MessageCircle } from "lucide-react-native";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import supabase from "../contexts/supabaseClient";
+import { useRealtime } from "../contexts/RealtimeProvider";
 
 export default function RescuerCard() {
-  const queryClient = useQueryClient();
   const [rightHeight, setRightHeight] = useState(0);
 
-  // reads from supabase
-  const fetchContact = async () => {
-    const { data, error } = await supabase.from("emergencyPersons").select();
+  const {emerPData} = useRealtime()
+  
+  // const queryClient = useQueryClient();
+  // // reads from supabase
+  // const fetchContact = async () => {
+  //   const { data, error } = await supabase.from("emergencyPersons").select();
 
-    if (error) {
-      console.error("Fetch error in supabase emerP: ", error);
-    }
-    console.log("Successful fetch", data);
-    return data;
-  };
-  // use data here to map the values and read
-  const { data: emerPData, error: emerPError } = useQuery({
-    queryKey: ["emergencyPersons"],
-    queryFn: fetchContact,
-  });
-  if (emerPError) {
-    console.error("Error in query of emergency persons table: ", emerPError);
-  }
+  //   if (error) {
+  //     console.error("Fetch error in supabase emerP: ", error);
+  //   }
+  //   console.log("Successful fetch", data);
+  //   return data;
+  // };
+  // // use data here to map the values and read
+  // const { data: emerPData, error: emerPError } = useQuery({
+  //   queryKey: ["emergencyPersons"],
+  //   queryFn: fetchContact,
+  // });
+  // if (emerPError) {
+  //   console.error("Error in query of emergency persons table: ", emerPError);
+  // }
 
-  // subscribe to realtime
-  useEffect(() => {
-    const emerPChannnel = supabase
-      .channel("emerP-changes")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "emergencyPersons" },
-        (payload) => {
-          console.log("Realtime change received:", payload);
+  // // subscribe to realtime
+  // useEffect(() => {
+  //   const emerPChannnel = supabase
+  //     .channel("emerP-changes")
+  //     .on(
+  //       "postgres_changes",
+  //       { event: "*", schema: "public", table: "emergencyPersons" },
+  //       (payload) => {
+  //         console.log("Realtime change received:", payload);
 
-          // Ask react-query to refetch alerts when a row is inserted/updated/deleted
-          queryClient.invalidateQueries(["emergencyPersons"]);
-        }
-      )
-      .subscribe();
+  //         // Ask react-query to refetch alerts when a row is inserted/updated/deleted
+  //         queryClient.invalidateQueries(["emergencyPersons"]);
+  //       }
+  //     )
+  //     .subscribe();
 
-    return () => {
-      supabase.removeChannel(emerPChannnel);
-    };
-  }, [queryClient]);
+  //   return () => {
+  //     supabase.removeChannel(emerPChannnel);
+  //   };
+  // }, [queryClient]);
 
   const handleContactBtn = async (number) => {
     const url = `tel:${number}`;

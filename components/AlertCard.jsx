@@ -4,13 +4,13 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import supabase from "../contexts/supabaseClient";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useAlerts } from "../contexts/RealtimeProvider";
+import { useRealtime } from "../contexts/RealtimeProvider";
 
 const AlertCard = ({ alertLevel = 1 }) => {
   const queryClient = useQueryClient();
   const [time, setTime] = useState(new Date()); //NOTE - not used
 
-  const alertData = useAlerts()
+  const {alertsData} = useRealtime()
 
   // // reads from supabase
   // const fetchData = async () => {
@@ -147,7 +147,7 @@ const AlertCard = ({ alertLevel = 1 }) => {
 
   return (
     <>
-      {alertData?.map(
+      {alertsData?.map(
         (alert) =>
           alert.isActive && (
             <LinearGradient

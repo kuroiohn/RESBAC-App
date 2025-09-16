@@ -3,13 +3,11 @@ import supabase from './supabaseClient'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 
 const AlertsContext = createContext([])
-export const useAlerts = () => useContext(AlertsContext)
-
-const ProfileContext = createContext([])
-export const useProfile = () => useContext(ProfileContext)
+export const useRealtime = () => useContext(AlertsContext)
 
 export const RealtimeProvider = ({children}) => {
     const queryClient = useQueryClient()
+    //ANCHOR - ALERTS
     // reads from supabase
     const fetchAlertsData = async () => {
         const { data, error } = await supabase.from("alerts").select();
@@ -27,6 +25,29 @@ export const RealtimeProvider = ({children}) => {
     if(alertsError){
         console.error("Error in fetching realtime alerts: ", alertsError);
     }
+
+    //ANCHOR - RESCUERS
+    // reads from supabase
+    const fetchContact = async () => {
+        const { data, error } = await supabase.from("emergencyPersons").select();
+
+        if (error) {
+        console.error("Fetch error in supabase emerP: ", error);
+        }
+        console.log("Successful fetch", data);
+        return data;
+    };
+    // use data here to map the values and read
+    const { data: emerPData, error: emerPError } = useQuery({
+        queryKey: ["emergencyPersons"],
+        queryFn: fetchContact,
+    });
+    if (emerPError) {
+        console.error("Error in query of emergency persons table: ", emerPError);
+    }
+    //ANCHOR - EVAC CARD
+    //ANCHOR - PICKUP CARD
+
 
     // Subscribe to realtime changes
     useEffect(() => {
@@ -49,13 +70,28 @@ export const RealtimeProvider = ({children}) => {
         )
         .subscribe();
 
+        const emerPChannnel = supabase
+        .channel("emerP-changes")
+        .on(
+            "postgres_changes",
+            { event: "*", schema: "public", table: "emergencyPersons" },
+            (payload) => {
+            console.log("Realtime change received:", payload);
+
+            // Ask react-query to refetch alerts when a row is inserted/updated/deleted
+            queryClient.invalidateQueries(["emergencyPersons"]);
+            }
+        )
+        .subscribe();
+
         return () => {
         supabase.removeChannel(alertsChannel);
+        supabase.removeChannel(emerPChannnel);
         };
     }, []);
 
     return (
-        <AlertsContext.Provider value={alertsData}>
+        <AlertsContext.Provider value={{alertsData,emerPData}}>
             {children}
         </AlertsContext.Provider>
     );

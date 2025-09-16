@@ -11,18 +11,17 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { useState, useEffect, useRef } from "react";
 import { Ionicons } from "@expo/vector-icons";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigation } from "@react-navigation/native";
 import { useLayoutEffect } from "react";
-import supabase from "../../contexts/supabaseClient";
+import { useRealtime } from "../../contexts/RealtimeProvider";
 
 const { width, height } = Dimensions.get("window");
 
 const PickUpLocation = () => {
   const [activeTab, setActiveTab] = useState("evacuationCenter");
   const [activeIndex, setActiveIndex] = useState(0);
-  const queryClient = useQueryClient();
   const flatListRef = useRef(null);
+  const {evacData,pickupData} = useRealtime()
 
   // added to remove header in profile tab
   const navigation = useNavigation();
@@ -30,75 +29,6 @@ const PickUpLocation = () => {
   useLayoutEffect(() => {
     navigation.setOptions({ headerShown: false });
   }, [navigation]);
-
-  // reads from supabase
-  const fetchEvacData = async () => {
-    const { data, error } = await supabase.from("evacuationCenter").select();
-
-    if (error) {
-      console.error("Fetch error in supabase pickup: ", error);
-    }
-    console.log("Successful fetch", data);
-    return data;
-  };
-
-  // use data here to map the values and read
-  const { data: evacData, error: evacError } = useQuery({
-    queryKey: ["evacuationCenter"],
-    queryFn: fetchEvacData,
-  });
-
-  // reads from supabase
-  const fetchPickupData = async () => {
-    const { data, error } = await supabase.from("pickupLocations").select();
-
-    if (error) {
-      console.error("Fetch error in supabase pickup: ", error);
-    }
-    console.log("Successful fetch", data);
-    return data;
-  };
-  // use data here to map the values and read
-  const { data: pickupData, error: pickupError } = useQuery({
-    queryKey: ["pickupLocations"],
-    queryFn: fetchPickupData,
-  });
-
-  // subscribe to realtime
-  useEffect(() => {
-    const evacChannel = supabase
-      .channel("evac-changes")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "evacuationCenter" },
-        (payload) => {
-          console.log("Realtime change received:", payload);
-
-          // Ask react-query to refetch alerts when a row is inserted/updated/deleted
-          queryClient.invalidateQueries(["evacuationCenter"]);
-        }
-      )
-      .subscribe();
-
-    const pickupChannel = supabase
-      .channel("pickup-changes")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "pickupLocations" },
-        (payload) => {
-          console.log("Realtime change received:", payload);
-
-          // Ask react-query to refetch alerts when a row is inserted/updated/deleted
-          queryClient.invalidateQueries(["pickupLocations"]);
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(evacChannel);
-      supabase.removeChannel(pickupChannel);
-    };
-  }, [queryClient]);
 
   useEffect(() => {
     setActiveIndex(0);
@@ -189,7 +119,9 @@ const PickUpLocation = () => {
       <View style={styles.phoneRow}>
         <Ionicons name='call' size={16} color='#0060FF' />
         <Text style={styles.phoneText}>
-          {currentLocation.phone || "No number"}
+          {(activeTab === "evacuationCenter"
+          ? currentLocation.evacContact
+          : currentLocation.pickupContact) || "No Number"}
         </Text>
       </View>
 

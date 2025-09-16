@@ -27,7 +27,6 @@ export const RealtimeProvider = ({children}) => {
     }
 
     //ANCHOR - RESCUERS
-    // reads from supabase
     const fetchContact = async () => {
         const { data, error } = await supabase.from("emergencyPersons").select();
 
@@ -45,9 +44,38 @@ export const RealtimeProvider = ({children}) => {
     if (emerPError) {
         console.error("Error in query of emergency persons table: ", emerPError);
     }
-    //ANCHOR - EVAC CARD
-    //ANCHOR - PICKUP CARD
 
+    //ANCHOR - EVAC CARD
+    const fetchEvacData = async () => {
+        const { data, error } = await supabase.from("evacuationCenter").select();
+
+        if (error) {
+        console.error("Fetch error in supabase pickup: ", error);
+        }
+        console.log("Successful fetch", data);
+        return data;
+    };
+    // use data here to map the values and read
+    const { data: evacData, error: evacError } = useQuery({
+        queryKey: ["evacuationCenter"],
+        queryFn: fetchEvacData,
+    });
+
+    //ANCHOR - PICKUP CARD
+    const fetchPickupData = async () => {
+        const { data, error } = await supabase.from("pickupLocations").select();
+
+        if (error) {
+        console.error("Fetch error in supabase pickup: ", error);
+        }
+        console.log("Successful fetch", data);
+        return data;
+    };
+    // use data here to map the values and read
+    const { data: pickupData, error: pickupError } = useQuery({
+        queryKey: ["pickupLocations"],
+        queryFn: fetchPickupData,
+    });
 
     // Subscribe to realtime changes
     useEffect(() => {
@@ -84,14 +112,44 @@ export const RealtimeProvider = ({children}) => {
         )
         .subscribe();
 
+        const evacChannel = supabase
+        .channel("evac-changes")
+        .on(
+            "postgres_changes",
+            { event: "*", schema: "public", table: "evacuationCenter" },
+            (payload) => {
+            console.log("Realtime change received:", payload);
+
+            // Ask react-query to refetch alerts when a row is inserted/updated/deleted
+            queryClient.invalidateQueries(["evacuationCenter"]);
+            }
+        )
+        .subscribe();
+
+        const pickupChannel = supabase
+        .channel("pickup-changes")
+        .on(
+            "postgres_changes",
+            { event: "*", schema: "public", table: "pickupLocations" },
+            (payload) => {
+            console.log("Realtime change received:", payload);
+
+            // Ask react-query to refetch alerts when a row is inserted/updated/deleted
+            queryClient.invalidateQueries(["pickupLocations"]);
+            }
+        )
+        .subscribe();
+
         return () => {
         supabase.removeChannel(alertsChannel);
         supabase.removeChannel(emerPChannnel);
+        supabase.removeChannel(evacChannel);
+        supabase.removeChannel(pickupChannel);
         };
     }, []);
 
     return (
-        <AlertsContext.Provider value={{alertsData,emerPData}}>
+        <AlertsContext.Provider value={{alertsData,emerPData,evacData,pickupData}}>
             {children}
         </AlertsContext.Provider>
     );

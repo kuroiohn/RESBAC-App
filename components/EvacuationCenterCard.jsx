@@ -5,51 +5,15 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import supabase from "../contexts/supabaseClient";
+import { useRealtime } from "../contexts/RealtimeProvider";
 
 const EvacuationCenterCard = ({ evac, style, onPress }) => {
   const router = useRouter();
+  const {evacData} = useRealtime()
 
   const handlePress = () => {
     router.push("/pickUpLocations");
   };
-
-  const queryClient = useQueryClient();
-  // reads from supabase
-  const fetchEvacData = async () => {
-    const { data, error } = await supabase.from("evacuationCenter").select();
-
-    if (error) {
-      console.error("Fetch error in supabase pickup: ", error);
-    }
-    console.log("Successful fetch", data);
-    return data;
-  };
-  // use data here to map the values and read
-  const { data: evacData, error: evacError } = useQuery({
-    queryKey: ["evacuationCenter"],
-    queryFn: fetchEvacData,
-  });
-
-  // subscribe to realtime
-  useEffect(() => {
-    const evacChannel = supabase
-      .channel("evac-changes")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "evacuationCenter" },
-        (payload) => {
-          console.log("Realtime change received:", payload);
-
-          // Ask react-query to refetch alerts when a row is inserted/updated/deleted
-          queryClient.invalidateQueries(["evacuationCenter"]);
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(evacChannel);
-    };
-  }, [queryClient]);
 
   return (
     <>

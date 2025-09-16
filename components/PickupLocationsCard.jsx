@@ -5,84 +5,16 @@ import { useRouter } from "expo-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import supabase from "../contexts/supabaseClient";
 import { MaterialIcons } from "@expo/vector-icons";
+import { useRealtime } from "../contexts/RealtimeProvider";
 
 const PickupLocationsCard = ({ pickup, style, onPress }) => {
   const router = useRouter();
+  const {pickupData} = useRealtime()
 
+  //NOTE - not used
   const handlePress = () => {
     router.push("/pickUpLocations");
   };
-
-  const queryClient = useQueryClient();
-  // reads from supabase
-  const fetchEvacData = async () => {
-    const { data, error } = await supabase.from("evacuationCenter").select();
-
-    if (error) {
-      console.error("Fetch error in supabase pickup: ", error);
-    }
-    console.log("Successful fetch", data);
-    return data;
-  };
-  // use data here to map the values and read
-  const { data: evacData, error: evacError } = useQuery({
-    queryKey: ["evacuationCenter"],
-    queryFn: fetchEvacData,
-  });
-
-  // reads from supabase
-  const fetchPickupData = async () => {
-    const { data, error } = await supabase.from("pickupLocations").select();
-
-    if (error) {
-      console.error("Fetch error in supabase pickup: ", error);
-    }
-    console.log("Successful fetch", data);
-    return data;
-  };
-  // use data here to map the values and read
-  const { data: pickupData, error: pickupError } = useQuery({
-    queryKey: ["pickupLocations"],
-    queryFn: fetchPickupData,
-  });
-
-  console.log("DAta: ", pickupData);
-
-  // subscribe to realtime
-  useEffect(() => {
-    const evacChannel = supabase
-      .channel("evac-changes")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "evacuationCenter" },
-        (payload) => {
-          console.log("Realtime change received:", payload);
-
-          // Ask react-query to refetch alerts when a row is inserted/updated/deleted
-          queryClient.invalidateQueries(["evacuationCenter"]);
-        }
-      )
-      .subscribe();
-
-    const pickupChannel = supabase
-      .channel("pickup-changes")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "pickupLocations" },
-        (payload) => {
-          console.log("Realtime change received:", payload);
-
-          // Ask react-query to refetch alerts when a row is inserted/updated/deleted
-          queryClient.invalidateQueries(["pickupLocations"]);
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(evacChannel);
-      supabase.removeChannel(pickupChannel);
-    };
-  }, [queryClient]);
 
   return (
     <>

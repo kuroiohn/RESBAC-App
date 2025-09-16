@@ -313,7 +313,9 @@ const Vulnerable = () => {
                         medDep: healthCondition,
                         // locationRiskLevel: userVul.locationRiskLevel,
                     })
-                    .eq("userID", user.id);                    
+                    .eq("userID", user.id);
+                    //ANCHOR - update logic
+                    // if isPDPermanent or any of them is clicked, fetch vulnerability table row, get vulstatus row, then update both tables         
             
                     Alert.alert("Success", "Profile updated!",
                         [

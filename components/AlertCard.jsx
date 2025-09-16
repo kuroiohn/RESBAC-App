@@ -12,55 +12,6 @@ const AlertCard = ({ alertLevel = 1 }) => {
 
   const {alertsData} = useRealtime()
 
-  // // reads from supabase
-  // const fetchData = async () => {
-  //   const { data, error } = await supabase.from("alerts").select();
-
-  //   if (error) {
-  //     console.error("Fetch error in supabase alert card: ", error);
-  //   }
-  //   console.log("Successful fetch", data);
-  //   return data;
-  // };
-  // const {
-  //   data: alertData,
-  //   isPending,
-  //   isError,
-  //   error,
-  //   refetch,
-  // } = useQuery({
-  //   queryKey: ["alerts"],
-  //   queryFn: fetchData,
-  // });
-
-  // // Subscribe to realtime changes
-  // useEffect(() => {
-  //   const channel = supabase
-  //     .channel("alerts-changes")
-  //     .on(
-  //       "postgres_changes",
-  //       { event: "*", schema: "public", table: "alerts" },
-  //       (payload) => {
-  //         console.log("Realtime change received:", payload);
-
-  //         // Ask react-query to refetch alerts when a row is inserted/updated/deleted
-  //         // queryClient.invalidateQueries(["alerts"]);
-  //         queryClient.setQueryData(["alerts"], (oldData) => {
-  //           if (!oldData) return [payload.new]; // initial
-  //           const index = oldData.findIndex((a) => a.id === payload.new.id);
-  //           if (index > -1) oldData[index] = payload.new;
-  //           else oldData.push(payload.new);
-  //           return [...oldData];
-  //         });
-  //       }
-  //     )
-  //     .subscribe();
-
-  //   return () => {
-  //     supabase.removeChannel(channel);
-  //   };
-  // }, [queryClient]);
-
   // Update clock every second
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000);
@@ -147,67 +98,73 @@ const AlertCard = ({ alertLevel = 1 }) => {
 
   return (
     <>
-      {alertsData?.map(
-        (alert) =>
-          alert.isActive && (
-            <LinearGradient
-              key={alert.id}
-              colors={["#0060FF", "rgba(0, 58, 153, 0)"]}
-              start={{ x: 0.5, y: 0 }}
-              end={{ x: 0.5, y: 1 }}
-              style={styles.borderWrapper}
-            >
-              <View style={styles.innerCard}>
-                {/* Top right date + icon */}
-                <View style={styles.dateRow}>
-                  <Text style={styles.dateText}>
-                    {formattedDate(alert.created_at)}
-                  </Text>
-                  <Ionicons
-                    name='calendar-outline'
-                    size={18}
-                    color='#333'
-                    style={{ marginLeft: 6 }}
-                  />
-                </View>
-
-                {/* Image + Info Row */}
-                <View style={styles.topRow}>
-                  <Image
-                    source={getAlertIcon(alert.alertType)}
-                    style={styles.image}
-                  />
-
-                  <View style={styles.statusColumn}>
-                    <Text style={styles.alertLevel}>
-                      {formatTitle(alert.alertTitle)}
+      {alertsData?.some(alert => alert.isActive) ? 
+        (alertsData?.map(
+          (alert) =>
+            alert.isActive && (
+              <LinearGradient
+                key={alert.id}
+                colors={["#0060FF", "rgba(0, 58, 153, 0)"]}
+                start={{ x: 0.5, y: 0 }}
+                end={{ x: 0.5, y: 1 }}
+                style={styles.borderWrapper}
+              >
+                <View style={styles.innerCard}>
+                  {/* Top right date + icon */}
+                  <View style={styles.dateRow}>
+                    <Text style={styles.dateText}>
+                      {formattedDate(alert.created_at)}
                     </Text>
-
-                    {/*<Text style={styles.timeText}>{formattedTime}</Text>*/}
-                    <Text style={styles.timeText}>
-                      Date: {formattedTime(alert.created_at)}
-                    </Text>
-                    {alert.alertType == "Fire" && (
-                      <Text style={styles.meterText}>
-                        Location: {alert.alertLocation}
-                      </Text>
-                    )}
-
-                    {/* if flooding only */}
-                    {alert.alertType === "Flood" && (
-                      <Text style={styles.meterText}>
-                        Alert {alertLevel} • {waterLevel} meters
-                      </Text>
-                    )}
+                    <Ionicons
+                      name='calendar-outline'
+                      size={18}
+                      color='#333'
+                      style={{ marginLeft: 6 }}
+                    />
                   </View>
-                </View>
 
-                {/* Message */}
-                <Text style={styles.message}>{alert.alertDescription}</Text>
-              </View>
-            </LinearGradient>
+                  {/* Image + Info Row */}
+                  <View style={styles.topRow}>
+                    <Image
+                      source={getAlertIcon(alert.alertType)}
+                      style={styles.image}
+                    />
+
+                    <View style={styles.statusColumn}>
+                      <Text style={styles.alertLevel}>
+                        {formatTitle(alert.alertTitle)}
+                      </Text>
+
+                      {/*<Text style={styles.timeText}>{formattedTime}</Text>*/}
+                      <Text style={styles.timeText}>
+                        Date: {formattedTime(alert.created_at)}
+                      </Text>
+                      {alert.alertType == "Fire" && (
+                        <Text style={styles.meterText}>
+                          Location: {alert.alertLocation}
+                        </Text>
+                      )}
+
+                      {/* if flooding only */}
+                      {alert.alertType === "Flood" && (
+                        <Text style={styles.meterText}>
+                          Alert {alertLevel} • {waterLevel} meters
+                        </Text>
+                      )}
+                    </View>
+                  </View>
+
+                  {/* Message */}
+                  <Text style={styles.message}>{alert.alertDescription}</Text>
+                </View>
+              </LinearGradient>
+            )
+        )) : (
+        <View style={styles.noAlertCard}>
+          <Text style={styles.noAlertText}>No active alerts right now!</Text>
+        </View>
           )
-      )}
+        }
     </>
   );
 };

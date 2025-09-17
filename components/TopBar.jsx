@@ -21,10 +21,10 @@ const TopBar = () => {
       .from("user")
       .select("*")
       .eq("userID", user.id)
-      .single();
+      // .single();
 
     if (error) {
-      console.error("Fetch error in supabase pickup: ", error);
+      console.error("Fetch error in supabase user in top bar: ", error);
     }
     console.log("Successful fetch", data);
     return data;

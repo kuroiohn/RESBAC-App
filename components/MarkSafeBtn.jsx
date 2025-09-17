@@ -44,8 +44,13 @@ const EvacuationStatusCard = ({ style, ...props }) => {
         console.error("Fetch error in supabase markassafe: ", error);
       }
       console.log("Successful fetch", data);
-      setMark(data.markAsSafe);
-      if (data.markAsSafe) setStep(2);
+      if (data) {
+        setMark(data.markAsSafe)
+        if (data.markAsSafe) setStep(2);
+      } else {
+        console.warn("No row found in markAsSafe for userID", user.id);
+        setMark(false)  
+      }
       return data;
     };
 

@@ -1,8 +1,8 @@
 {
   "expo": {
     "scheme": "RESBACApp",
-    "name": "RESBAC.1",
-    "slug": "RESBAC.1",
+    "name": "RESBAC1",
+    "slug": "RESBAC1",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -21,7 +21,8 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.lukewarmraven.RESBAC1"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -29,6 +30,12 @@
     "plugins": [
       "expo-router",
       "expo-font"
-    ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "c9f09e1b-da31-40a2-982b-74d060f39cc9"
+      }
+    }
   }
 }

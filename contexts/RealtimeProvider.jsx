@@ -50,7 +50,7 @@ export const RealtimeProvider = ({children}) => {
         const { data, error } = await supabase.from("evacuationCenter").select();
 
         if (error) {
-        console.error("Fetch error in supabase pickup: ", error);
+        console.error("Fetch error in supabase evac: ", error);
         }
         console.log("Successful fetch", data);
         return data;
@@ -94,6 +94,8 @@ export const RealtimeProvider = ({children}) => {
                 else oldData.push(payload.new);
                 return [...oldData];
             });
+            queryClient.invalidateQueries(["alerts"]);
+
             }
         )
         .subscribe();

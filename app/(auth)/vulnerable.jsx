@@ -324,6 +324,16 @@ const Vulnerable = () => {
           })
           .eq("userID", user.id);
 
+        await supabase
+        .from('vulStatus')
+        .update({
+          physicalStatus: isPDPermanent,
+          psychStatus: isPSYPermament,
+          sensoryStatus: isSDPermament,
+          medDepStatus: isMDPermament,
+        })
+        .eq('userID',user.id)
+
         Alert.alert(
           "Success",
           "Profile updated!",

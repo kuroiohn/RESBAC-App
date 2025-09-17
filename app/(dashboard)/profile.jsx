@@ -25,7 +25,7 @@ import DatePickerInput from "../../components/DatePickerInput";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import DOBField from "../../components/DOBField";
 import * as ImagePicker from "expo-image-picker";
-import * as FileSystem from "expo-file-system";
+import * as FileSystem from "expo-file-system/legacy";
 import mime from "mime";
 import { decode as atob, encode as btoa } from "base-64";
 import { ImageManipulator, SaveFormat } from "expo-image-manipulator";
@@ -114,6 +114,13 @@ const Profile = () => {
     locationRiskLevel: "",
     userID: "",
   });
+  // const [userVulStatus, setUserVulStatus] = useState({
+  //   physicalStatus: [],
+  //   psychStatus: [],
+  //   sensoryStatus: [],
+  //   medDepStatus: [],
+  //   userID: "",
+  // });
   const [isVerified, setIsVerified] = useState(false);
   const [loading, setLoading] = useState(true);
 

@@ -312,10 +312,10 @@ const Vulnerable = () => {
               differenceInYears(new Date(), new Date(data.dateOfBirth)) >= 60
                 ? true
                 : false,
-            pregnantInfant:
-              data.sex === "Female"
-                ? [pregnancy || "no", hasInfant || "no"]
-                : [],
+            pregnantInfant:[
+              data.sex === "Female" ? (pregnancy === "yes" ? "yes" : "no") : "no",
+              hasInfant || "no"
+            ],
             physicalPWD: physicalDisability,
             psychPWD: psychologicalDisability,
             sensoryPWD: sensoryDisability,
@@ -482,14 +482,15 @@ const Vulnerable = () => {
               )}
 
               <Spacer height={10} />
-              <RadioGroup
-                label='Do you have an infant? [0-60months old]?'
-                options={infantOptions}
-                selectedValue={hasInfant}
-                onValueChange={setHasInfant}
-              />
             </>
           )}
+
+          <RadioGroup
+            label='Do you have an infant? [0-60months old]?'
+            options={infantOptions}
+            selectedValue={hasInfant}
+            onValueChange={setHasInfant}
+          />
 
           {/* Physical Disabilities */}
           <View style={styles.sectionHeader}>

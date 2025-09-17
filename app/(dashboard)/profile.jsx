@@ -114,6 +114,10 @@ const Profile = () => {
     locationRiskLevel: "",
     userID: "",
   });
+  const [userPregnant,setUserPregnant] = useState({
+    dueDate: "",
+    trimester: 0
+  })
   // const [userVulStatus, setUserVulStatus] = useState({
   //   physicalStatus: [],
   //   psychStatus: [],
@@ -536,6 +540,48 @@ const Profile = () => {
       setIsVerified(verifData.isVerified);
     }
   }, [user]);
+  
+  
+  const fetchPregnant = async () => {
+    // Get the current logged in user
+    const { error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
+      console.error("Error fetching auth user:", userError);
+      throw new Error("No active session / user");
+    }
+
+    const { data, error } = await supabase
+      .from("pregnant")
+      .select("*")
+      .eq("userID", user.id)
+      .single();
+
+    setUserPregnant({
+      dueDate: data.dueDate,
+      trimester: data.trimester
+    });
+
+    if (error) {
+      console.error("Fetch error in pregnant table: ", error);
+    }
+    console.log("Successful fetch", data);
+    return data;
+  };
+  const { data: pregnantData, error: pregnantError } = useQuery({
+    queryKey: ["pregnant"],
+    queryFn: fetchPregnant,
+  });
+  if (pregnantError) {
+    console.error("Error in fetching pregnant table: ", pregnantError);
+  }
+  useEffect(() => {
+    if (pregnantData) {
+      setUserPregnant({
+      dueDate: pregnantData.dueDate,
+      trimester: pregnantData.trimester
+    });
+    }
+  }, [user]);
 
   // SUBSCRIBING TO REALTIME ON ALL TABLES ##############################
   useEffect(() => {
@@ -650,6 +696,24 @@ const Profile = () => {
         }
       )
       .subscribe();
+    
+      // VERIFICATION table subscription
+    const pregnantSub = supabase
+      .channel("pregnant-changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "pregnant",
+          filter: `userID=eq.${user.id}`,
+        },
+        (payload) => {
+          setIsVerified(payload.new);
+          queryClient.invalidateQueries(["pregnant"]);
+        }
+      )
+      .subscribe();
 
     // cleanup on unmount
     return () => {
@@ -658,6 +722,7 @@ const Profile = () => {
       supabase.removeChannel(guardianSub);
       supabase.removeChannel(vulSub);
       supabase.removeChannel(verifSub);
+      supabase.removeChannel(pregnantSub);
     };
   }, [user?.id]);
 
@@ -1363,18 +1428,59 @@ const Profile = () => {
           true
         )}
       </View>
+        
       <View style={styles.row}>
-        {renderField(
-          "vulnerability",
-          "pregnantInfant",
-          "Pregnant/Infant",
-          Array.isArray(userVul.pregnantInfant)
-            ? userVul.pregnantInfant.join(", ")
-            : userVul.pregnantInfant?.toString() || "",
-          true
-        )}
-      </View>
+      {
+        userVul.pregnantInfant[0] === "yes" &&
+        (
+          <>
+          {<View style={styles.rowItem}>
 
+            {renderField(
+              "vulnerability",
+              "pregnantInfant",
+              "Pregnant",
+              userVul.pregnantInfant[0] === "yes"
+                ? "Yes"
+                : "No" || "",
+              true
+            )}
+          </View>}
+          {<View style={styles.rowItem}>
+            {renderField(
+              "vulnerability",
+              "pregnant",
+              "Trimester",
+              userPregnant.trimester,
+              true
+            )}
+          </View>}
+          {<View style={styles.rowItem}>
+            {renderField(
+              "vulnerability",
+              "pregnant",
+              "Due Date",
+              userPregnant.dueDate,
+              true
+            )}
+          </View>}
+          </>
+        )
+      }
+      </View>
+      {userVul.pregnantInfant[1] === "yes" &&
+        <View style={styles.row}>
+          {renderField(
+            "vulnerability",
+            "pregnantInfant",
+            "Infant",
+            userVul.pregnantInfant[1] === "yes"
+              ? "Yes"
+              : "No" || "",
+            true
+          )}
+        </View>
+      }
       <View style={styles.row}>
         {renderField(
           "vulnerability",

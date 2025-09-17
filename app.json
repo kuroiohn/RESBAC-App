@@ -1,8 +1,8 @@
 {
   "expo": {
     "scheme": "RESBACApp",
-    "name": "RESBAC",
-    "slug": "RESBAC",
+    "name": "RESBAC1",
+    "slug": "RESBAC1",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",

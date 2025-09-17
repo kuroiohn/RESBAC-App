@@ -18,7 +18,7 @@ import BackNextButtons from "../../components/buttons/BackNextButtons";
 import { useUser } from "../../hooks/useUser";
 import supabase from "../../contexts/supabaseClient";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import * as FileSystem from "expo-file-system";
+import * as FileSystem from "expo-file-system/legacy";
 import mime from "mime";
 import { decode as atob, encode as btoa } from "base-64";
 import { ImageManipulator, SaveFormat } from "expo-image-manipulator";

@@ -160,6 +160,7 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 150,
     resizeMode: "contain",
+    paddingHorizontal: 5,
     marginBottom: -15,
   },
 });

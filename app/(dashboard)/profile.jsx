@@ -677,13 +677,13 @@ const Profile = () => {
   };
 
   //ANCHOR - invalidates for refetch and get new data
-  useEffect(()=> {
+  useEffect(() => {
     queryClient.invalidateQueries(["user", user.id]);
     queryClient.invalidateQueries(["address"]);
     queryClient.invalidateQueries(["guardian", user.id]);
     queryClient.invalidateQueries(["vulnerabilityList"]);
     queryClient.invalidateQueries(["verification"]);
-  },[])
+  }, []);
 
   //ANCHOR - update tables here
   const saveChanges = async () => {
@@ -958,7 +958,7 @@ const Profile = () => {
           </Text>
 
           <View style={styles.addressRow}>
-            <Feather name='map-pin' size={14} color='#007bff' />
+            {/*<Feather name='map-pin' size={14} color='#007bff' /> */}
             <Text style={styles.address}>
               {userAddress.streetName.charAt(0).toUpperCase() +
                 userAddress.streetName.slice(1)}
@@ -1515,7 +1515,7 @@ const styles = StyleSheet.create({
   },
   safe: { color: "#007bff" },
   pending: { color: "#EB3A32" },
-  address: { fontSize: 15, color: "#555", marginLeft: 4 },
+  address: { fontSize: 15, color: "#555", marginLeft: 4, textAlign: "center" },
   addressRow: {
     flexDirection: "row",
     alignItems: "center",

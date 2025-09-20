@@ -10,7 +10,7 @@ import {
 import supabase from "../contexts/supabaseClient";
 import { useUser } from "../hooks/useUser";
 
-const CallButton = ({ onAnimationStart, onAnimationFinish, disabled }) => {
+const CallButton = ({ onAnimationStart, onAnimationFinish, disabled, onPress }) => {
   const { user } = useUser();
   const animationRef = useRef(null);
   const phoneNumber = "09684319082";
@@ -28,8 +28,8 @@ const CallButton = ({ onAnimationStart, onAnimationFinish, disabled }) => {
 
     setTimeout(() => {
       animationRef.current?.reset(); // reset so it's ready for next press
-      handleDial();
-      if (onAnimationFinish) onAnimationFinish();
+      onPress && onPress()
+      // if (onAnimationFinish) onAnimationFinish();
       setIsDisabled(false);
     }, 2000);
   };

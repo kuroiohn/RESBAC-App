@@ -24,9 +24,12 @@ import RescuerCard from "../../components/RescuerCard";
 import EvacuationCenterCard from "../EvacuationCenterCard";
 import PickupLocationsCard from "../PickupLocationsCard";
 import ThemedLoader from "../ThemedLoader";
+import AlertCard from "../AlertCard";
+import { useUser } from "../../hooks/useUser";
 
 const EmergencyGuideContent = () => {
   const [loading, setLoading] = useState(true);
+  const {user} = useUser()
 
   useEffect(() => {
     // simulate loading
@@ -86,6 +89,18 @@ const EmergencyGuideContent = () => {
             </Pressable>
           </Link>
         </View>
+
+        {/* Alerts + Guide only in initial state */}
+        {
+          !user && 
+          (
+            <>
+          <ThemedText style={styles.textLeft}>Alerts</ThemedText>
+        <AlertCard />
+            </>
+        )}
+          
+        
 
         <ThemedText style={[styles.textLeft]}>Rescuers</ThemedText>
         {/* Rescuer Card at the bottom */}

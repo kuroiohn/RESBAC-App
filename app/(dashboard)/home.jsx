@@ -4,6 +4,7 @@ import {
   TouchableOpacity,
   Text,
   StyleSheet,
+  Linking,
 } from "react-native";
 import { useState, useRef, useEffect, use } from "react";
 
@@ -26,22 +27,7 @@ const Home = () => {
   const [callRequested, setCallRequested] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const navigation = useNavigation();
-
-  //FIXME -  remove? na-move naman na ung locatiobn eh
-  // click handler for evac center
-  const handleEvacClick = (evacId) => {
-    navigation.navigate("PickUpLocation", {
-      tab: "evacuationCenter",
-      id: evacId,
-    });
-  };
-
-  const handlePickupClick = (pickupId) => {
-    navigation.navigate("PickUpLocation", {
-      tab: "pickupLocations",
-      id: pickupId,
-    });
-  };
+  const [callstep,setCallstep] = useState(0)
 
   useEffect(() => {
     const userid = user.id;
@@ -69,6 +55,7 @@ const Home = () => {
       console.log("Successful fetch", data.pressedCallBtn);
       if (data){
         setCallRequested((data.pressedCallBtn ? true : false));
+        setCallstep((data.pressedCallBtn ? 2 : 0))
       } else {
         console.warn("No row found in pressedcallbtn for user ", user.id);
         
@@ -95,6 +82,7 @@ const Home = () => {
           if (payload.new?.pressedCallBtn !== undefined) {
             setCallRequested((payload.new.pressedCallBtn ? true : false));
             console.log("Realtime pressedCall: ", callRequested);
+            setCallstep((payload.new.pressedCallBtn ? 2 : 1))
           }
         }
       )
@@ -108,20 +96,55 @@ const Home = () => {
   // pang animate
   const handleAnimationStart = () => {
     setAnimating(true);
-    setCallRequested(false);
+    // setCallstep(1)
+    // setCallRequested(false);
     fadeAnim.setValue(0); // reset fade each time
   };
 
   // pang animate
   const handleAnimationFinish = () => {
     setAnimating(false);
-    setCallRequested(true);
+    // if (callstep === 1){
+    //   setCallstep(2)
+    //   setCallRequested(true);
+    // }
 
     Animated.timing(fadeAnim, {
       toValue: 1,
-      duration: 500,
+      duration: 200,
       useNativeDriver: true,
     }).start();
+  };
+
+  const handleCallPress = async () => {
+    if (callstep === 0) {
+      setCallstep(1); // First press
+      setCallRequested(false);
+    } else if (callstep === 1) {
+      const phoneNumber = "09684319082";
+      const url = `tel:${phoneNumber}`;
+      try {
+        await Linking.openURL(url);
+        setCallstep(2);
+        setCallRequested(true);
+
+        const now = new Date();
+        const { data, error } = await supabase
+          .from("user")
+          .update({
+            pressedCallBtn: new Date(
+              now.getTime() - now.getTimezoneOffset() * 60000
+            )
+              .toISOString()
+              .slice(0, -1),
+          })
+          .eq("userID", user.id)
+          .select();
+        console.log("updated call btn:", data, error);
+      } catch (err) {
+        console.error("Error opening dialer: ", err);
+      }
+    }
   };
 
   const handleCancel = async () => {
@@ -132,6 +155,7 @@ const Home = () => {
     }).start(() => {
       setAnimating(false);
       setCallRequested(false);
+      setCallstep(0)
     });
 
     const {
@@ -166,7 +190,7 @@ const Home = () => {
         </ThemedText>
 
         {/* Initial state */}
-        {!animating && !callRequested && (
+        {callstep === 0 && !callRequested && (
           <>
             <ThemedText>Press the button below and help will</ThemedText>
             <ThemedText>reach you shortly.</ThemedText>
@@ -175,20 +199,18 @@ const Home = () => {
             <CallButton
               onAnimationStart={handleAnimationStart}
               onAnimationFinish={handleAnimationFinish}
+              onPress={handleCallPress}
               disabled={callRequested}
             />
             <Spacer />
 
             <MarkSafeBtn />
 
-            {/* Alerts + Guide only in initial state */}
-            <ThemedText style={styles.textLeft}>Alerts</ThemedText>
-            <AlertCard />
           </>
         )}
 
         {/* Animating state */}
-        {animating && !callRequested && (
+        {callstep===1 && !callRequested && (
           <>
             <ThemedText style={{ marginTop: 20, fontWeight: "bold" }}>
               Calling for help...
@@ -197,13 +219,14 @@ const Home = () => {
             <CallButton
               onAnimationStart={handleAnimationStart}
               onAnimationFinish={handleAnimationFinish}
+              onPress={handleCallPress}
               disabled={callRequested}
             />
           </>
         )}
 
         {/* After request */}
-        {callRequested && !animating && (
+        {callRequested && callstep===2 && (
           <Animated.View style={{ alignItems: "center" }}>
             <ThemedText style={{ marginVertical: 10, textAlign: "center" }}>
               Please stand by, or look for a safe {"\n"}
@@ -213,7 +236,7 @@ const Home = () => {
             <CallButton
               onAnimationStart={handleAnimationStart}
               onAnimationFinish={handleAnimationFinish}
-              disabled={callRequested}
+              disabled={callstep===2}
             />
             <Spacer />
             <TouchableOpacity onPress={handleCancel} style={styles.cancelBtn}>
@@ -222,7 +245,13 @@ const Home = () => {
             <Spacer />
           </Animated.View>
         )}
-        {!animating && callRequested && <MarkSafeBtn />}
+        {callRequested && <MarkSafeBtn />}
+      {/* Alerts + Guide only in initial state */}
+        { callstep !== 1 &&
+          (<>
+          <ThemedText style={styles.textLeft}>Alerts</ThemedText>
+          <AlertCard />
+          </>)}
       </ThemedView>
     </ScrollView>
   );

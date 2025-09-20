@@ -370,10 +370,11 @@ export default function uploadID() {
         console.error("Error creating vulnerability list:", vulListError);
         throw new Error("Failed to create vulnerability list");
       }
-
       console.log("Vulnerability list created:", vulnerabilityListData);
 
-      console.log(authResult.user.id);
+      //ANCHOR - RISKSCORE
+      // add values of the riskscore here
+
       // Create vulnerability record - with explicit userID
       const {
         data: { user },

@@ -86,11 +86,11 @@ const AlertCard = ({ alertLevel = 1 }) => {
 
   const getAlertIcon = (type) => {
     switch (type) {
-      case "Flood":
+      case "flood":
         return require("../assets/floodIcon.png");
-      case "Fire":
+      case "fire":
         return require("../assets/fireIcon.png");
-      case "Earthquake":
+      case "earthquake":
         return require("../assets/EarthquakeIcon.png");
       default:
         return require("../assets/storm-cloud.png"); // fallback

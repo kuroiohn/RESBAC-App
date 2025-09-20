@@ -28,6 +28,7 @@ import supabase from "../../contexts/supabaseClient";
 import { useUser } from "../../hooks/useUser";
 import { differenceInYears } from "date-fns";
 import {Picker} from "@react-native-picker/picker";
+import DatePickerInput from "../../components/DatePickerInput";
 
 const Vulnerable = () => {
   const { user } = useUser();
@@ -467,12 +468,23 @@ const Vulnerable = () => {
               />
               {pregnancy === "yes" && (
                 <>
-                  <ThemedTextInput
+                  {/* <ThemedTextInput
                     style={{ width: "95%", marginBottom: 10 }}
                     placeholder='Month Due Date'
                     value={dueDate}
                     onChangeText={setDueDate}
-                  />
+                  /> */}
+                  <DatePickerInput
+                  value={dueDate}
+                  onChange={(date) => {
+                    setDueDate(date);
+                    // clearFieldError("duedate");
+                  }}
+                  minimumDate={new Date(1900, 1, 1)}
+                  maximumDate={(new Date()).setFullYear((new Date()).getFullYear() + 2)}
+                  placeholder='Due Date'
+                  // disabled={!isAgreed}
+                />
                   <Picker
                     selectedValue={trimester}
                     onValueChange={(itemValue) => setTrimester(itemValue)}
@@ -484,9 +496,9 @@ const Vulnerable = () => {
                     }}
                   >
                     <Picker.Item label="Select trimester" value="" />
-                    <Picker.Item label="1st Trimester(Week 0 - Week 12)" value="1st" />
-                    <Picker.Item label="2nd Trimester(Week 13 - Week 26)" value="2nd" />
-                    <Picker.Item label="3rd Trimester(Week 27 and up)" value="3rd" />
+                    <Picker.Item label="1st Trimester(Week 0 - Week 12)" value="1" />
+                    <Picker.Item label="2nd Trimester(Week 13 - Week 26)" value="2" />
+                    <Picker.Item label="3rd Trimester(Week 27 and up)" value="3" />
                   </Picker>
                 </>
               )}

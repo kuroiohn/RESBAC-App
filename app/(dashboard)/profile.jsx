@@ -1460,7 +1460,7 @@ const Profile = () => {
               "vulnerability",
               "pregnant",
               "Due Date",
-              userPregnant.dueDate,
+              new Date(userPregnant.dueDate).toLocaleDateString("en-US", {month:"short",year:"numeric"}),
               true
             )}
           </View>}

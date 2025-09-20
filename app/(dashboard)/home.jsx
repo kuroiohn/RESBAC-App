@@ -67,7 +67,13 @@ const Home = () => {
         console.error("Fetch error in supabase pressedCallBtn: ", error);
       }
       console.log("Successful fetch", data.pressedCallBtn);
-      setCallRequested((data.pressedCallBtn ? true : false));
+      if (data){
+        setCallRequested((data.pressedCallBtn ? true : false));
+      } else {
+        console.warn("No row found in pressedcallbtn for user ", user.id);
+        
+      }
+
       return data;
     };
 

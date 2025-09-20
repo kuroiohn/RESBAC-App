@@ -20,11 +20,11 @@ const TopBar = () => {
     const { data, error } = await supabase
       .from("user")
       .select("*")
-      .eq("userID", user.id)
-      .single();
+      .eq("userID", user.id);
+    // .single();
 
     if (error) {
-      console.error("Fetch error in supabase pickup: ", error);
+      console.error("Fetch error in supabase user in top bar: ", error);
     }
     console.log("Successful fetch", data);
     return data;

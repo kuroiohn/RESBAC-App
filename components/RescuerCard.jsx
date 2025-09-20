@@ -63,16 +63,17 @@ export default function RescuerCard() {
 
   const handleContactBtn = async (number) => {
     const url = `tel:${number}`;
-    const supported = await Linking.canOpenURL(url);
+    // const supported = await Linking.canOpenURL(url);
 
-    if (supported) {
-      await Linking.openURL(url);
-    } else {
-      Alert.alert(
-        "Error in Rescuer Card",
-        "Dialer not supported on this device!"
-      );
-    }
+    await Linking.openURL(url);
+    // if (supported) {
+    //   await Linking.openURL(url);
+    // } else {
+    //   Alert.alert(
+    //     "Error in Rescuer Card",
+    //     "Dialer not supported on this device!"
+    //   );
+    // }
   };
 
   const handleMsgBtn = async (link) => {
@@ -80,13 +81,14 @@ export default function RescuerCard() {
     const username = splitLink.slice(3).join("/");
     console.log("Username:", username);
 
-    const supported = await Linking.canOpenURL(`https://m.me/${username}`);
+    // const supported = await Linking.canOpenURL(`https://m.me/${username}`);
 
-    if (supported) {
-      await Linking.openURL(`https://m.me/${username}`);
-    } else {
-      Alert.alert("Error in Rescuer Card", "Device cannot open link");
-    }
+    await Linking.openURL(`https://m.me/${username}`);
+    // if (supported) {
+    //   await Linking.openURL(`https://m.me/${username}`);
+    // } else {
+    //   Alert.alert("Error in Rescuer Card", "Device cannot open link");
+    // }
   };
 
   return (

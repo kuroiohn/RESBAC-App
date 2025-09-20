@@ -221,6 +221,7 @@ export default function uploadID() {
 
     setIsCreating(true);
 
+    //ANCHOR - INSERT TO SUPA
     try {
       console.log("Creating Supabase account...");
 

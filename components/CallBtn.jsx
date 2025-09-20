@@ -54,16 +54,17 @@ const CallButton = ({ onAnimationStart, onAnimationFinish, disabled }) => {
     }
 
     const url = `tel:${phoneNumber}`;
-    const supported = await Linking.canOpenURL(url);
+    // const supported = await Linking.canOpenURL(url);
 
-    if (supported) {
-      await Linking.openURL(url);
-    } else {
-      Alert.alert(
-        "Error in Call Button",
-        "Dialer not supported on this device!"
-      );
-    }
+    await Linking.openURL(url);
+    // if (supported) {
+    //   await Linking.openURL(url);
+    // } else {
+    //   Alert.alert(
+    //     "Error in Call Button",
+    //     "Dialer not supported on this device!"
+    //   );
+    // }
   };
 
   return (

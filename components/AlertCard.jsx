@@ -5,12 +5,13 @@ import { Ionicons } from "@expo/vector-icons";
 import supabase from "../contexts/supabaseClient";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRealtime } from "../contexts/RealtimeProvider";
+import { BellOff } from "lucide-react-native";
 
 const AlertCard = ({ alertLevel = 1 }) => {
   const queryClient = useQueryClient();
   const [time, setTime] = useState(new Date()); //NOTE - not used
 
-  const {alertsData} = useRealtime()
+  const { alertsData } = useRealtime();
 
   // Update clock every second
   useEffect(() => {
@@ -98,8 +99,8 @@ const AlertCard = ({ alertLevel = 1 }) => {
 
   return (
     <>
-      {alertsData?.some(alert => alert.isActive) ? 
-        (alertsData?.map(
+      {alertsData?.some((alert) => alert.isActive) ? (
+        alertsData?.map(
           (alert) =>
             alert.isActive && (
               <LinearGradient
@@ -159,12 +160,26 @@ const AlertCard = ({ alertLevel = 1 }) => {
                 </View>
               </LinearGradient>
             )
-        )) : (
-        <View style={styles.noAlertCard}>
-          <Text style={styles.noAlertText}>No active alerts right now!</Text>
-        </View>
-          )
-        }
+        )
+      ) : (
+        <LinearGradient
+          colors={["#0060ff", "transparent"]}
+          start={{ x: 0.5, y: 0 }}
+          end={{ x: 0.5, y: 1 }}
+          style={styles.gradientBorder}
+        >
+          <View style={styles.card}>
+            {/* Row layout: icon left, text right */}
+            <BellOff size={28} color='#0060ff' style={styles.icon} />
+            <View style={styles.textContainer}>
+              <Text style={styles.noAlertTitle}>No Active Alerts</Text>
+              <Text style={styles.noAlertSubtitle}>
+                You're all caught up. Stay tuned for updates.
+              </Text>
+            </View>
+          </View>
+        </LinearGradient>
+      )}
     </>
   );
 };
@@ -174,12 +189,13 @@ export default AlertCard;
 const styles = StyleSheet.create({
   borderWrapper: {
     width: "95%",
-    padding: 2, // para sa stroke
+    padding: 1, // para sa stroke
     borderRadius: 12,
     marginBottom: 10, // adds space between stacked alerts
+    backgroundColor: "white",
   },
   innerCard: {
-    backgroundColor: "#FAFAFA",
+    backgroundColor: "white",
     padding: 16,
     borderRadius: 10,
     position: "relative",
@@ -240,5 +256,42 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "#6b6b6b",
     lineHeight: 17,
+  },
+  gradientBorder: {
+    width: "95%",
+    borderRadius: 12,
+    padding: 1.5, // gradient border thickness
+  },
+  card: {
+    flexDirection: "row", // ✅ makes icon + text side by side
+    backgroundColor: "white",
+    borderRadius: 10,
+    padding: 16,
+    alignItems: "center", // vertically center icon with text
+
+    // iOS shadow
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25, // lighter, professional look
+    shadowRadius: 4,
+
+    // Android shadow
+    elevation: 2,
+  },
+  icon: {
+    marginRight: 12,
+  },
+  textContainer: {
+    flex: 1, // take remaining width
+  },
+  noAlertTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#333",
+    marginBottom: 2,
+  },
+  noAlertSubtitle: {
+    fontSize: 14,
+    color: "#666",
   },
 });

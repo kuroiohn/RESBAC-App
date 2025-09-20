@@ -45,11 +45,11 @@ const EvacuationStatusCard = ({ style, ...props }) => {
       }
       console.log("Successful fetch", data);
       if (data) {
-        setMark(data.markAsSafe)
+        setMark(data.markAsSafe);
         if (data.markAsSafe) setStep(2);
       } else {
         console.warn("No row found in markAsSafe for userID", user.id);
-        setMark(false)  
+        setMark(false);
       }
       return data;
     };
@@ -253,11 +253,11 @@ const EvacuationStatusCard = ({ style, ...props }) => {
 const styles = StyleSheet.create({
   borderWrapper: {
     width: "95%",
-    padding: 2,
+    padding: 1.5,
     borderRadius: 12,
   },
   innerCard: {
-    backgroundColor: "#FAFAFA",
+    backgroundColor: "white",
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 10,

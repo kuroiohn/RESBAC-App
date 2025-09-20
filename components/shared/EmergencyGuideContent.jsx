@@ -1,9 +1,10 @@
-import { ScrollView, StyleSheet, Image, View } from "react-native";
+import { ScrollView, StyleSheet, Image, View, Pressable } from "react-native";
 
 import Spacer from "../../components/Spacer";
 import ThemedText from "../../components/ThemedText";
 import ThemedView from "../../components/ThemedView";
 import { useEffect, useState } from "react";
+import { Link } from "expo-router";
 
 // asset imports
 import DuringFlood from "../../assets/DuringFlood.png";
@@ -67,9 +68,23 @@ const EmergencyGuideContent = () => {
         <ThemedText style={[styles.textLeft]}>Emergency Guides</ThemedText>
 
         <View style={styles.row}>
-          <Image source={DuringFlood} style={styles.guideImage} />
-          <Image source={DuringFire} style={styles.guideImage} />
-          <Image source={Earthquake} style={styles.guideImage} />
+          <Link href='/guides/duringFloodGuide' asChild>
+            <Pressable>
+              <Image source={DuringFlood} style={styles.guideImage} />
+            </Pressable>
+          </Link>
+
+          <Link href='/guides/duringFireGuide' asChild>
+            <Pressable>
+              <Image source={DuringFire} style={styles.guideImage} />
+            </Pressable>
+          </Link>
+
+          <Link href='/guides/duringEarthquakeGuide' asChild>
+            <Pressable>
+              <Image source={Earthquake} style={styles.guideImage} />
+            </Pressable>
+          </Link>
         </View>
 
         <ThemedText style={[styles.textLeft]}>Rescuers</ThemedText>
@@ -137,7 +152,7 @@ const styles = StyleSheet.create({
   textBlue: {
     textAlign: "left",
     fontSize: 15,
-    color: "#0060ff",
+    color: "gray",
     fontWeight: "600",
     marginLeft: 10,
   },
@@ -153,13 +168,14 @@ const styles = StyleSheet.create({
   },
   row: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "flex-start",
     marginBottom: 20,
   },
   guideImage: {
-    flex: 1,
+    width: 125,
     height: 150,
     resizeMode: "contain",
+    paddingHorizontal: 5,
     marginBottom: -15,
   },
 });

@@ -27,6 +27,7 @@ import { useState, useEffect } from "react";
 import supabase from "../../contexts/supabaseClient";
 import { useUser } from "../../hooks/useUser";
 import { differenceInYears } from "date-fns";
+import {Picker} from "@react-native-picker/picker";
 
 const Vulnerable = () => {
   const { user } = useUser();
@@ -472,15 +473,23 @@ const Vulnerable = () => {
                     value={dueDate}
                     onChangeText={setDueDate}
                   />
-                  <ThemedTextInput
-                    style={{ width: "95%", marginBottom: 10 }}
-                    placeholder='Current trimester'
-                    value={trimester}
-                    onChangeText={setTrimester}
-                  />
+                  <Picker
+                    selectedValue={trimester}
+                    onValueChange={(itemValue) => setTrimester(itemValue)}
+                    style={{
+                      width: "95%",
+                      marginBottom: 10,
+                      backgroundColor: "white",
+                      borderRadius: 8,
+                    }}
+                  >
+                    <Picker.Item label="Select trimester" value="" />
+                    <Picker.Item label="1st Trimester(Week 0 - Week 12)" value="1st" />
+                    <Picker.Item label="2nd Trimester(Week 13 - Week 26)" value="2nd" />
+                    <Picker.Item label="3rd Trimester(Week 27 and up)" value="3rd" />
+                  </Picker>
                 </>
               )}
-
               <Spacer height={10} />
             </>
           )}

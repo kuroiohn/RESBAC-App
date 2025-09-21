@@ -336,6 +336,104 @@ const Vulnerable = () => {
         })
         .eq('userID',user.id)
 
+        //ANCHOR - RISKSCORE
+        // add values of the riskscore here
+        // make new usestate for all the scores
+        // if not, make conditionals
+        const age = differenceInYears(new Date(), new Date(data.dateOfBirth))
+        console.log({
+          elderlyScore: (
+            age >= 90 ? 4 :    // 90+      
+            age >= 80 ? 3 :    // 80 - 89
+            age >= 70 ? 2 :    // 70 - 79 
+            age >= 60 ? 1 : 0  // 60 - 69 
+          ),
+          pregnantInfantScore: (
+            pregnancy === "yes" && hasInfant === "yes" ? 4 :
+            pregnancy === "yes" || hasInfant === "yes" ? 2 : 0          
+          ),
+          physicalPWDScore: (
+            physicalDisability?.length >= 4 ? 4 :
+            physicalDisability?.length === 3 ? 3 :
+            physicalDisability?.length === 2 ? 2 :
+            physicalDisability?.length === 1 ? 1 : 0
+          ),
+          psychPWDScore: (
+            psychologicalDisability?.length >= 4 ? 4 :
+            psychologicalDisability?.length === 3 ? 3 :
+            psychologicalDisability?.length === 2 ? 2 :
+            psychologicalDisability?.length === 1 ? 1 : 0
+          ),
+          sensoryPWDScore: (
+            sensoryDisability?.length >= 4 ? 4 :
+            sensoryDisability?.length === 3 ? 3 :
+            sensoryDisability?.length === 2 ? 2 :
+            sensoryDisability?.length === 1 ? 1 : 0
+          ),
+          medDepScore: (
+            healthCondition?.length >= 4 ? 4 :
+            healthCondition?.length === 3 ? 3 :
+            healthCondition?.length === 2 ? 2 :
+            healthCondition?.length === 1 ? 1 : 0
+          ),
+          hasGuardian: (
+            hasGuardian === "yes" ? 1 : 0
+          ),
+          locationRiskLevel: 1,
+          userID: user.id
+        });
+
+        const {data: riskData,error: riskError} = await supabase
+        .from('riskScore')
+        .update({
+          elderlyScore: (
+            age >= 90 ? 4 :    // 90+      
+            age >= 80 ? 3 :    // 80 - 89
+            age >= 70 ? 2 :    // 70 - 79 
+            age >= 60 ? 1 : 0  // 60 - 69 
+          ),
+          pregnantInfantScore: (
+            pregnancy === "yes" && hasInfant === "yes" ? 4 :
+            pregnancy === "yes" || hasInfant === "yes" ? 2 : 0          
+          ),
+          physicalPWDScore: (
+            physicalDisability?.length >= 4 ? 4 :
+            physicalDisability?.length === 3 ? 3 :
+            physicalDisability?.length === 2 ? 2 :
+            physicalDisability?.length === 1 ? 1 : 0
+          ),
+          psychPWDScore: (
+            psychologicalDisability?.length >= 4 ? 4 :
+            psychologicalDisability?.length === 3 ? 3 :
+            psychologicalDisability?.length === 2 ? 2 :
+            psychologicalDisability?.length === 1 ? 1 : 0
+          ),
+          sensoryPWDScore: (
+            sensoryDisability?.length >= 4 ? 4 :
+            sensoryDisability?.length === 3 ? 3 :
+            sensoryDisability?.length === 2 ? 2 :
+            sensoryDisability?.length === 1 ? 1 : 0
+          ),
+          medDepScore: (
+            healthCondition?.length >= 4 ? 4 :
+            healthCondition?.length === 3 ? 3 :
+            healthCondition?.length === 2 ? 2 :
+            healthCondition?.length === 1 ? 1 : 0
+          ),
+          hasGuardian: (
+            hasGuardian === "yes" ? 1 : 0
+          ),
+          locationRiskLevel: 1,
+        })
+        .eq("userID",user.id)
+        .select("*")
+        .single();
+        if (riskError) {
+          console.error("Error creating riskscore list:", riskError);
+          throw new Error("Failed to create riskscore list");
+        }
+        console.log("riskscore list created:", riskData);
+
         Alert.alert(
           "Success",
           "Profile updated!",

@@ -222,6 +222,10 @@ const Home = () => {
               onPress={handleCallPress}
               disabled={callRequested}
             />
+            <Spacer />
+            <TouchableOpacity onPress={handleCancel} style={styles.cancelBtn}>
+              <Text style={styles.cancelBtnText}>Cancel Request</Text>
+            </TouchableOpacity>
           </>
         )}
 

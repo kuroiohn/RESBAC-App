@@ -822,6 +822,19 @@ const Profile = () => {
 
       Alert.alert("Success", "Profile updated!");
 
+      const age = differenceInYears(new Date(), new Date(userData.dob))
+      await supabase
+      .from('riskScore')
+      .update({
+        elderlyScore: (
+            age >= 90 ? 4 :    // 90+      
+            age >= 80 ? 3 :    // 80 - 89
+            age >= 70 ? 2 :    // 70 - 79 
+            age >= 60 ? 1 : 0  // 60 - 69 
+          ) 
+      })
+      .eq("userID",user.id)
+
       // Reset editing state back to false so button goes back to blue
       setEditingSections({
         userData: false,

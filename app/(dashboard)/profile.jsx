@@ -116,7 +116,7 @@ const Profile = () => {
   });
   const [userPregnant,setUserPregnant] = useState({
     dueDate: "",
-    trimester: 0
+    trimester: ""
   })
   // const [userVulStatus, setUserVulStatus] = useState({
   //   physicalStatus: [],
@@ -554,11 +554,10 @@ const Profile = () => {
       .from("pregnant")
       .select("*")
       .eq("userID", user.id)
-      .single();
 
     setUserPregnant({
-      dueDate: data.dueDate,
-      trimester: data.trimester
+      dueDate: data?.dueDate,
+      trimester: data?.trimester
     });
 
     if (error) {

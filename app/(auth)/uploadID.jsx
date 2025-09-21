@@ -577,6 +577,7 @@ export default function uploadID() {
           guardianID: guardianData?.id || null,
           vulnerabilityID: vulnerabilityData.id,
           verificationID: verifData.id,
+          prioID: priorityData.id,
         })
         .select("*");
 

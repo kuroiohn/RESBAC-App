@@ -10,7 +10,7 @@ export const RealtimeProvider = ({ children }) => {
   //ANCHOR - ALERTS
   // reads from supabase
   const fetchAlertsData = async () => {
-    const { data, error } = await supabase.from("alerts").select();
+    const { data, error } = await supabase.from("alerts").select('*');
 
     if (error) {
       console.error("Fetch error in supabase alert card: ", error);

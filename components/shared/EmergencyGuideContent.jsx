@@ -26,12 +26,20 @@ import PickupLocationsCard from "../PickupLocationsCard";
 import ThemedLoader from "../ThemedLoader";
 import AlertCard from "../AlertCard";
 import { useUser } from "../../hooks/useUser";
+import supabase from "../../contexts/supabaseClient";
 
 const EmergencyGuideContent = () => {
   const [loading, setLoading] = useState(true);
+  const [session, setSession] = useState(null);
   const {user} = useUser()
-
+  
   useEffect(() => {
+    const getSession = async () => {
+      const {data:{getsession}} = await supabase.auth.getSession()
+      setSession(getsession)
+    }
+    getSession()
+
     // simulate loading
     const timer = setTimeout(() => {
       setLoading(false);
@@ -92,7 +100,7 @@ const EmergencyGuideContent = () => {
 
         {/* Alerts + Guide only in initial state */}
         {
-          !user && 
+          (!session && !user) && 
           (
             <>
           <ThemedText style={styles.textLeft}>Alerts</ThemedText>

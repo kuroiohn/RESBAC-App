@@ -374,6 +374,59 @@ export default function uploadID() {
 
       //ANCHOR - RISKSCORE
       // add values of the riskscore here
+      // make new usestate for all the scores
+      // if not, make conditionals
+      const {data: riskData,error: riskError} = await supabase
+      .from('riskScore')
+      .insert({
+        elderlyScore: (
+          completeUserData.age >= 90 ? 4 :    // 90+      
+          completeUserData.age >= 80 ? 3 :    // 80 - 89
+          completeUserData.age >= 70 ? 2 :    // 70 - 79 
+          completeUserData.age >= 60 ? 1 : 0  // 60 - 69 
+        ),
+        pregnantInfantScore: (
+          completeUserData.vulnerability?.pregnancy === "yes" && completeUserData.vulnerability?.infant === "yes" ? 4 :
+          completeUserData.vulnerability?.pregnancy === "yes" || completeUserData.vulnerability?.infant === "yes" ? 2 : 0          
+        ),
+        physicalPWDScore: (
+          completeUserData.vulnerability?.physicalPWD?.length >= 4 ? 4 :
+          completeUserData.vulnerability?.physicalPWD?.length === 3 ? 3 :
+          completeUserData.vulnerability?.physicalPWD?.length === 2 ? 2 :
+          completeUserData.vulnerability?.physicalPWD?.length === 1 ? 1 : 0
+        ),
+        psychPWDScore: (
+          completeUserData.vulnerability?.psychPWD?.length >= 4 ? 4 :
+          completeUserData.vulnerability?.psychPWD?.length === 3 ? 3 :
+          completeUserData.vulnerability?.psychPWD?.length === 2 ? 2 :
+          completeUserData.vulnerability?.psychPWD?.length === 1 ? 1 : 0
+        ),
+        sensoryPWDScore: (
+          completeUserData.vulnerability?.sensoryPWD?.length >= 4 ? 4 :
+          completeUserData.vulnerability?.sensoryPWD?.length === 3 ? 3 :
+          completeUserData.vulnerability?.sensoryPWD?.length === 2 ? 2 :
+          completeUserData.vulnerability?.sensoryPWD?.length === 1 ? 1 : 0
+        ),
+        medDepScore: (
+          completeUserData.vulnerability?.healthCondition?.length >= 4 ? 4 :
+          completeUserData.vulnerability?.healthCondition?.length === 3 ? 3 :
+          completeUserData.vulnerability?.healthCondition?.length === 2 ? 2 :
+          completeUserData.vulnerability?.healthCondition?.length === 1 ? 1 : 0
+        ),
+        hasGuardian: (
+          completeUserData.vulnerability?.hasGuardian === "yes" ? 1 : 0
+        ),
+        locationRiskLevel: "Low",
+        userID: authResult.user.id
+      })
+      .select("*")
+      .single();
+      if (riskError) {
+        console.error("Error creating vulnerability list:", riskError);
+        throw new Error("Failed to create vulnerability list");
+      }
+      console.log("Vulnerability list created:", riskData);
+
 
       // Create vulnerability record - with explicit userID
       const {

@@ -5,12 +5,28 @@ import { StatusBar } from "expo-status-bar";
 import { UserProvider } from "../contexts/UserContext";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { RealtimeProvider } from "../contexts/RealtimeProvider";
+import * as NavigationBar from "expo-navigation-bar";
 
 const queryClient = new QueryClient();
 
 export default function RootLayout() {
   // const colorScheme = useColorScheme();
   const theme = Colors.light;
+
+  useEffect(() => {
+    const setNavBar = async () => {
+      try {
+        // Hide navigation bar
+        await NavigationBar.setVisibilityAsync("hidden");
+        // Keep immersive sticky behavior
+        await NavigationBar.setBehaviorAsync("overlay-swipe");
+      } catch (e) {
+        console.warn("NavigationBar not supported in Expo Go:", e);
+      }
+    };
+
+    setNavBar();
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>

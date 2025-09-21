@@ -346,11 +346,11 @@ export default function uploadID() {
             elderly: completeUserData.vulnerability?.elderly,
             pregnantInfant: [
               ...(completeUserData.vulnerability?.pregnancy === "yes"
-                ? ["pregnant"]
-                : []),
+                ? ["yes"]
+                : ["no"]),
               ...(completeUserData.vulnerability?.infant === "yes"
-                ? ["infant"]
-                : []),
+                ? ["yes"]
+                : ["no"]),
             ],
             physicalPWD:
               completeUserData.vulnerability?.physicalDisability || [],
@@ -422,6 +422,7 @@ export default function uploadID() {
         data: { user },
         error,
       } = await supabase.auth.getUser();
+
       const {data: riskData,error: riskError} = await supabase
       .from('riskScore')
       .insert({
@@ -472,6 +473,56 @@ export default function uploadID() {
         throw new Error("Failed to create riskscore list");
       }
       console.log("riskscore list created:", riskData);
+
+      //ANCHOR - PRIO API CONNECTION
+      const getPrioritization = async () => {
+        try {
+          const response = await fetch('https://xgprio.onrender.com/predict',
+            {
+              method: "POST",
+              headers: {
+                "Content-Type":"application/json"
+              },
+              body: JSON.stringify({
+                values:{
+                  ElderlyScore:             riskData.elderlyScore,
+                  PregnantOrInfantScore:    riskData.pregnantInfantScore,
+                  PhysicalPWDScore:         riskData.physicalPWDScore,
+                  PsychPWDScore:            riskData.psychPWDScore,
+                  SensoryPWDScore:          riskData.sensoryPWDScore,
+                  MedicallyDependentScore:  riskData.medDepScore,
+                  hasGuardian:              riskData.hasGuardian,
+                  locationRiskLevel:        riskData.locationRiskLevel
+                }
+              })
+            }
+          )
+
+          const result = await response.json()
+          console.log("Result: ", result.prediction);
+          return result.prediction
+        } catch (error) {
+          console.error("error in getting prioritization: ", error);
+        }
+      }
+
+      const priorityLevel = await getPrioritization()
+      // Create vulnerability record - with explicit userID
+      const { data: priorityData, error: prioError } = await supabase
+        .from("priority")
+        .insert({
+          prioLevel: parseFloat(priorityLevel),
+          riskScoreID: riskData.id,
+          userID: authResult.user.id,
+        })
+        .select("*")
+        .single();
+
+      console.log("priorty: ", priorityData);
+      if (prioError) {
+        console.error("Error creating priorty:", prioError);
+        throw new Error("Failed to create priorty record");
+      }
 
       // Create vulnerability record - with explicit userID
       const { data: vulnerabilityData, error: vulError } = await supabase

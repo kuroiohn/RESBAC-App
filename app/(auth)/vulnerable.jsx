@@ -434,6 +434,55 @@ const Vulnerable = () => {
         }
         console.log("riskscore list created:", riskData);
 
+        //ANCHOR - PRIO API CONNECTION
+        const getPrioritization = async () => {
+          try {
+            const response = await fetch('https://xgprio.onrender.com/predict',
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type":"application/json"
+                },
+                body: JSON.stringify({
+                  values:{
+                    ElderlyScore:             riskData.elderlyScore,
+                    PregnantOrInfantScore:    riskData.pregnantInfantScore,
+                    PhysicalPWDScore:         riskData.physicalPWDScore,
+                    PsychPWDScore:            riskData.psychPWDScore,
+                    SensoryPWDScore:          riskData.sensoryPWDScore,
+                    MedicallyDependentScore:  riskData.medDepScore,
+                    hasGuardian:              riskData.hasGuardian,
+                    locationRiskLevel:        riskData.locationRiskLevel
+                  }
+                })
+              }
+            )
+
+            const result = await response.json()
+            console.log("Result: ", result.prediction);
+            return result.prediction
+          } catch (error) {
+            console.error("error in getting prioritization: ", error);
+          }
+        }
+
+        const priorityLevel = await getPrioritization()
+        // Create vulnerability record - with explicit userID
+        const { data: priorityData, error: prioError } = await supabase
+          .from("priority")
+          .update({
+            prioLevel: parseFloat(priorityLevel),
+            riskScoreID: riskData.id,
+            userID: user.id,
+          })
+          .eq("riskScoreID", riskData.id)
+
+        console.log("priorty: ", priorityData);
+        if (prioError) {
+          console.error("Error creating priorty:", prioError);
+          throw new Error("Failed to create priorty record");
+        }
+
         Alert.alert(
           "Success",
           "Profile updated!",
@@ -578,8 +627,8 @@ const Vulnerable = () => {
                     setDueDate(date);
                     // clearFieldError("duedate");
                   }}
-                  minimumDate={new Date(1900, 1, 1)}
-                  maximumDate={(new Date()).setFullYear((new Date()).getFullYear() + 2)}
+                  minimumDate={new Date()}
+                  maximumDate={(new Date()).setFullYear((new Date()).getFullYear() + 1)}
                   placeholder='Due Date'
                   // disabled={!isAgreed}
                 />

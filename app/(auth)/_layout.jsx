@@ -1,10 +1,21 @@
 import { useColorScheme } from "react-native";
 import { Stack } from "expo-router";
 import { Colors } from "../../constants/Colors";
+import { useEffect } from "react";
+import supabase from "../../contexts/supabaseClient";
 
 export default function AuthLayout() {
   const colorScheme = useColorScheme();
   const theme = Colors[colorScheme] ?? Colors.light;
+
+  useEffect(()=> {
+    const mountSignOut = async () => {
+      await supabase.auth.signOut()
+      console.log("Logged out");
+    }
+
+    mountSignOut()
+  },[])
 
   return (
     <Stack

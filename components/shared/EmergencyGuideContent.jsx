@@ -35,17 +35,36 @@ const EmergencyGuideContent = () => {
   
   useEffect(() => {
     const getSession = async () => {
-      const {data:{getsession}} = await supabase.auth.getSession()
-      setSession(getsession)
+      const {data} = await supabase.auth.getSession()
+          console.log("Initial session:", data.session); 
+          console.log("Initial user:", user); 
+      setSession(data.session)
     }
     getSession()
+
+    const mountSignOut = async () => {
+      await supabase.auth.signOut()
+      console.log("Logged out");
+    }
+
+    if (!user) mountSignOut()
+
+    // also listen for login/logout changes
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setSession(session);
+      }
+    );
 
     // simulate loading
     const timer = setTimeout(() => {
       setLoading(false);
     }, 500);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer)
+      authListener.subscription.unsubscribe();
+    }
   }, []);
 
   if (loading) {
@@ -100,11 +119,11 @@ const EmergencyGuideContent = () => {
 
         {/* Alerts + Guide only in initial state */}
         {
-          (!session && !user) && 
+          (!session) && 
           (
             <>
-          <ThemedText style={styles.textLeft}>Alerts</ThemedText>
-        <AlertCard />
+              <ThemedText style={styles.textLeft}>Alerts</ThemedText>
+              <AlertCard />
             </>
         )}
           

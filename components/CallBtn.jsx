@@ -10,13 +10,19 @@ import {
 import supabase from "../contexts/supabaseClient";
 import { useUser } from "../hooks/useUser";
 
-const CallButton = ({ onAnimationStart, onAnimationFinish, disabled, onPress }) => {
+const CallButton = ({
+  onAnimationStart,
+  onAnimationFinish,
+  disabled,
+  onPress,
+}) => {
   const { user } = useUser();
   const animationRef = useRef(null);
   const phoneNumber = "09684319082";
   const [isDisabled, setIsDisabled] = useState(false);
 
-  const handlePress = () => {
+  {
+    /*const handlePress = () => {
     if (isDisabled || disabled) return;
 
     if (onAnimationStart) onAnimationStart();
@@ -31,6 +37,24 @@ const CallButton = ({ onAnimationStart, onAnimationFinish, disabled, onPress }) 
       onPress && onPress()
       // if (onAnimationFinish) onAnimationFinish();
       setIsDisabled(false);
+    }, 2000); */
+  }
+
+  const handlePress = () => {
+    if (isDisabled || disabled) return;
+
+    onPress && onPress();
+
+    if (onAnimationStart) onAnimationStart();
+    setIsDisabled(true);
+
+    animationRef.current?.reset();
+    animationRef.current?.play();
+
+    setTimeout(() => {
+      animationRef.current?.reset(); // reset so it's ready for next press
+      if (onAnimationFinish) onAnimationFinish();
+      setIsDisabled(false);
     }, 2000);
   };
 
@@ -40,10 +64,16 @@ const CallButton = ({ onAnimationStart, onAnimationFinish, disabled, onPress }) 
     //   console.error("Error fetching auth user: ", userError);
     // }
 
-    const now = new Date()
+    const now = new Date();
     const { data, error } = await supabase
       .from("user")
-      .update({ pressedCallBtn: new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0,-1) })
+      .update({
+        pressedCallBtn: new Date(
+          now.getTime() - now.getTimezoneOffset() * 60000
+        )
+          .toISOString()
+          .slice(0, -1),
+      })
       .eq("userID", user.id)
       .select();
 

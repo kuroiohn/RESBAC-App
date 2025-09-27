@@ -27,7 +27,6 @@ const AlertCard = ({ alertLevel = 1 }) => {
     return date.toLocaleTimeString([], {
       hour: "2-digit",
       minute: "2-digit",
-      second: "2-digit",
       hour12: true,
       //timeZone: 'UTC'
     });
@@ -138,18 +137,18 @@ const AlertCard = ({ alertLevel = 1 }) => {
 
                       {/*<Text style={styles.timeText}>{formattedTime}</Text>*/}
                       <Text style={styles.timeText}>
-                        Date: {formattedTime(alert.created_at)}
+                      {formattedTime(alert.created_at)}
                       </Text>
-                      {alert.alertType == "Fire" && (
+                      {alert.alertType == "fire" && (
                         <Text style={styles.meterText}>
-                          Location: {alert.alertLocation}
+                          Near {alert.alertLocation}
                         </Text>
                       )}
 
                       {/* if flooding only */}
-                      {alert.alertType === "Flood" && (
+                      {alert.alertType === "flood" && (
                         <Text style={styles.meterText}>
-                          Alert {alertLevel} • {waterLevel} meters
+                          {alert.riverLevel} meters
                         </Text>
                       )}
                     </View>

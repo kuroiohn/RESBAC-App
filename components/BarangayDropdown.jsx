@@ -4,23 +4,50 @@ import DropDownPicker from "react-native-dropdown-picker";
 import { StyleSheet } from "react-native";
 import { Colors } from "../constants/Colors";
 
-const barangays = [
-  { label: "Barangka", value: "Barangka" },
-  { label: "Calumpang", value: "Calumpang" },
-  { label: "Concepcion I", value: "Concepcion I" },
-  { label: "Concepcion II", value: "Concepcion II" },
-  { label: "Fortune", value: "Fortune" },
-  { label: "Industrial Valley Complex", value: "Industrial Valley Complex" },
-  { label: "Jesus dela Peña", value: "Jesus dela Peña" },
-  { label: "Malanday", value: "Malanday" },
-  { label: "Marikina Heights", value: "Marikina Heights" },
-  { label: "Nangka", value: "Nangka" },
-  { label: "Parang", value: "Parang" },
-  { label: "San Roque", value: "San Roque" },
-  { label: "Santa Elena", value: "Santa Elena" },
-  { label: "Santo Niño", value: "Santo Niño" },
-  { label: "Tañong", value: "Tañong" },
-  { label: "Tumana", value: "Tumana" },
+const streets = [
+  { label: "Ampalaya Street", value: "Ampalaya Street" },
+  { label: "Angel Santos Street", value: "Angel Santos Street" },
+  { label: "Bagong Farmers Avenue 1", value: "Bagong Farmers Avenue 1" },
+  { label: "Bagong Farmers Avenue 2", value: "Bagong Farmers Avenue 2" },
+  { label: "Banner Street", value: "Banner Street" },
+  { label: "Camia Street", value: "Camia Street" },
+  { label: "Cattleya Street", value: "Cattleya Street" },
+  { label: "Crescent Street", value: "Crescent Street" },
+  { label: "Daisy Street", value: "Daisy Street" },
+  { label: "Ilaw Street", value: "Ilaw Street" },
+  { label: "Jasmin Street", value: "Jasmin Street" },
+  { label: "Jewelmark Street", value: "Jewelmark Street" },
+  { label: "Katipunan Street", value: "Katipunan Street" },
+  { label: "Kangkong Street", value: "Kangkong Street" },
+  { label: "Labanos Street", value: "Labanos Street" },
+  { label: "Lacewing Street", value: "Lacewing Street" },
+  { label: "Liwanag Street Area", value: "Liwanag Street Area" },
+  { label: "Lower Pipino Street", value: "Lower Pipino Street" },
+  { label: "Mais Street", value: "Mais Street" },
+  { label: "Malunggay Street", value: "Malunggay Street" },
+  { label: "Mil Flores Street", value: "Mil Flores Street" },
+  { label: "Monggo Street", value: "Monggo Street" },
+  { label: "Monarch Street", value: "Monarch Street" },
+  { label: "Moscow Street", value: "Moscow Street" },
+  { label: "Okra Street", value: "Okra Street" },
+  { label: "Old Barangay", value: "Old Barangay" },
+  {
+    label: "Palay Street (creekside section)",
+    value: "Palay Street (creekside section)",
+  },
+  { label: "Pipino Street", value: "Pipino Street" },
+  { label: "Road 1", value: "Road 1" },
+  { label: "Road 2", value: "Road 2" },
+  { label: "Road 3", value: "Road 3" },
+  { label: "Road 4", value: "Road 4" },
+  { label: "Road 5", value: "Road 5" },
+  { label: "Road Dike", value: "Road Dike" },
+  { label: "Silverdrop Street", value: "Silverdrop Street" },
+  { label: "Singkamas Street", value: "Singkamas Street" },
+  { label: "Sunkist Street", value: "Sunkist Street" },
+  { label: "Swallowtail Street", value: "Swallowtail Street" },
+  { label: "Talong Street", value: "Talong Street" },
+  { label: "Upo Street", value: "Upo Street" },
 ];
 
 const BarangayDropdown = ({ value, onChange, disabled }) => {
@@ -30,13 +57,13 @@ const BarangayDropdown = ({ value, onChange, disabled }) => {
     <DropDownPicker
       open={open}
       value={value}
-      items={barangays}
+      items={streets}
       setOpen={setOpen}
       setValue={(callback) => {
         const newValue = callback(value);
         onChange(newValue);
       }}
-      placeholder='Select Barangay'
+      placeholder='Select Street'
       disabled={disabled}
       listMode='SCROLLVIEW'
       scrollViewProps={{

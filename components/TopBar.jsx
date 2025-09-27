@@ -1,6 +1,6 @@
 import { View, Text, Image, StyleSheet, TouchableOpacity } from "react-native";
 import Logo from "../assets/RESBACLogo.png";
-import profilePic from "../assets/ProfilePic.png";
+import profilePic from "../assets/ProfilePic.jpg";
 
 //themed components
 import ThemedView from "../components/ThemedView";
@@ -74,9 +74,10 @@ const TopBar = () => {
       <TouchableOpacity onPress={goToProfile}>
         <Image
           source={
-            userData?.[0]?.profilePic && typeof userData?.[0]?.profilePic === "string"
-            ? { uri: userData?.[0]?.profilePic.toString() }
-            : profilePic
+            userData?.[0]?.profilePic &&
+            typeof userData?.[0]?.profilePic === "string"
+              ? { uri: userData?.[0]?.profilePic.toString() }
+              : profilePic
           }
           style={styles.profile}
         />

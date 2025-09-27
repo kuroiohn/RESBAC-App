@@ -8,6 +8,7 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   View,
+  Image,
 } from "react-native";
 // Navigation components from Expo
 import { Link } from "expo-router";
@@ -38,6 +39,9 @@ import GenderSelector from "../../components/GenderSelector";
 import supabase from "../../contexts/supabaseClient";
 import { differenceInYears } from "date-fns";
 
+import Logo from "../../assets/RESBACLogo.png";
+import TermsModal from "../../components/TermsModal";
+
 /**
  * Registration component that handles user registration form
  * Collects user information, validates inputs, and submits to backend
@@ -45,6 +49,7 @@ import { differenceInYears } from "date-fns";
 const Register = () => {
   // Form field state variables
   const { user: checkUser, logout } = useUser();
+  const [showTerms, setShowTerms] = useState(false);
 
   // Force clear any existing session when registration screen loads
   useEffect(() => {
@@ -235,9 +240,14 @@ const Register = () => {
         <ThemedView style={styles.container} safe={true}>
           {/* Top part of the form */}
           <Spacer height={44} />
-          <ThemedLogo />
-          <TitleText type='title1'>RESBAC</TitleText>
-          <TitleText type='title3'>Sign in to start your session</TitleText>
+          <View style={styles.headerRow}>
+            <Image source={Logo} style={styles.logo} />
+            <TitleText type='title1' style={styles.title}>
+              RESBAC
+            </TitleText>
+          </View>
+          <Spacer height={10} />
+          <TitleText type='title3'>Register to start your session</TitleText>
           <Spacer />
 
           {/* THE USER AGREEMENT SECTION */}
@@ -249,19 +259,23 @@ const Register = () => {
                 setIsAgreed(!isAgreed);
                 setError(null);
               }}
-              color={Colors.primary} // stroke/fill color
+              color={Colors.primary}
             />
             <Text style={styles.agreementText}>
               I agree to the{" "}
               <Text
                 style={styles.linkText}
-                onPress={() => {
-                  // Navigate to T&C page
-                }}
+                onPress={() => setShowTerms(true)} // open modal
               >
                 Terms and Conditions
               </Text>
             </Text>
+
+            {/* The Terms & Conditions Modal */}
+            <TermsModal
+              visible={showTerms}
+              onClose={() => setShowTerms(false)}
+            />
           </View>
 
           <>
@@ -556,5 +570,21 @@ const styles = StyleSheet.create({
     height: 2, // Thickness of the line
     backgroundColor: Colors.primary, // Make sure to define a primary blue color in Colors.js
     marginLeft: 10,
+  },
+
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 0, // or use marginLeft on text if your Expo doesn’t support gap
+  },
+  logo: {
+    width: 50,
+    height: 50,
+    resizeMode: "contain", // prevent stretching
+  },
+  title: {
+    fontSize: 25,
+    fontWeight: "bold",
+    marginLeft: 8,
   },
 });

@@ -5,6 +5,8 @@ import {
   Text,
   StyleSheet,
   Linking,
+  Modal,
+  View,
 } from "react-native";
 import { useState, useRef, useEffect, use } from "react";
 
@@ -27,7 +29,14 @@ const Home = () => {
   const [callRequested, setCallRequested] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const navigation = useNavigation();
-  const [callstep,setCallstep] = useState(0)
+  const [callstep, setCallstep] = useState(0);
+  const [showCallPicker, setShowCallPicker] = useState(false);
+  const [selectedNumber, setSelectedNumber] = useState(null);
+
+  const contacts = [
+    { name: "Marikina Local", number: "161" },
+    { name: "Red Cross Marikina", number: "143" },
+  ];
 
   useEffect(() => {
     const userid = user.id;
@@ -53,12 +62,11 @@ const Home = () => {
         console.error("Fetch error in supabase pressedCallBtn: ", error);
       }
       console.log("Successful fetch", data.pressedCallBtn);
-      if (data){
-        setCallRequested((data.pressedCallBtn ? true : false));
-        setCallstep((data.pressedCallBtn ? 2 : 0))
+      if (data) {
+        setCallRequested(data.pressedCallBtn ? true : false);
+        setCallstep(data.pressedCallBtn ? 2 : 0);
       } else {
         console.warn("No row found in pressedcallbtn for user ", user.id);
-        
       }
 
       return data;
@@ -80,9 +88,9 @@ const Home = () => {
           console.log("Change received!", payload);
 
           if (payload.new?.pressedCallBtn !== undefined) {
-            setCallRequested((payload.new.pressedCallBtn ? true : false));
+            setCallRequested(payload.new.pressedCallBtn ? true : false);
             console.log("Realtime pressedCall: ", callRequested);
-            setCallstep((payload.new.pressedCallBtn ? 2 : 1))
+            setCallstep(payload.new.pressedCallBtn ? 2 : 1);
           }
         }
       )
@@ -116,10 +124,51 @@ const Home = () => {
     }).start();
   };
 
+  const handleSelectNumber = async (contact) => {
+    setShowCallPicker(false);
+    setCallstep(1); // entering "animating" state
+    setCallRequested(false);
+
+    // start button animation
+    handleAnimationStart();
+
+    // wait briefly for animation before proceeding
+    setTimeout(async () => {
+      handleAnimationFinish(); // complete animation
+      setCallstep(2);
+      setCallRequested(true);
+
+      // now open dialer
+      const url = `tel:${contact.number}`;
+      try {
+        await Linking.openURL(url);
+
+        // update supabase
+        const now = new Date();
+        const { data, error } = await supabase
+          .from("user")
+          .update({
+            pressedCallBtn: new Date(
+              now.getTime() - now.getTimezoneOffset() * 60000
+            )
+              .toISOString()
+              .slice(0, -1),
+          })
+          .eq("userID", user.id)
+          .select();
+
+        console.log("updated call btn:", data, error);
+      } catch (err) {
+        console.error("Error opening dialer: ", err);
+      }
+    }, 800); // adjust delay to match your animation duration
+  };
+
   const handleCallPress = async () => {
     if (callstep === 0) {
-      setCallstep(1); // First press
-      setCallRequested(false);
+      // setCallstep(1); // First press
+      // setCallRequested(false);
+      setShowCallPicker(true); // show picker popup
     } else if (callstep === 1) {
       const phoneNumber = "09684319082";
       const url = `tel:${phoneNumber}`;
@@ -155,7 +204,7 @@ const Home = () => {
     }).start(() => {
       setAnimating(false);
       setCallRequested(false);
-      setCallstep(0)
+      setCallstep(0);
     });
 
     const {
@@ -205,12 +254,11 @@ const Home = () => {
             <Spacer />
 
             <MarkSafeBtn />
-
           </>
         )}
 
         {/* Animating state */}
-        {callstep===1 && !callRequested && (
+        {callstep === 1 && !callRequested && (
           <>
             <ThemedText style={{ marginTop: 20, fontWeight: "bold" }}>
               Calling for help...
@@ -226,7 +274,7 @@ const Home = () => {
         )}
 
         {/* After request */}
-        {callRequested && callstep===2 && (
+        {callRequested && callstep === 2 && (
           <Animated.View style={{ alignItems: "center" }}>
             <ThemedText style={{ marginVertical: 10, textAlign: "center" }}>
               Please stand by, or look for a safe {"\n"}
@@ -236,7 +284,7 @@ const Home = () => {
             <CallButton
               onAnimationStart={handleAnimationStart}
               onAnimationFinish={handleAnimationFinish}
-              disabled={callstep===2}
+              disabled={callstep === 2}
             />
             <Spacer />
             <TouchableOpacity onPress={handleCancel} style={styles.cancelBtn}>
@@ -246,13 +294,49 @@ const Home = () => {
           </Animated.View>
         )}
         {callRequested && <MarkSafeBtn />}
-      {/* Alerts + Guide only in initial state */}
-        { callstep !== 1 &&
-          (<>
-          <ThemedText style={styles.textLeft}>Alerts</ThemedText>
-          <AlertCard />
-          </>)}
+        {/* Alerts + Guide only in initial state */}
+        {callstep !== 1 && (
+          <>
+            <ThemedText style={styles.textLeft}>Alerts</ThemedText>
+            <AlertCard />
+          </>
+        )}
       </ThemedView>
+
+      <Modal
+        visible={showCallPicker}
+        transparent={true}
+        animationType='slide'
+        onRequestClose={() => setShowCallPicker(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            <Text
+              style={{ fontSize: 18, fontWeight: "bold", marginBottom: 10 }}
+            >
+              Choose who to call
+            </Text>
+
+            {contacts.map((c, i) => (
+              <TouchableOpacity
+                key={i}
+                style={styles.contactBtn}
+                onPress={() => handleSelectNumber(c)}
+              >
+                <Text style={{ fontSize: 16 }}>{c.name}</Text>
+                <Text style={{ fontSize: 14, color: "#555" }}>{c.number}</Text>
+              </TouchableOpacity>
+            ))}
+
+            <TouchableOpacity
+              onPress={() => setShowCallPicker(false)}
+              style={styles.cancelBtn}
+            >
+              <Text style={styles.cancelBtnText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 };
@@ -289,11 +373,34 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 8,
     alignItems: "center",
+    justifyContent: "center",
+    alignItems: "center",
+    alignSelf: "center",
+    marginTop: 20,
     width: 200,
     height: 40,
   },
   cancelBtnText: {
     color: "white",
     fontWeight: "bold",
+  },
+
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalBox: {
+    backgroundColor: "white",
+    padding: 20,
+    borderRadius: 12,
+    width: "80%",
+    alignItems: "stretch",
+  },
+  contactBtn: {
+    padding: 12,
+    borderBottomWidth: 1,
+    borderColor: "#ddd",
   },
 });

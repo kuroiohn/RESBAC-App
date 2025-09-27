@@ -6,6 +6,7 @@ import { UserProvider } from "../contexts/UserContext";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { RealtimeProvider } from "../contexts/RealtimeProvider";
 import * as NavigationBar from "expo-navigation-bar";
+import { useEffect } from "react";
 
 const queryClient = new QueryClient();
 

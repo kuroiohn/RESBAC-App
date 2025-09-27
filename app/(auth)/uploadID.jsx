@@ -269,6 +269,62 @@ export default function uploadID() {
 
       console.log("Address created:", addressData);
 
+      //ANCHOR - CLUSTERING
+      const {data:clusterData, error:clusterError} = await supabase
+      .from('cluster')
+      .select()
+
+      if (clusterError) {
+        console.error("Error fetching cluster data:", clusterError);
+      }
+
+      const response = await fetch(
+        "https://kmeanscluster.onrender.com/cluster",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            n_clusters: clusterData.length < 1 ? 1 : Math.max(...clusterData.map((c) => c.clusterNumber)),
+            data: [
+              {
+              userID: authResult.user.id,
+              coords: locationData.coordinates.split(",").map(Number)
+            }
+          ],
+          }),
+        }
+      );
+
+      const result = await response.json();
+      console.log("Result: ", result.clusters);
+
+      let clusterID = null
+      //ANCHOR - update cluster table
+      for (const c of result.clusters) {
+        const { data: clusterRow, error: clusterUpsertError } = await supabase
+        .from("cluster")
+        .upsert(
+          {
+            userID: c.userID,
+            clusterNumber: c.cluster + 1,
+          },
+          { onConflict: ["userID"] } // ensures update if exists
+        )
+        .select("*")
+
+        if (clusterUpsertError) {
+          console.error(`Error updating userID:`, clusterUpsertError);
+          continue;
+        } else {
+          console.log("Cluster row:", clusterRow);
+          if (c.userID === authResult.user.id) {
+            clusterID = clusterRow[0].id; // keep your new user’s cluster
+          }
+        }
+      }
+
       // Create guardian record if guardian exists - with explicit userID
       const guardianData =
         completeUserData.vulnerability?.hasGuardian === "yes" &&
@@ -513,6 +569,11 @@ export default function uploadID() {
 
       console.log("Verification created:", verifData);
 
+      //TODO - insert to cluster table
+      // get clustering from old model if no model yet
+      // include cluster.id to user table clusterID
+
+
       const { error: userError } = await supabase
         .from("user")
         .insert({
@@ -533,6 +594,7 @@ export default function uploadID() {
           vulnerabilityID: vulnerabilityData.id,
           verificationID: verifData.id,
           prioID: priorityData.id,
+          clusterID: clusterID
         })
         .select("*");
 

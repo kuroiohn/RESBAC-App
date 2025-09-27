@@ -47,7 +47,7 @@ const EmergencyGuideContent = () => {
       console.log("Logged out");
     }
 
-    if (!user) mountSignOut()
+    if (!user && !session) mountSignOut()
 
     // also listen for login/logout changes
     const { data: authListener } = supabase.auth.onAuthStateChange(

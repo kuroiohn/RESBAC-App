@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   Image,
   Alert,
   ScrollView,
+  ActivityIndicator,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter, useLocalSearchParams } from "expo-router";
@@ -22,6 +23,8 @@ import * as FileSystem from "expo-file-system/legacy";
 import mime from "mime";
 import { decode as atob, encode as btoa } from "base-64";
 import { ImageManipulator, SaveFormat } from "expo-image-manipulator";
+import Logo from "../../assets/RESBACLogo.png";
+import TitleText from "../../components/TitleText";
 
 export default function uploadID() {
   let pregnantID = null; // not insecure, its sandwiched anyways
@@ -31,6 +34,7 @@ export default function uploadID() {
   const router = useRouter();
   const { userData } = useLocalSearchParams();
   const { register } = useUser();
+  const [isUploading, setIsUploading] = useState(false);
 
   // Parse all the collected user data
   const completeUserData = userData ? JSON.parse(userData) : {};
@@ -125,6 +129,7 @@ export default function uploadID() {
   //ANCHOR - image upload function here
   const uploadProofs = async (uri, userID) => {
     try {
+      setIsUploading(true); // loading
       if (!userID) throw new Error("No user id!");
 
       // const ext = uri.split(".").pop();
@@ -157,6 +162,8 @@ export default function uploadID() {
     } catch (error) {
       console.error("Image upload error in upload proof: ", error);
       Alert.alert("Error", error.message);
+    } finally {
+      setIsUploading(false); // stop loading
     }
   };
 
@@ -270,9 +277,9 @@ export default function uploadID() {
       console.log("Address created:", addressData);
 
       //ANCHOR - CLUSTERING
-      const {data:clusterData, error:clusterError} = await supabase
-      .from('cluster')
-      .select()
+      const { data: clusterData, error: clusterError } = await supabase
+        .from("cluster")
+        .select();
 
       if (clusterError) {
         console.error("Error fetching cluster data:", clusterError);
@@ -286,13 +293,16 @@ export default function uploadID() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            n_clusters: clusterData.length < 1 ? 1 : Math.max(...clusterData.map((c) => c.clusterNumber)),
+            n_clusters:
+              clusterData.length < 1
+                ? 1
+                : Math.max(...clusterData.map((c) => c.clusterNumber)),
             data: [
               {
-              userID: authResult.user.id,
-              coords: locationData.coordinates.split(",").map(Number)
-            }
-          ],
+                userID: authResult.user.id,
+                coords: locationData.coordinates.split(",").map(Number),
+              },
+            ],
           }),
         }
       );
@@ -300,19 +310,19 @@ export default function uploadID() {
       const result = await response.json();
       console.log("Result: ", result.clusters);
 
-      let clusterID = null
+      let clusterID = null;
       //ANCHOR - update cluster table
       for (const c of result.clusters) {
         const { data: clusterRow, error: clusterUpsertError } = await supabase
-        .from("cluster")
-        .upsert(
-          {
-            userID: c.userID,
-            clusterNumber: c.cluster + 1,
-          },
-          { onConflict: ["userID"] } // ensures update if exists
-        )
-        .select("*")
+          .from("cluster")
+          .upsert(
+            {
+              userID: c.userID,
+              clusterNumber: c.cluster + 1,
+            },
+            { onConflict: ["userID"] } // ensures update if exists
+          )
+          .select("*");
 
         if (clusterUpsertError) {
           console.error(`Error updating userID:`, clusterUpsertError);
@@ -428,57 +438,83 @@ export default function uploadID() {
       }
       console.log("Vulnerability list created:", vulnerabilityListData);
 
-
       const {
         data: { user },
         error,
       } = await supabase.auth.getUser();
 
-      const {data: riskData,error: riskError} = await supabase
-      .from('riskScore')
-      .insert({
-        elderlyScore: (
-          completeUserData.age >= 90 ? 4 :    // 90+      
-          completeUserData.age >= 80 ? 3 :    // 80 - 89
-          completeUserData.age >= 70 ? 2 :    // 70 - 79 
-          completeUserData.age >= 60 ? 1 : 0  // 60 - 69 
-        ),
-        pregnantInfantScore: (
-          completeUserData.vulnerability?.pregnancy === "yes" && completeUserData.vulnerability?.infant === "yes" ? 4 :
-          completeUserData.vulnerability?.pregnancy === "yes" || completeUserData.vulnerability?.infant === "yes" ? 2 : 0          
-        ),
-        physicalPWDScore: (
-          completeUserData.vulnerability?.physicalDisability?.length >= 4 ? 4 :
-          completeUserData.vulnerability?.physicalDisability?.length === 3 ? 3 :
-          completeUserData.vulnerability?.physicalDisability?.length === 2 ? 2 :
-          completeUserData.vulnerability?.physicalDisability?.length === 1 ? 1 : 0
-        ),
-        psychPWDScore: (
-          completeUserData.vulnerability?.psychologicalDisability?.length >= 4 ? 4 :
-          completeUserData.vulnerability?.psychologicalDisability?.length === 3 ? 3 :
-          completeUserData.vulnerability?.psychologicalDisability?.length === 2 ? 2 :
-          completeUserData.vulnerability?.psychologicalDisability?.length === 1 ? 1 : 0
-        ),
-        sensoryPWDScore: (
-          completeUserData.vulnerability?.sensoryDisability?.length >= 4 ? 4 :
-          completeUserData.vulnerability?.sensoryDisability?.length === 3 ? 3 :
-          completeUserData.vulnerability?.sensoryDisability?.length === 2 ? 2 :
-          completeUserData.vulnerability?.sensoryDisability?.length === 1 ? 1 : 0
-        ),
-        medDepScore: (
-          completeUserData.vulnerability?.healthCondition?.length >= 4 ? 4 :
-          completeUserData.vulnerability?.healthCondition?.length === 3 ? 3 :
-          completeUserData.vulnerability?.healthCondition?.length === 2 ? 2 :
-          completeUserData.vulnerability?.healthCondition?.length === 1 ? 1 : 0
-        ),
-        hasGuardian: (
-          completeUserData.vulnerability?.hasGuardian === "yes" ? 1 : 0
-        ),
-        locationRiskLevel: 1,
-        userID: authResult.user.id
-      })
-      .select("*")
-      .single();
+      const { data: riskData, error: riskError } = await supabase
+        .from("riskScore")
+        .insert({
+          // 60 - 69
+          elderlyScore:
+            completeUserData.age >= 90
+              ? 4 // 90+
+              : completeUserData.age >= 80
+              ? 3 // 80 - 89
+              : completeUserData.age >= 70
+              ? 2 // 70 - 79
+              : completeUserData.age >= 60
+              ? 1
+              : 0,
+          pregnantInfantScore:
+            completeUserData.vulnerability?.pregnancy === "yes" &&
+            completeUserData.vulnerability?.infant === "yes"
+              ? 4
+              : completeUserData.vulnerability?.pregnancy === "yes" ||
+                completeUserData.vulnerability?.infant === "yes"
+              ? 2
+              : 0,
+          physicalPWDScore:
+            completeUserData.vulnerability?.physicalDisability?.length >= 4
+              ? 4
+              : completeUserData.vulnerability?.physicalDisability?.length === 3
+              ? 3
+              : completeUserData.vulnerability?.physicalDisability?.length === 2
+              ? 2
+              : completeUserData.vulnerability?.physicalDisability?.length === 1
+              ? 1
+              : 0,
+          psychPWDScore:
+            completeUserData.vulnerability?.psychologicalDisability?.length >= 4
+              ? 4
+              : completeUserData.vulnerability?.psychologicalDisability
+                  ?.length === 3
+              ? 3
+              : completeUserData.vulnerability?.psychologicalDisability
+                  ?.length === 2
+              ? 2
+              : completeUserData.vulnerability?.psychologicalDisability
+                  ?.length === 1
+              ? 1
+              : 0,
+          sensoryPWDScore:
+            completeUserData.vulnerability?.sensoryDisability?.length >= 4
+              ? 4
+              : completeUserData.vulnerability?.sensoryDisability?.length === 3
+              ? 3
+              : completeUserData.vulnerability?.sensoryDisability?.length === 2
+              ? 2
+              : completeUserData.vulnerability?.sensoryDisability?.length === 1
+              ? 1
+              : 0,
+          medDepScore:
+            completeUserData.vulnerability?.healthCondition?.length >= 4
+              ? 4
+              : completeUserData.vulnerability?.healthCondition?.length === 3
+              ? 3
+              : completeUserData.vulnerability?.healthCondition?.length === 2
+              ? 2
+              : completeUserData.vulnerability?.healthCondition?.length === 1
+              ? 1
+              : 0,
+          hasGuardian:
+            completeUserData.vulnerability?.hasGuardian === "yes" ? 1 : 0,
+          locationRiskLevel: 1,
+          userID: authResult.user.id,
+        })
+        .select("*")
+        .single();
       if (riskError) {
         console.error("Error creating riskscore list:", riskError);
         throw new Error("Failed to create riskscore list");
@@ -488,36 +524,34 @@ export default function uploadID() {
       //ANCHOR - PRIO API CONNECTION
       const getPrioritization = async () => {
         try {
-          const response = await fetch('https://xgprio.onrender.com/predict',
-            {
-              method: "POST",
-              headers: {
-                "Content-Type":"application/json"
+          const response = await fetch("https://xgprio.onrender.com/predict", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              values: {
+                ElderlyScore: riskData.elderlyScore,
+                PregnantOrInfantScore: riskData.pregnantInfantScore,
+                PhysicalPWDScore: riskData.physicalPWDScore,
+                PsychPWDScore: riskData.psychPWDScore,
+                SensoryPWDScore: riskData.sensoryPWDScore,
+                MedicallyDependentScore: riskData.medDepScore,
+                hasGuardian: riskData.hasGuardian,
+                locationRiskLevel: riskData.locationRiskLevel,
               },
-              body: JSON.stringify({
-                values:{
-                  ElderlyScore:             riskData.elderlyScore,
-                  PregnantOrInfantScore:    riskData.pregnantInfantScore,
-                  PhysicalPWDScore:         riskData.physicalPWDScore,
-                  PsychPWDScore:            riskData.psychPWDScore,
-                  SensoryPWDScore:          riskData.sensoryPWDScore,
-                  MedicallyDependentScore:  riskData.medDepScore,
-                  hasGuardian:              riskData.hasGuardian,
-                  locationRiskLevel:        riskData.locationRiskLevel
-                }
-              })
-            }
-          )
+            }),
+          });
 
-          const result = await response.json()
+          const result = await response.json();
           console.log("Result: ", result.prediction);
-          return result.prediction
+          return result.prediction;
         } catch (error) {
           console.error("error in getting prioritization: ", error);
         }
-      }
+      };
 
-      const priorityLevel = await getPrioritization()
+      const priorityLevel = await getPrioritization();
       // Create vulnerability record - with explicit userID
       const { data: priorityData, error: prioError } = await supabase
         .from("priority")
@@ -573,7 +607,6 @@ export default function uploadID() {
       // get clustering from old model if no model yet
       // include cluster.id to user table clusterID
 
-
       const { error: userError } = await supabase
         .from("user")
         .insert({
@@ -594,7 +627,7 @@ export default function uploadID() {
           vulnerabilityID: vulnerabilityData.id,
           verificationID: verifData.id,
           prioID: priorityData.id,
-          clusterID: clusterID
+          clusterID: clusterID,
         })
         .select("*");
 
@@ -635,7 +668,7 @@ export default function uploadID() {
       );
 
       // TODO - upload file to supabase storage
-      uploadProofs(image, authResult.user.id);
+      await uploadProofs(image, authResult.user.id);
 
       router.replace({
         pathname: "/mpinSetup",
@@ -658,70 +691,94 @@ export default function uploadID() {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.scrollContainer}>
-      <ThemedView style={styles.container} safe={true}>
-        <Spacer height={44} />
-        <ThemedLogo />
+    <View style={{ flex: 1 }}>
+      <ScrollView
+        style={{ flex: 1, backgroundColor: "#fafafa" }}
+        contentContainerStyle={styles.scrollContainer}
+      >
+        <ThemedView style={styles.container} safe={true}>
+          <Spacer height={33} />
+          <View style={styles.headerRow}>
+            <Image source={Logo} style={styles.logo} />
+            <View style={{ marginLeft: 11 }}>
+              <TitleText type='title1' style={styles.title}>
+                RESBAC
+              </TitleText>
+              <TitleText type='title3' style={{ marginLeft: 8 }}>
+                Verification of Account
+              </TitleText>
+            </View>
+          </View>
+          <Spacer />
 
-        <ThemedText
-          style={{ textAlign: "center", fontSize: 27, fontWeight: "600" }}
-        >
-          Verification of Account
-        </ThemedText>
-        <Spacer />
-
-        {/* DEBUG: Show received data */}
-        {completeUserData.name && (
-          <Text
-            style={{ textAlign: "center", color: "green", marginBottom: 10 }}
-          >
-            Almost done for: {completeUserData.name}
-          </Text>
-        )}
-
-        <View style={{ width: "100%", alignItems: "flex-start" }}>
-          <Text style={[styles.title, { textAlign: "left", marginLeft: 15 }]}>
-            Upload a photo of <Text style={styles.bold}>Valid ID</Text>
-          </Text>
-        </View>
-
-        <View style={styles.uploadBox}>
-          {image ? (
-            <Image source={{ uri: image }} style={styles.previewImage} />
-          ) : (
-            <Text style={styles.placeholderText}>No image selected</Text>
+          {/* DEBUG: Show received data */}
+          {completeUserData.name && (
+            <Text
+              style={{ textAlign: "center", color: "green", marginBottom: 10 }}
+            >
+              Almost done for: {completeUserData.name}
+            </Text>
           )}
-        </View>
 
-        <TouchableOpacity style={styles.browseButton} onPress={pickImage}>
-          <Text style={styles.browseText}>Browse Files</Text>
-        </TouchableOpacity>
+          <Spacer height={50} />
+          <View style={{ width: "100%", alignItems: "flex-start" }}>
+            <Text
+              style={[styles.title1, { textAlign: "left", marginLeft: 15 }]}
+            >
+              Upload a photo of <Text style={styles.bold}>Valid ID</Text>
+            </Text>
+          </View>
 
-        <Text style={styles.supportedText}>
-          Files supported: JPEG, PNG, HEIC{"\n"}
-          Maximum Size: 5MB
-        </Text>
+          <Spacer height={5} />
+          <View style={styles.uploadBox}>
+            {image ? (
+              <Image source={{ uri: image }} style={styles.previewImage} />
+            ) : (
+              <Text style={styles.placeholderText}>No image selected</Text>
+            )}
+          </View>
 
-        <View style={{ width: "100%", alignItems: "flex-start" }}>
-          <Text style={styles.idListHeader}>
-            These can be any of the following:
+          <TouchableOpacity style={styles.browseButton} onPress={pickImage}>
+            <Text style={styles.browseText}>Browse Files</Text>
+          </TouchableOpacity>
+
+          <Text style={styles.supportedText}>
+            Files supported: JPEG, PNG, HEIC{"\n"}
+            Maximum Size: 5MB
           </Text>
-          <Text style={styles.idList}>
-            - Philippine National ID (PhilID){"\n"}- Passport{"\n"}- Driver's
-            License{"\n"}- Social Security System (SSS){"\n"}- Unified
-            Multi-Purpose ID (UMID){"\n"}- PhilHealth ID{"\n"}- Voter's ID{"\n"}
-            - Professional Regulation Commission (PRC) ID{"\n"}- Postal ID
-          </Text>
-        </View>
 
-        <BackNextButtons
-          onBack={() => router.back()}
-          onNext={handleNext}
-          nextDisabled={isCreating}
-          nextText={isCreating ? "Creating Account..." : "Next: Set MPIN"}
-        />
-      </ThemedView>
-    </ScrollView>
+          <View style={{ width: "100%", alignItems: "flex-start" }}>
+            <Text style={styles.idListHeader}>
+              These can be any of the following:
+            </Text>
+            <Text style={styles.idList}>
+              - Philippine National ID (PhilID){"\n"}- Passport{"\n"}- Driver's
+              License{"\n"}- Social Security System (SSS){"\n"}- Unified
+              Multi-Purpose ID (UMID){"\n"}- PhilHealth ID{"\n"}- Voter's ID
+              {"\n"}- Professional Regulation Commission (PRC) ID{"\n"}- Postal
+              ID
+            </Text>
+          </View>
+
+          <BackNextButtons
+            onBack={() => router.back()}
+            onNext={handleNext}
+            nextDisabled={isCreating}
+            nextText={isCreating ? "Creating Account..." : "Next: Set MPIN"}
+          />
+        </ThemedView>
+      </ScrollView>
+      {(isCreating || isUploading) && (
+        <View style={styles.loadingOverlay}>
+          <View style={styles.loadingBox}>
+            <ActivityIndicator size='large' color='#0060ff' />
+            <Text style={styles.loadingText}>
+              {isUploading ? "Uploading ID..." : "Creating Account..."}
+            </Text>
+          </View>
+        </View>
+      )}
+    </View>
   );
 }
 
@@ -732,7 +789,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 24,
-    backgroundColor: "#fff",
     alignItems: "center",
   },
   title: {
@@ -792,5 +848,51 @@ const styles = StyleSheet.create({
   idList: {
     fontSize: 14,
     color: "#444",
+  },
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "center", // Align to the center
+  },
+  logo: {
+    width: 50,
+    height: 50,
+    resizeMode: "contain", // prevent stretching
+  },
+  title: {
+    fontSize: 25,
+    fontWeight: "bold",
+    marginLeft: 8,
+  },
+  loadingOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0,0,0,0.45)", // softer dim
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 999,
+  },
+
+  loadingBox: {
+    backgroundColor: "#fff",
+    paddingVertical: 24,
+    paddingHorizontal: 32,
+    borderRadius: 16,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 8, // for Android shadow
+  },
+
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#333",
   },
 });

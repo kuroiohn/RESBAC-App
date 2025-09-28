@@ -18,8 +18,8 @@ import { useRealtime } from "../contexts/RealtimeProvider";
 export default function RescuerCard() {
   const [rightHeight, setRightHeight] = useState(0);
 
-  const {emerPData} = useRealtime()
-  
+  const { emerPData } = useRealtime();
+
   // const queryClient = useQueryClient();
   // // reads from supabase
   // const fetchContact = async () => {
@@ -94,65 +94,70 @@ export default function RescuerCard() {
   return (
     <>
       {emerPData?.map((emerP) => (
-        <LinearGradient
-          key={emerP.id}
-          colors={["#0060FF", "rgba(0, 96, 255, 0)"]}
-          start={{ x: 0.5, y: 0 }}
-          end={{ x: 0.5, y: 1 }}
-          style={styles.borderWrapper}
-        >
-          <View style={styles.card}>
-            <View style={styles.row}>
-              {/* Left image */}
-              <Image
-                source={{ uri: emerP.emerPImage }}
-                style={[styles.profileImage, { height: rightHeight }]}
-                resizeMode='cover'
-              />
+        <View key={emerP.id} style={styles.borderWrapper}>
+          <LinearGradient
+            colors={["#0060FF", "rgba(0, 96, 255, 0)"]}
+            start={{ x: 0.5, y: 0 }}
+            end={{ x: 0.5, y: 1 }}
+            style={styles.gradient}
+          >
+            <View style={styles.card}>
+              <View style={styles.row}>
+                {/* Left image */}
+                <Image
+                  source={{ uri: emerP.emerPImage }}
+                  style={[styles.profileImage, { height: rightHeight }]}
+                  resizeMode='cover'
+                />
 
-              {/* Right column */}
-              <View
-                style={styles.rightColumn}
-                onLayout={(event) =>
-                  setRightHeight(event.nativeEvent.layout.height)
-                }
-              >
-                <Text style={styles.name}>{emerP.emerPName}</Text>
-                <Text style={styles.position}>{emerP.emerPRole}</Text>
-                <Text style={styles.barangay}>{emerP.emerPBrgy}</Text>
-
-                {/* Call Button */}
-                <TouchableOpacity
-                  activeOpacity={0.8}
-                  onPress={() => handleContactBtn(emerP.emerPNumber)}
+                {/* Right column */}
+                <View
+                  style={styles.rightColumn}
+                  onLayout={(event) =>
+                    setRightHeight(event.nativeEvent.layout.height)
+                  }
                 >
-                  <LinearGradient
-                    colors={["#0060FF", "#0040B5"]}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
-                    style={styles.callButton}
+                  <Text style={styles.name}>{emerP.emerPName}</Text>
+                  <Text style={styles.position}>{emerP.emerPRole}</Text>
+                  <Text style={styles.barangay}>{emerP.emerPBrgy}</Text>
+
+                  {/* Call Button */}
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    onPress={() => handleContactBtn(emerP.emerPNumber)}
                   >
-                    <Phone color='#fff' size={16} style={{ marginRight: 6 }} />
-                    <Text style={styles.callText}>Call</Text>
-                  </LinearGradient>
-                </TouchableOpacity>
+                    <LinearGradient
+                      colors={["#0060FF", "#0040B5"]}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}
+                      style={styles.callButton}
+                    >
+                      <Phone
+                        color='#fff'
+                        size={16}
+                        style={{ marginRight: 6 }}
+                      />
+                      <Text style={styles.callText}>Call</Text>
+                    </LinearGradient>
+                  </TouchableOpacity>
 
-                {/* Message Button */}
-                <TouchableOpacity
-                  style={styles.messageButton}
-                  activeOpacity={0.8}
-                  onPress={() => handleMsgBtn(emerP.emerPMessLink)}
-                >
-                  <Image
-                    source={require("../assets/messenger-icon.png")}
-                    style={{ width: 16, height: 16, marginRight: 6 }}
-                  />
-                  <Text style={styles.messageText}>Message</Text>
-                </TouchableOpacity>
+                  {/* Message Button */}
+                  <TouchableOpacity
+                    style={styles.messageButton}
+                    activeOpacity={0.8}
+                    onPress={() => handleMsgBtn(emerP.emerPMessLink)}
+                  >
+                    <Image
+                      source={require("../assets/messenger-icon.png")}
+                      style={{ width: 16, height: 16, marginRight: 6 }}
+                    />
+                    <Text style={styles.messageText}>Message</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             </View>
-          </View>
-        </LinearGradient>
+          </LinearGradient>
+        </View>
       ))}
     </>
   );
@@ -236,5 +241,10 @@ const styles = StyleSheet.create({
     color: "#0060FF",
     fontWeight: "600",
     fontSize: 13,
+  },
+
+  gradient: {
+    borderRadius: 14,
+    padding: 1, // keeps thin gradient border
   },
 });

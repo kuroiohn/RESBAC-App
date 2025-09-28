@@ -9,7 +9,11 @@ import {
   Keyboard,
   View,
   Image,
+  TouchableOpacity,
 } from "react-native";
+
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+
 // Navigation components from Expo
 import { Link } from "expo-router";
 import { useRouter } from "expo-router";
@@ -17,18 +21,15 @@ import { useRouter } from "expo-router";
 import { Colors } from "../../constants/Colors";
 import DatePickerInput from "../../components/DatePickerInput";
 import LocationPermissionInput from "../../components/LocationPermissionInput";
+
 //adding checkbox
-import { Checkbox } from "react-native-paper";
 import { useState, useEffect } from "react";
-import { Ionicons } from "@expo/vector-icons";
-import { RadioButton } from "react-native-paper";
 
 // Custom themed components for consistent UI appearance
 import ThemedView from "../../components/ThemedView";
 import ThemedText from "../../components/ThemedText";
 import ThemedTextInput from "../../components/ThemedTextInput";
 import Spacer from "../../components/Spacer";
-import ThemedLogo from "../../components/ThemedLogo";
 import TitleText from "../../components/TitleText";
 import BackNextButtons from "../../components/buttons/BackNextButtons";
 import BarangayDropdown from "../../components/BarangayDropdown";
@@ -235,46 +236,46 @@ const Register = () => {
    * Renders the registration form UI
    */
   return (
-    <ScrollView contentContainerStyle={styles.scrollContainer}>
+    <KeyboardAwareScrollView
+      contentContainerStyle={styles.scrollContainer}
+      enableOnAndroid={true}
+      extraScrollHeight={20} // adds breathing room above keyboard
+      keyboardShouldPersistTaps='handled'
+    >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <ThemedView style={styles.container} safe={true}>
           {/* Top part of the form */}
-          <Spacer height={44} />
+          <Spacer height={33} />
           <View style={styles.headerRow}>
             <Image source={Logo} style={styles.logo} />
-            <TitleText type='title1' style={styles.title}>
-              RESBAC
-            </TitleText>
+            <View style={{ marginLeft: 11 }}>
+              <TitleText type='title1' style={styles.title}>
+                RESBAC
+              </TitleText>
+              <TitleText type='title3' style={{ marginLeft: 8 }}>
+                Register to start your session
+              </TitleText>
+            </View>
           </View>
-          <Spacer height={10} />
-          <TitleText type='title3'>Register to start your session</TitleText>
+
           <Spacer />
 
           {/* THE USER AGREEMENT SECTION */}
           <View style={styles.agreementContainer}>
-            <RadioButton
-              value='agree'
-              status={isAgreed ? "checked" : "unchecked"}
-              onPress={() => {
-                setIsAgreed(!isAgreed);
-                setError(null);
-              }}
-              color={Colors.primary}
-            />
             <Text style={styles.agreementText}>
-              I agree to the{" "}
-              <Text
-                style={styles.linkText}
-                onPress={() => setShowTerms(true)} // open modal
-              >
+              Please review and accept the{"\n"}
+              <Text style={styles.linkText} onPress={() => setShowTerms(true)}>
                 Terms and Conditions
-              </Text>
+              </Text>{" "}
+              before continuing.
             </Text>
 
-            {/* The Terms & Conditions Modal */}
             <TermsModal
               visible={showTerms}
               onClose={() => setShowTerms(false)}
+              onAgree={() => {
+                setIsAgreed(true);
+              }}
             />
           </View>
 
@@ -346,6 +347,7 @@ const Register = () => {
             {/* Sex input field */}
             <GenderSelector
               value={sex}
+              onFocus={() => Keyboard.dismiss()} // close keyboard before opening dropdown
               onChange={(item) => {
                 setSex(item);
                 clearFieldError("sex");
@@ -400,6 +402,7 @@ const Register = () => {
             {/* Barangay input field - ALWAYS REQUIRED */}
             <BarangayDropdown
               value={barangay}
+              onFocus={() => Keyboard.dismiss()} // close keyboard before opening dropdown
               onChange={(value) => {
                 setBarangay(value);
                 clearFieldError("barangay");
@@ -483,7 +486,7 @@ const Register = () => {
           </Link>
         </ThemedView>
       </TouchableWithoutFeedback>
-    </ScrollView>
+    </KeyboardAwareScrollView>
   );
 };
 
@@ -532,15 +535,20 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center", // This correctly aligns the checkbox and text vertically
     marginBottom: 20,
-    width: "80%", // The container width
+    width: "95%", // The container width
+    justifyContent: "center", // Align items to the start (left)
   },
   agreementText: {
     fontSize: 14,
     color: "#555",
+    textAlign: "center",
+    marginLeft: 10,
   },
   linkText: {
     color: Colors.link || "blue",
     textDecorationLine: "underline",
+    textAlign: "left-align",
+    marginLeft: 10,
   },
   inputHint: {
     fontStyle: "italic",
@@ -575,7 +583,7 @@ const styles = StyleSheet.create({
   headerRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 0, // or use marginLeft on text if your Expo doesn’t support gap
+    alignSelf: "center", // Align to the center
   },
   logo: {
     width: 50,

@@ -39,6 +39,7 @@ import PasswordChangeModal from "../../components/PasswordChangeModal";
 import ChangeMpinModal from "../../components/ChangeMpinModal";
 import DropDownPicker from "react-native-dropdown-picker";
 import { MaterialIcons } from "@expo/vector-icons";
+import StreetDropdown from "../../components/StreetDropdown";
 import BarangayDropdown from "../../components/BarangayDropdown";
 
 const Profile = () => {
@@ -556,8 +557,8 @@ const Profile = () => {
       .eq("userID", user.id)
 
     setUserPregnant({
-      dueDate: data?.dueDate,
-      trimester: data?.trimester
+      dueDate: data?.[0].dueDate,
+      trimester: data?.[0].trimester
     });
 
     if (error) {
@@ -885,6 +886,18 @@ const Profile = () => {
   ) => {
     const isEditing = editingSections[section] && editable;
 
+    if (field === "streetName" && isEditing) {
+      return (
+        <View style={styles.rowItem}>
+          <Text style={styles.label}>{label}</Text>
+          <StreetDropdown
+            value={value}
+            onChange={(newValue) => updateField(section, field, newValue)}
+            disabled={false}
+          />
+        </View>
+      );
+    }
     if (field === "brgyName" && isEditing) {
       return (
         <View style={styles.rowItem}>
@@ -1509,9 +1522,8 @@ const Profile = () => {
           "vulnerability",
           "psychPWD",
           "Psychological Disability",
-          // TODO di malagyan ng space
-          Array.isArray(userVul.psychPWD)
-            ? userVul.psychPWD.join(", ")
+          Array.isArray(userVul.psychPWD[0])
+            ? userVul.psychPWD[0].join(", ")
             : userVul.psychPWD?.toString() || "",
           true
         )}

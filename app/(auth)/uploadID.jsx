@@ -43,7 +43,7 @@ export default function uploadID() {
   // Clean location data before saving to database
   // Both manual address and GPS verification are now required
   const getCleanLocationData = (userData) => {
-    const streetName = userData.address || "Unknown Street";
+    const streetName = userData.street || "Unknown Street";
     const defaultCityName = "Unknown City";
     const defaultBrgyName = "Unknown Barangay";
     const defaultCoordinates = "0,0";
@@ -67,14 +67,14 @@ export default function uploadID() {
       userData.location?.address?.subLocality ||
       userData.location?.address?.village ||
       userData.location?.address?.neighborhood ||
-      defaultBrgyName;
+      userData.barangay;
 
     const gpsStreetName =
       userData.location?.address?.road ||
       userData.location?.address?.street ||
       userData.location?.address?.route ||
       userData.location?.address?.address_line ||
-      defaultStreetName;
+      userData.street;
 
     return {
       streetName: gpsStreetName,

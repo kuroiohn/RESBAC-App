@@ -21,7 +21,7 @@ const PickUpLocation = () => {
   const [activeTab, setActiveTab] = useState("evacuationCenter");
   const [activeIndex, setActiveIndex] = useState(0);
   const flatListRef = useRef(null);
-  const {evacData,pickupData} = useRealtime()
+  const { evacData, pickupData } = useRealtime();
 
   // added to remove header in profile tab
   const navigation = useNavigation();
@@ -120,8 +120,8 @@ const PickUpLocation = () => {
         <Ionicons name='call' size={16} color='#0060FF' />
         <Text style={styles.phoneText}>
           {(activeTab === "evacuationCenter"
-          ? currentLocation.evacContact
-          : currentLocation.pickupContact) || "No Number"}
+            ? currentLocation.evacContact
+            : currentLocation.pickupContact) || "No Number"}
         </Text>
       </View>
 
@@ -216,8 +216,8 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   dot: {
-    width: 8,
-    height: 8,
+    width: 5,
+    height: 5,
     borderRadius: 4,
     backgroundColor: "#ccc",
   },

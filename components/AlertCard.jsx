@@ -137,7 +137,7 @@ const AlertCard = ({ alertLevel = 1 }) => {
 
                       {/*<Text style={styles.timeText}>{formattedTime}</Text>*/}
                       <Text style={styles.timeText}>
-                      {formattedTime(alert.created_at)}
+                        {formattedTime(alert.created_at)}
                       </Text>
                       {alert.alertType == "fire" && (
                         <Text style={styles.meterText}>
@@ -227,8 +227,8 @@ const styles = StyleSheet.create({
     paddingTop: -10,
   },
   image: {
-    width: 76,
-    height: 67,
+    width: 66,
+    height: 66,
     marginRight: 16,
     borderRadius: 10,
   },

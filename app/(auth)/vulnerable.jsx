@@ -9,7 +9,9 @@ import {
   View,
   Button,
   Alert,
+  Image,
 } from "react-native";
+import Logo from "../../assets/RESBACLogo.png";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import BackNextButtons from "../../components/buttons/BackNextButtons";
 import ThemedText from "../../components/ThemedText";
@@ -27,7 +29,7 @@ import { useState, useEffect } from "react";
 import supabase from "../../contexts/supabaseClient";
 import { useUser } from "../../hooks/useUser";
 import { differenceInYears } from "date-fns";
-import {Picker} from "@react-native-picker/picker";
+import { Picker } from "@react-native-picker/picker";
 import DatePickerInput from "../../components/DatePickerInput";
 
 const Vulnerable = () => {
@@ -314,9 +316,13 @@ const Vulnerable = () => {
               differenceInYears(new Date(), new Date(data.dateOfBirth)) >= 60
                 ? true
                 : false,
-            pregnantInfant:[
-              data.sex === "Female" ? (pregnancy === "yes" ? "yes" : "no") : "no",
-              hasInfant || "no"
+            pregnantInfant: [
+              data.sex === "Female"
+                ? pregnancy === "yes"
+                  ? "yes"
+                  : "no"
+                : "no",
+              hasInfant || "no",
             ],
             physicalPWD: physicalDisability,
             psychPWD: psychologicalDisability,
@@ -327,107 +333,149 @@ const Vulnerable = () => {
           .eq("userID", user.id);
 
         await supabase
-        .from('vulStatus')
-        .update({
-          physicalStatus: isPDPermanent,
-          psychStatus: isPSYPermament,
-          sensoryStatus: isSDPermament,
-          medDepStatus: isMDPermament,
-        })
-        .eq('userID',user.id)
+          .from("vulStatus")
+          .update({
+            physicalStatus: isPDPermanent,
+            psychStatus: isPSYPermament,
+            sensoryStatus: isSDPermament,
+            medDepStatus: isMDPermament,
+          })
+          .eq("userID", user.id);
 
         //ANCHOR - RISKSCORE
         // add values of the riskscore here
         // make new usestate for all the scores
         // if not, make conditionals
-        const age = differenceInYears(new Date(), new Date(data.dateOfBirth))
+        const age = differenceInYears(new Date(), new Date(data.dateOfBirth));
         console.log({
-          elderlyScore: (
-            age >= 90 ? 4 :    // 90+      
-            age >= 80 ? 3 :    // 80 - 89
-            age >= 70 ? 2 :    // 70 - 79 
-            age >= 60 ? 1 : 0  // 60 - 69 
-          ),
-          pregnantInfantScore: (
-            pregnancy === "yes" && hasInfant === "yes" ? 4 :
-            pregnancy === "yes" || hasInfant === "yes" ? 2 : 0          
-          ),
-          physicalPWDScore: (
-            physicalDisability?.length >= 4 ? 4 :
-            physicalDisability?.length === 3 ? 3 :
-            physicalDisability?.length === 2 ? 2 :
-            physicalDisability?.length === 1 ? 1 : 0
-          ),
-          psychPWDScore: (
-            psychologicalDisability?.length >= 4 ? 4 :
-            psychologicalDisability?.length === 3 ? 3 :
-            psychologicalDisability?.length === 2 ? 2 :
-            psychologicalDisability?.length === 1 ? 1 : 0
-          ),
-          sensoryPWDScore: (
-            sensoryDisability?.length >= 4 ? 4 :
-            sensoryDisability?.length === 3 ? 3 :
-            sensoryDisability?.length === 2 ? 2 :
-            sensoryDisability?.length === 1 ? 1 : 0
-          ),
-          medDepScore: (
-            healthCondition?.length >= 4 ? 4 :
-            healthCondition?.length === 3 ? 3 :
-            healthCondition?.length === 2 ? 2 :
-            healthCondition?.length === 1 ? 1 : 0
-          ),
-          hasGuardian: (
-            hasGuardian === "yes" ? 1 : 0
-          ),
+          // 60 - 69
+          elderlyScore:
+            age >= 90
+              ? 4 // 90+
+              : age >= 80
+              ? 3 // 80 - 89
+              : age >= 70
+              ? 2 // 70 - 79
+              : age >= 60
+              ? 1
+              : 0,
+          pregnantInfantScore:
+            pregnancy === "yes" && hasInfant === "yes"
+              ? 4
+              : pregnancy === "yes" || hasInfant === "yes"
+              ? 2
+              : 0,
+          physicalPWDScore:
+            physicalDisability?.length >= 4
+              ? 4
+              : physicalDisability?.length === 3
+              ? 3
+              : physicalDisability?.length === 2
+              ? 2
+              : physicalDisability?.length === 1
+              ? 1
+              : 0,
+          psychPWDScore:
+            psychologicalDisability?.length >= 4
+              ? 4
+              : psychologicalDisability?.length === 3
+              ? 3
+              : psychologicalDisability?.length === 2
+              ? 2
+              : psychologicalDisability?.length === 1
+              ? 1
+              : 0,
+          sensoryPWDScore:
+            sensoryDisability?.length >= 4
+              ? 4
+              : sensoryDisability?.length === 3
+              ? 3
+              : sensoryDisability?.length === 2
+              ? 2
+              : sensoryDisability?.length === 1
+              ? 1
+              : 0,
+          medDepScore:
+            healthCondition?.length >= 4
+              ? 4
+              : healthCondition?.length === 3
+              ? 3
+              : healthCondition?.length === 2
+              ? 2
+              : healthCondition?.length === 1
+              ? 1
+              : 0,
+          hasGuardian: hasGuardian === "yes" ? 1 : 0,
           locationRiskLevel: 1,
-          userID: user.id
+          userID: user.id,
         });
 
-        const {data: riskData,error: riskError} = await supabase
-        .from('riskScore')
-        .update({
-          elderlyScore: (
-            age >= 90 ? 4 :    // 90+      
-            age >= 80 ? 3 :    // 80 - 89
-            age >= 70 ? 2 :    // 70 - 79 
-            age >= 60 ? 1 : 0  // 60 - 69 
-          ),
-          pregnantInfantScore: (
-            pregnancy === "yes" && hasInfant === "yes" ? 4 :
-            pregnancy === "yes" || hasInfant === "yes" ? 2 : 0          
-          ),
-          physicalPWDScore: (
-            physicalDisability?.length >= 4 ? 4 :
-            physicalDisability?.length === 3 ? 3 :
-            physicalDisability?.length === 2 ? 2 :
-            physicalDisability?.length === 1 ? 1 : 0
-          ),
-          psychPWDScore: (
-            psychologicalDisability?.length >= 4 ? 4 :
-            psychologicalDisability?.length === 3 ? 3 :
-            psychologicalDisability?.length === 2 ? 2 :
-            psychologicalDisability?.length === 1 ? 1 : 0
-          ),
-          sensoryPWDScore: (
-            sensoryDisability?.length >= 4 ? 4 :
-            sensoryDisability?.length === 3 ? 3 :
-            sensoryDisability?.length === 2 ? 2 :
-            sensoryDisability?.length === 1 ? 1 : 0
-          ),
-          medDepScore: (
-            healthCondition?.length >= 4 ? 4 :
-            healthCondition?.length === 3 ? 3 :
-            healthCondition?.length === 2 ? 2 :
-            healthCondition?.length === 1 ? 1 : 0
-          ),
-          hasGuardian: (
-            hasGuardian === "yes" ? 1 : 0
-          ),
-          locationRiskLevel: 1,
-        })
-        .eq("userID",user.id)
-        .select("*")
-        .single();
+        const { data: riskData, error: riskError } = await supabase
+          .from("riskScore")
+          .update({
+            // 60 - 69
+            elderlyScore:
+              age >= 90
+                ? 4 // 90+
+                : age >= 80
+                ? 3 // 80 - 89
+                : age >= 70
+                ? 2 // 70 - 79
+                : age >= 60
+                ? 1
+                : 0,
+            pregnantInfantScore:
+              pregnancy === "yes" && hasInfant === "yes"
+                ? 4
+                : pregnancy === "yes" || hasInfant === "yes"
+                ? 2
+                : 0,
+            physicalPWDScore:
+              physicalDisability?.length >= 4
+                ? 4
+                : physicalDisability?.length === 3
+                ? 3
+                : physicalDisability?.length === 2
+                ? 2
+                : physicalDisability?.length === 1
+                ? 1
+                : 0,
+            psychPWDScore:
+              psychologicalDisability?.length >= 4
+                ? 4
+                : psychologicalDisability?.length === 3
+                ? 3
+                : psychologicalDisability?.length === 2
+                ? 2
+                : psychologicalDisability?.length === 1
+                ? 1
+                : 0,
+            sensoryPWDScore:
+              sensoryDisability?.length >= 4
+                ? 4
+                : sensoryDisability?.length === 3
+                ? 3
+                : sensoryDisability?.length === 2
+                ? 2
+                : sensoryDisability?.length === 1
+                ? 1
+                : 0,
+            medDepScore:
+              healthCondition?.length >= 4
+                ? 4
+                : healthCondition?.length === 3
+                ? 3
+                : healthCondition?.length === 2
+                ? 2
+                : healthCondition?.length === 1
+                ? 1
+                : 0,
+            hasGuardian: hasGuardian === "yes" ? 1 : 0,
+            locationRiskLevel: 1,
+          })
+          .eq("userID", user.id)
+          .select("*")
+          .single();
         if (riskError) {
           console.error("Error creating riskscore list:", riskError);
           throw new Error("Failed to create riskscore list");
@@ -437,36 +485,37 @@ const Vulnerable = () => {
         //ANCHOR - PRIO API CONNECTION
         const getPrioritization = async () => {
           try {
-            const response = await fetch('https://xgprio.onrender.com/predict',
+            const response = await fetch(
+              "https://xgprio.onrender.com/predict",
               {
                 method: "POST",
                 headers: {
-                  "Content-Type":"application/json"
+                  "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                  values:{
-                    ElderlyScore:             riskData.elderlyScore,
-                    PregnantOrInfantScore:    riskData.pregnantInfantScore,
-                    PhysicalPWDScore:         riskData.physicalPWDScore,
-                    PsychPWDScore:            riskData.psychPWDScore,
-                    SensoryPWDScore:          riskData.sensoryPWDScore,
-                    MedicallyDependentScore:  riskData.medDepScore,
-                    hasGuardian:              riskData.hasGuardian,
-                    locationRiskLevel:        riskData.locationRiskLevel
-                  }
-                })
+                  values: {
+                    ElderlyScore: riskData.elderlyScore,
+                    PregnantOrInfantScore: riskData.pregnantInfantScore,
+                    PhysicalPWDScore: riskData.physicalPWDScore,
+                    PsychPWDScore: riskData.psychPWDScore,
+                    SensoryPWDScore: riskData.sensoryPWDScore,
+                    MedicallyDependentScore: riskData.medDepScore,
+                    hasGuardian: riskData.hasGuardian,
+                    locationRiskLevel: riskData.locationRiskLevel,
+                  },
+                }),
               }
-            )
+            );
 
-            const result = await response.json()
+            const result = await response.json();
             console.log("Result: ", result.prediction);
-            return result.prediction
+            return result.prediction;
           } catch (error) {
             console.error("error in getting prioritization: ", error);
           }
-        }
+        };
 
-        const priorityLevel = await getPrioritization()
+        const priorityLevel = await getPrioritization();
         // Create vulnerability record - with explicit userID
         const { data: priorityData, error: prioError } = await supabase
           .from("priority")
@@ -475,7 +524,7 @@ const Vulnerable = () => {
             riskScoreID: riskData.id,
             userID: user.id,
           })
-          .eq("riskScoreID", riskData.id)
+          .eq("riskScoreID", riskData.id);
 
         console.log("priorty: ", priorityData);
         if (prioError) {
@@ -506,16 +555,25 @@ const Vulnerable = () => {
     <ScrollView contentContainerStyle={styles.scrollContainer}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <ThemedView style={styles.container} safe={true}>
-          <Spacer height={44} />
-          <ThemedLogo />
-          <TitleText type='title1'>RESBAC</TitleText>
-          <TitleText type='title3'>Assessing your Vulnerability</TitleText>
+          {/* Top part of the form */}
+          <Spacer height={33} />
+          <View style={styles.headerRow}>
+            <Image source={Logo} style={styles.logo} />
+            <View style={{ marginLeft: 11 }}>
+              <TitleText type='title1' style={styles.title}>
+                RESBAC
+              </TitleText>
+              <TitleText type='title3' style={{ marginLeft: 8 }}>
+                Register to start your session
+              </TitleText>
+            </View>
+          </View>
+          <Spacer height={20} />
           <TitleText type='title3' style={{ textAlign: "center" }}>
             This will serve as your emergency details. {"\n"}Please fill-out all
             of the required details.
           </TitleText>
           <Spacer />
-
           {/* DEBUG: Show received data */}
           {existingUserData.name && (
             <TitleText
@@ -525,7 +583,6 @@ const Vulnerable = () => {
               Data for: {existingUserData.name}
             </TitleText>
           )}
-
           {
             //NOTE - not applicable if edit profile
             from === "register" && (
@@ -598,7 +655,6 @@ const Vulnerable = () => {
               </>
             )
           }
-
           {/* Pregnancy - should only appear if sex selected is female */}
           {(existingUserData.sex?.toLowerCase() === "female" ||
             userSex?.toLowerCase() === "female") && (
@@ -622,16 +678,18 @@ const Vulnerable = () => {
                     onChangeText={setDueDate}
                   /> */}
                   <DatePickerInput
-                  value={dueDate}
-                  onChange={(date) => {
-                    setDueDate(date);
-                    // clearFieldError("duedate");
-                  }}
-                  minimumDate={new Date()}
-                  maximumDate={(new Date()).setFullYear((new Date()).getFullYear() + 1)}
-                  placeholder='Due Date'
-                  // disabled={!isAgreed}
-                />
+                    value={dueDate}
+                    onChange={(date) => {
+                      setDueDate(date);
+                      // clearFieldError("duedate");
+                    }}
+                    minimumDate={new Date()}
+                    maximumDate={new Date().setFullYear(
+                      new Date().getFullYear() + 1
+                    )}
+                    placeholder='Due Date'
+                    // disabled={!isAgreed}
+                  />
                   <Picker
                     selectedValue={trimester}
                     onValueChange={(itemValue) => setTrimester(itemValue)}
@@ -642,24 +700,31 @@ const Vulnerable = () => {
                       borderRadius: 8,
                     }}
                   >
-                    <Picker.Item label="Select trimester" value="" />
-                    <Picker.Item label="1st Trimester(Week 0 - Week 12)" value="1" />
-                    <Picker.Item label="2nd Trimester(Week 13 - Week 26)" value="2" />
-                    <Picker.Item label="3rd Trimester(Week 27 and up)" value="3" />
+                    <Picker.Item label='Select trimester' value='' />
+                    <Picker.Item
+                      label='1st Trimester(Week 0 - Week 12)'
+                      value='1'
+                    />
+                    <Picker.Item
+                      label='2nd Trimester(Week 13 - Week 26)'
+                      value='2'
+                    />
+                    <Picker.Item
+                      label='3rd Trimester(Week 27 and up)'
+                      value='3'
+                    />
                   </Picker>
                 </>
               )}
               <Spacer height={10} />
             </>
           )}
-
           <RadioGroup
             label='Do you have an infant? [0-60months old]?'
             options={infantOptions}
             selectedValue={hasInfant}
             onValueChange={setHasInfant}
           />
-
           {/* Physical Disabilities */}
           <View style={styles.sectionHeader}>
             <TitleText type='title5'>Physical Disability</TitleText>
@@ -765,7 +830,6 @@ const Vulnerable = () => {
               )}
             </View>
           )}
-
           {/* Psychological Disabilities */}
           <View style={styles.sectionHeader}>
             <TitleText type='title5'>Psychological Disability</TitleText>
@@ -864,7 +928,6 @@ const Vulnerable = () => {
               )}
             </View>
           )}
-
           {/* Sensory Disabilities */}
           <View style={styles.sectionHeader}>
             <TitleText type='title5'>Sensory Disability</TitleText>
@@ -946,7 +1009,6 @@ const Vulnerable = () => {
               )}
             </View>
           )}
-
           {/* Health Conditions */}
           <View style={styles.sectionHeader}>
             <TitleText type='title5'>Medically Dependent</TitleText>
@@ -1021,7 +1083,6 @@ const Vulnerable = () => {
               )}
             </View>
           )}
-
           {/* mobility status */}
           {/* <View style={styles.sectionHeader}>
                         <TitleText type='title5'>Mobility Status</TitleText>
@@ -1035,7 +1096,6 @@ const Vulnerable = () => {
                             onValueChange={setMobilityStatus}
                         />
                     </View> */}
-
           {/* //FIXME - add condition to go back to edit profile */}
           {/* Back and Next navigation buttons */}
           <BackNextButtons
@@ -1155,5 +1215,21 @@ const styles = StyleSheet.create({
   fullWidthCheckbox: {
     width: "95%",
     alignSelf: "center", // Centers the component on the screen
+  },
+
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "center", // Align to the center
+  },
+  logo: {
+    width: 50,
+    height: 50,
+    resizeMode: "contain", // prevent stretching
+  },
+  title: {
+    fontSize: 25,
+    fontWeight: "bold",
+    marginLeft: 8,
   },
 });

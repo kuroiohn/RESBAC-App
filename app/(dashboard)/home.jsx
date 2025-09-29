@@ -149,12 +149,11 @@ const Home = () => {
           .from("user")
           .update({
             pressedCallBtn: [
-              new Date(
-              now.getTime() - now.getTimezoneOffset() * 60000
-            )
-              .toISOString()
-              .slice(0, -1).toString(),
-              contact.number.toString()
+              new Date(now.getTime() - now.getTimezoneOffset() * 60000)
+                .toISOString()
+                .slice(0, -1)
+                .toString(),
+              contact.number.toString(),
             ],
           })
           .eq("userID", user.id)

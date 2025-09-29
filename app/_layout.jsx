@@ -7,26 +7,63 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { RealtimeProvider } from "../contexts/RealtimeProvider";
 import * as NavigationBar from "expo-navigation-bar";
 import { useEffect } from "react";
+import * as Notifications from "expo-notifications";
+import Constants from "expo-constants";
 
 const queryClient = new QueryClient();
 
 export default function RootLayout() {
-  // const colorScheme = useColorScheme();
   const theme = Colors.light;
 
   useEffect(() => {
+    // hide nav bar on Android
     const setNavBar = async () => {
       try {
-        // Hide navigation bar
         await NavigationBar.setVisibilityAsync("hidden");
-        // Keep immersive sticky behavior
         await NavigationBar.setBehaviorAsync("overlay-swipe");
       } catch (e) {
         console.warn("NavigationBar not supported in Expo Go:", e);
       }
     };
-
     setNavBar();
+
+    // register for push notifications
+    const registerForPushNotifications = async () => {
+      if (!Constants.isDevice) {
+        console.log("Push notifications require a physical device");
+        return;
+      }
+
+      const { status: existingStatus } =
+        await Notifications.getPermissionsAsync();
+      let finalStatus = existingStatus;
+
+      if (existingStatus !== "granted") {
+        const { status } = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
+      }
+
+      if (finalStatus !== "granted") {
+        console.log("Push notification permission not granted");
+        return;
+      }
+
+      const token = (await Notifications.getExpoPushTokenAsync()).data;
+      console.log("📱 Expo push token:", token);
+
+      // 🚧 later: save this token to Supabase (per user)
+    };
+
+    registerForPushNotifications();
+
+    // how notifications behave while app is foregrounded
+    Notifications.setNotificationHandler({
+      handleNotification: async () => ({
+        shouldShowAlert: true,
+        shouldPlaySound: true,
+        shouldSetBadge: false,
+      }),
+    });
   }, []);
 
   return (
@@ -46,7 +83,6 @@ export default function RootLayout() {
             />
             <Stack.Screen name='(auth)' options={{ headerShown: false }} />
             <Stack.Screen name='(dashboard)' options={{ headerShown: false }} />
-            {/* <Stack.Screen name="emergencyGuide" options={{ title: 'Emergency Guide' }} /> */}
             <Stack.Screen
               name='emergencyGuideGuest'
               options={{ headerShown: false }}

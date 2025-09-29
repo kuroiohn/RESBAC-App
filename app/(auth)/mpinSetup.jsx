@@ -6,6 +6,8 @@ import {
   Easing,
   Pressable,
   Alert,
+  TouchableOpacity,
+  Image,
 } from "react-native";
 import { useEffect, useRef, useState } from "react";
 import { useRouter, useLocalSearchParams } from "expo-router";
@@ -20,6 +22,8 @@ import ThemedView from "../../components/ThemedView";
 import ThemedText from "../../components/ThemedText";
 import Spacer from "../../components/Spacer";
 import ThemedLoader from "../../components/ThemedLoader";
+import Logo from "../../assets/RESBACLogo.png";
+import TitleText from "../../components/TitleText";
 
 const MpinSetup = () => {
   const router = useRouter();
@@ -195,12 +199,20 @@ const MpinSetup = () => {
 
   return (
     <ThemedView style={styles.container}>
-      <ThemedLogo />
-      <Spacer height={20} />
+      <Spacer height={33} />
+      <View style={styles.headerRow}>
+        <Image source={Logo} style={styles.logo} />
+        <View style={{ marginLeft: 11 }}>
+          <TitleText type='title1' style={styles.title}>
+            RESBAC
+          </TitleText>
+          <TitleText type='title3' style={{ marginLeft: 8 }}>
+            {step === "create" ? "Create Your MPIN" : "Confirm Your MPIN"}
+          </TitleText>
+        </View>
+      </View>
 
-      <ThemedText style={styles.title2}>
-        {step === "create" ? "Create Your MPIN" : "Confirm Your MPIN"}
-      </ThemedText>
+      <Spacer height={18} />
       <ThemedText style={styles.title3}>
         {step === "create"
           ? "Choose a 4-digit code for quick access"
@@ -220,6 +232,8 @@ const MpinSetup = () => {
           Setting up MPIN for: {completeUserData.firstName}
         </Text>
       )}
+
+      <Spacer height={44} />
 
       {/* Dot Display */}
       <View style={styles.dotsContainer}>
@@ -383,5 +397,21 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     margin: 5,
+  },
+
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "center", // Align to the center
+  },
+  logo: {
+    width: 50,
+    height: 50,
+    resizeMode: "contain", // prevent stretching
+  },
+  title: {
+    fontSize: 25,
+    fontWeight: "bold",
+    marginLeft: 8,
   },
 });

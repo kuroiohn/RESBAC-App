@@ -577,8 +577,8 @@ const Profile = () => {
   useEffect(() => {
     if (pregnantData) {
       setUserPregnant({
-      dueDate: pregnantData.dueDate,
-      trimester: pregnantData.trimester
+      dueDate: pregnantData?.dueDate,
+      trimester: pregnantData?.trimester
     });
     }
   }, [user]);
@@ -1476,7 +1476,7 @@ const Profile = () => {
               "vulnerability",
               "pregnant",
               "Trimester",
-              userPregnant.trimester,
+              userPregnant?.trimester,
               true
             )}
           </View>}
@@ -1485,7 +1485,7 @@ const Profile = () => {
               "vulnerability",
               "pregnant",
               "Due Date",
-              new Date(userPregnant.dueDate).toLocaleDateString("en-US", {month:"short",year:"numeric"}),
+              new Date(userPregnant?.dueDate).toLocaleDateString("en-US", {month:"short",year:"numeric"}),
               true
             )}
           </View>}

@@ -542,7 +542,7 @@ const Profile = () => {
     }
   }, [user]);
   
-  
+  //ANCHOR - pregnant fetch
   const fetchPregnant = async () => {
     // Get the current logged in user
     const { error: userError } = await supabase.auth.getUser();
@@ -557,8 +557,8 @@ const Profile = () => {
       .eq("userID", user.id)
 
     setUserPregnant({
-      dueDate: data?.[0].dueDate,
-      trimester: data?.[0].trimester
+      dueDate: data?.[0]?.dueDate ?? "",
+      trimester: data?.[0]?.trimester ?? ""
     });
 
     if (error) {
@@ -570,10 +570,12 @@ const Profile = () => {
   const { data: pregnantData, error: pregnantError } = useQuery({
     queryKey: ["pregnant"],
     queryFn: fetchPregnant,
+    enabled: userVul.pregnantInfant[0] === "yes"
   });
   if (pregnantError) {
     console.error("Error in fetching pregnant table: ", pregnantError);
   }
+
   useEffect(() => {
     if (pregnantData) {
       setUserPregnant({

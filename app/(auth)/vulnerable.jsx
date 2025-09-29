@@ -288,6 +288,12 @@ const Vulnerable = () => {
 
     console.log("Complete user data with vulnerability:", completeUserData);
 
+    const { data: existingPregnancy } = await supabase
+    .from("pregnant")
+    .select("*")
+    .eq("userID", user.id)
+    .single();
+    
     if (from === "register") {
       // Navigate to upload screen with all data
       router.push({
@@ -299,13 +305,42 @@ const Vulnerable = () => {
     } else if (from === "profile") {
       try {
         if (pregnancy === "yes") {
-          await supabase
-            .from("pregnant")
-            .update({
+          if (existingPregnancy) {
+            await supabase
+              .from("pregnant")
+              .update({
+                dueDate: dueDate,
+                trimester: trimester,
+              })
+              .eq("userID", user.id);
+          } else {
+            const {data:pregnantData, error: pregnantError} = await supabase
+            .from('pregnant')
+            .insert({
               dueDate: dueDate,
-              trimester: trimester,
+              trimester: parseInt(trimester),
+              userID: user.id
             })
-            .eq("userID", user.id);
+            .select()
+            if(pregnantError){
+              console.error("Error in inserting pregnant table: ", pregnantError); 
+            } else {
+              console.log("Pregnant Data: ", pregnantData);
+              
+            }
+
+            const {error} = await supabase
+            .from('vulnerabilityList')
+            .update({
+              pregnantID: pregnantData[0].id
+            })
+            .eq("userID", user.id)
+
+            if(error){
+              console.error("Error in updating vul pregnantID: ", error);
+              
+            }
+          }
         }
         const data = await fetchSex();
         // Update vulnerability table ###################################

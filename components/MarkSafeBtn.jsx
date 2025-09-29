@@ -45,7 +45,7 @@ const EvacuationStatusCard = ({ style, ...props }) => {
       }
       console.log("Successful fetch", data);
       if (data) {
-        setMark(data.markAsSafe);
+        setMark(data.markAsSafe !== null ? true : false);
         if (data.markAsSafe) setStep(2);
       } else {
         console.warn("No row found in markAsSafe for userID", user.id);
@@ -70,10 +70,10 @@ const EvacuationStatusCard = ({ style, ...props }) => {
           console.log("Change received!", payload);
 
           if (payload.new?.markAsSafe !== undefined) {
-            setMark(payload.new.markAsSafe);
+            setMark(payload.new.markAsSafe !== null ? true : false);
             console.log("Realtime Mark: ", mark);
 
-            if (payload.new.markAsSafe) {
+            if (payload.new.markAsSafe !== null) {
               setStep(2);
             } else {
               setStep(0);
@@ -100,7 +100,7 @@ const EvacuationStatusCard = ({ style, ...props }) => {
 
     const { data, error } = await supabase
       .from("user")
-      .update({ markAsSafe: true })
+      .update({ markAsSafe: new Date() })
       .eq("userID", user.id)
       .select();
 

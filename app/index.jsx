@@ -95,7 +95,10 @@ const Home = () => {
           alignItems: "center",
         }}
       >
-        <Link href='/emergencyGuideGuest' asChild>
+        <Link href={{pathname:'/emergencyGuideGuest',
+          params:{
+            role: "guest"
+          }}} asChild>
           <ImageButton />
         </Link>
       </Animated.View>

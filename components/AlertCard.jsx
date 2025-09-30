@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { View, Text, StyleSheet, Image } from "react-native";
+import { View, Text, StyleSheet, Image, TouchableOpacity, Linking } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import supabase from "../contexts/supabaseClient";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRealtime } from "../contexts/RealtimeProvider";
 import { BellOff } from "lucide-react-native";
+import { Megaphone, ExternalLink } from "lucide-react-native";
 
 const AlertCard = ({ alertLevel = 1 }) => {
   const queryClient = useQueryClient();
@@ -91,6 +92,8 @@ const AlertCard = ({ alertLevel = 1 }) => {
         return require("../assets/fireIcon.png");
       case "earthquake":
         return require("../assets/EarthquakeIcon.png");
+      case "announcement":
+        return "icon";
       default:
         return require("../assets/storm-cloud.png"); // fallback
     }
@@ -125,10 +128,16 @@ const AlertCard = ({ alertLevel = 1 }) => {
 
                   {/* Image + Info Row */}
                   <View style={styles.topRow}>
+                  {alert.alertType === "announcement" ? (
+                    <View style={styles.iconContainer}>
+                      <Megaphone size={40} color="#0060FF" strokeWidth={1.5} />
+                    </View>
+                  ) : (
                     <Image
                       source={getAlertIcon(alert.alertType)}
                       style={styles.image}
                     />
+                  )}
 
                     <View style={styles.statusColumn}>
                       <Text style={styles.alertLevel}>
@@ -139,14 +148,13 @@ const AlertCard = ({ alertLevel = 1 }) => {
                       <Text style={styles.timeText}>
                         {formattedTime(alert.created_at)}
                       </Text>
-                      {alert.alertType == "fire" && (
+                      {alert.alertType === "fire" && alert.alertLocation && (
                         <Text style={styles.meterText}>
                           Near {alert.alertLocation}
                         </Text>
                       )}
 
-                      {/* if flooding only */}
-                      {alert.alertType === "flood" && (
+                      {alert.alertType === "flood" && alert.riverLevel && (
                         <Text style={styles.meterText}>
                           {alert.riverLevel} meters
                         </Text>
@@ -156,6 +164,17 @@ const AlertCard = ({ alertLevel = 1 }) => {
 
                   {/* Message */}
                   <Text style={styles.message}>{alert.alertDescription}</Text>
+
+                  {/* View Post Link */}
+                  {alert.alertLink && (
+                    <TouchableOpacity
+                      style={styles.linkButton}
+                      onPress={() => Linking.openURL(alert.alertLink)}
+                    >
+                      <Text style={styles.linkText}>View Post</Text>
+                      <ExternalLink size={14} color="#0060FF" />
+                    </TouchableOpacity>
+                  )}
                 </View>
               </LinearGradient>
             )
@@ -231,6 +250,26 @@ const styles = StyleSheet.create({
     height: 66,
     marginRight: 16,
     borderRadius: 10,
+  },
+  iconContainer: {
+    width: 66,
+    height: 66,
+    marginRight: 16,
+    borderRadius: 10,
+    backgroundColor: "#F5F5F5",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  linkButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 12,
+    gap: 6,
+  },
+  linkText: {
+    fontSize: 13,
+    color: "#0060FF",
+    fontWeight: "500",
   },
   statusColumn: {
     justifyContent: "space-between",

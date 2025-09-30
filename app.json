@@ -1,7 +1,9 @@
 {
-  "scheme": ["resbacapp"],
+  "scheme": [
+    "resbacapp"
+  ],
   "name": "RESBAC",
-  "slug": "RESBAC",
+  "slug": "RESBAC1",
   "version": "1.0.0",
   "orientation": "portrait",
   "icon": "./assets/icon.png",
@@ -15,7 +17,10 @@
   "ios": {
     "supportsTablet": true,
     "infoPlist": {
-      "LSApplicationQueriesSchemes": ["tel", "fb-messenger"]
+      "LSApplicationQueriesSchemes": [
+        "tel",
+        "fb-messenger"
+      ]
     }
   },
   "android": {
@@ -29,20 +34,28 @@
       {
         "action": "VIEW",
         "data": [
-          { "scheme": "tel" },
+          {
+            "scheme": "tel"
+          },
           {
             "scheme": "https",
             "host": "m.me"
           }
         ],
-        "category": ["BROWSABLE", "DEFAULT"]
+        "category": [
+          "BROWSABLE",
+          "DEFAULT"
+        ]
       }
     ]
   },
   "web": {
     "favicon": "./assets/favicon.png"
   },
-  "plugins": ["expo-router", "expo-font"],
+  "plugins": [
+    "expo-router",
+    "expo-font"
+  ],
   "extra": {
     "router": {},
     "eas": {
@@ -50,5 +63,10 @@
     }
   },
   "sdkVersion": "54.0.0",
-  "platforms": ["ios", "android", "web"]
+  "platforms": [
+    "ios",
+    "android",
+    "web"
+  ],
+  "owner": "lukewarmraven"
 }

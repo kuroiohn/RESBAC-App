@@ -8,15 +8,6 @@ export default function AuthLayout() {
   const colorScheme = useColorScheme();
   const theme = Colors[colorScheme] ?? Colors.light;
 
-  useEffect(()=> {
-    const mountSignOut = async () => {
-      await supabase.auth.signOut()
-      console.log("Logged out");
-    }
-
-    mountSignOut()
-  },[])
-
   return (
     <Stack
       screenOptions={{

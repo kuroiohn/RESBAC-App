@@ -43,43 +43,31 @@ export default function uploadID() {
   // Clean location data before saving to database
   // Both manual address and GPS verification are now required
   const getCleanLocationData = (userData) => {
-    const streetName = userData.address || "Unknown Street";
-    const defaultCityName = "Unknown City";
-    const defaultBrgyName = "Unknown Barangay";
-    const defaultCoordinates = "0,0";
-
-    // Extract city from manual address as fallback
-    const addressParts = userData.address ? userData.address.split(",") : [];
-    const parsedCityName =
-      addressParts.length > 1
-        ? addressParts[addressParts.length - 1].trim()
-        : defaultCityName;
-
     // Get GPS data
     const gpsCoordinates =
       userData.location && userData.location.coordinates
         ? `${userData.location.coordinates.latitude},${userData.location.coordinates.longitude}`
         : defaultCoordinates;
 
-    const gpsCityName = userData.location?.address?.city || parsedCityName;
+    const gpsCityName = userData.location?.address?.city || "Unknown City";
     const gpsBrgyName =
+      userData.barangay ||
       userData.location?.address?.barangay ||
       userData.location?.address?.subLocality ||
       userData.location?.address?.village ||
-      userData.location?.address?.neighborhood ||
-      defaultBrgyName;
+      userData.location?.address?.neighborhood
 
     const gpsStreetName =
+      userData.street ||
       userData.location?.address?.road ||
       userData.location?.address?.street ||
       userData.location?.address?.route ||
-      userData.location?.address?.address_line ||
-      defaultStreetName;
+      userData.location?.address?.address_line
 
     return {
       streetName: gpsStreetName,
       cityName: gpsCityName,
-      brgyName: completeUserData.barangay,
+      brgyName: gpsBrgyName,
       coordinates: gpsCoordinates,
     };
   };

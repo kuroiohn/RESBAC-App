@@ -32,7 +32,7 @@ import ThemedTextInput from "../../components/ThemedTextInput";
 import Spacer from "../../components/Spacer";
 import TitleText from "../../components/TitleText";
 import BackNextButtons from "../../components/buttons/BackNextButtons";
-import BarangayDropdown from "../../components/BarangayDropdown";
+import StreetDropdown from "../../components/StreetDropdown";
 
 // Custom hook for user authentication
 import { useUser } from "../../hooks/useUser";
@@ -42,6 +42,7 @@ import { differenceInYears } from "date-fns";
 
 import Logo from "../../assets/RESBACLogo.png";
 import TermsModal from "../../components/TermsModal";
+import BarangayDropdown from "../../components/BarangayDropdown";
 
 /**
  * Registration component that handles user registration form
@@ -84,6 +85,7 @@ const Register = () => {
   const [age, setAge] = useState(0); // set age
   const [email, setEmail] = useState(""); // User's email address (used for authentication)
   const [contactNumber, setContactNumber] = useState(""); // User's contact phone number
+  const [street, setStreet] = useState(null); // state for street dropdown
   const [barangay, setBarangay] = useState(null); // state for barangay dropdown
   const [address, setAddress] = useState(""); // User's physical address
   const [locationData, setLocationData] = useState(null); // GPS location data
@@ -141,6 +143,9 @@ const Register = () => {
     // Barangay Validation
     if (!barangay) {
       errors.barangay = "Barangay is required";
+    }
+    if (!street) {
+      errors.street = "Street is required";
     }
 
     // Address validation
@@ -207,6 +212,7 @@ const Register = () => {
       email,
       password,
       contactNumber,
+      street,
       barangay, //newly added
       address, // User's manually typed address
       location: locationData
@@ -404,6 +410,20 @@ const Register = () => {
             )}
 
             {/* Barangay input field - ALWAYS REQUIRED */}
+            <StreetDropdown
+              value={street}
+              onFocus={() => Keyboard.dismiss()} // close keyboard before opening dropdown
+              onChange={(value) => {
+                setStreet(value);
+                clearFieldError("street");
+              }}
+              zIndex={5000}
+              disabled={!isAgreed}
+            />
+            {formErrors.street && (
+              <Text style={styles.fieldError}>{formErrors.street}</Text>
+            )}
+
             <BarangayDropdown
               value={barangay}
               onFocus={() => Keyboard.dismiss()} // close keyboard before opening dropdown
@@ -412,6 +432,7 @@ const Register = () => {
                 clearFieldError("barangay");
               }}
               disabled={!isAgreed}
+              zIndex={4000}
             />
             {formErrors.barangay && (
               <Text style={styles.fieldError}>{formErrors.barangay}</Text>
@@ -576,6 +597,7 @@ const styles = StyleSheet.create({
     width: "100%",
     paddingHorizontal: 20, // Add some padding to match your form
     marginVertical: 10,
+    overflow: "visible"
   },
   headerLine: {
     flex: 1, // Takes up the remaining space

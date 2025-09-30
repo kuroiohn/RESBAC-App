@@ -39,6 +39,7 @@ import PasswordChangeModal from "../../components/PasswordChangeModal";
 import ChangeMpinModal from "../../components/ChangeMpinModal";
 import DropDownPicker from "react-native-dropdown-picker";
 import { MaterialIcons } from "@expo/vector-icons";
+import StreetDropdown from "../../components/StreetDropdown";
 import BarangayDropdown from "../../components/BarangayDropdown";
 
 const Profile = () => {
@@ -541,7 +542,7 @@ const Profile = () => {
     }
   }, [user]);
   
-  
+  //ANCHOR - pregnant fetch
   const fetchPregnant = async () => {
     // Get the current logged in user
     const { error: userError } = await supabase.auth.getUser();
@@ -556,8 +557,8 @@ const Profile = () => {
       .eq("userID", user.id)
 
     setUserPregnant({
-      dueDate: data?.dueDate,
-      trimester: data?.trimester
+      dueDate: data?.[0]?.dueDate ?? "",
+      trimester: data?.[0]?.trimester ?? ""
     });
 
     if (error) {
@@ -569,15 +570,17 @@ const Profile = () => {
   const { data: pregnantData, error: pregnantError } = useQuery({
     queryKey: ["pregnant"],
     queryFn: fetchPregnant,
+    enabled: userVul.pregnantInfant[0] === "yes"
   });
   if (pregnantError) {
     console.error("Error in fetching pregnant table: ", pregnantError);
   }
+
   useEffect(() => {
     if (pregnantData) {
       setUserPregnant({
-      dueDate: pregnantData.dueDate,
-      trimester: pregnantData.trimester
+      dueDate: pregnantData?.dueDate,
+      trimester: pregnantData?.trimester
     });
     }
   }, [user]);
@@ -885,6 +888,18 @@ const Profile = () => {
   ) => {
     const isEditing = editingSections[section] && editable;
 
+    if (field === "streetName" && isEditing) {
+      return (
+        <View style={styles.rowItem}>
+          <Text style={styles.label}>{label}</Text>
+          <StreetDropdown
+            value={value}
+            onChange={(newValue) => updateField(section, field, newValue)}
+            disabled={false}
+          />
+        </View>
+      );
+    }
     if (field === "brgyName" && isEditing) {
       return (
         <View style={styles.rowItem}>
@@ -1463,7 +1478,7 @@ const Profile = () => {
               "vulnerability",
               "pregnant",
               "Trimester",
-              userPregnant.trimester,
+              userPregnant?.trimester,
               true
             )}
           </View>}
@@ -1472,7 +1487,7 @@ const Profile = () => {
               "vulnerability",
               "pregnant",
               "Due Date",
-              new Date(userPregnant.dueDate).toLocaleDateString("en-US", {month:"short",year:"numeric"}),
+              new Date(userPregnant?.dueDate).toLocaleDateString("en-US", {month:"short",year:"numeric"}),
               true
             )}
           </View>}
@@ -1509,9 +1524,8 @@ const Profile = () => {
           "vulnerability",
           "psychPWD",
           "Psychological Disability",
-          // TODO di malagyan ng space
-          Array.isArray(userVul.psychPWD)
-            ? userVul.psychPWD.join(", ")
+          Array.isArray(userVul.psychPWD[0])
+            ? userVul.psychPWD[0].join(", ")
             : userVul.psychPWD?.toString() || "",
           true
         )}

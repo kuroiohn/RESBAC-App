@@ -4,7 +4,7 @@ import Spacer from "../../components/Spacer";
 import ThemedText from "../../components/ThemedText";
 import ThemedView from "../../components/ThemedView";
 import { useEffect, useState } from "react";
-import { Link } from "expo-router";
+import { Link, useLocalSearchParams } from "expo-router";
 
 // asset imports
 import DuringFlood from "../../assets/DuringFlood.png";
@@ -32,6 +32,7 @@ const EmergencyGuideContent = () => {
   const [loading, setLoading] = useState(true);
   const [session, setSession] = useState(null);
   const {user} = useUser()
+  const {role} = useLocalSearchParams()
   
   useEffect(() => {
     const getSession = async () => {
@@ -47,7 +48,7 @@ const EmergencyGuideContent = () => {
       console.log("Logged out");
     }
 
-    if (!user && !session) mountSignOut()
+    if (role === "guest") mountSignOut()
 
     // also listen for login/logout changes
     const { data: authListener } = supabase.auth.onAuthStateChange(

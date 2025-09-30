@@ -287,12 +287,6 @@ const Vulnerable = () => {
     };
 
     console.log("Complete user data with vulnerability:", completeUserData);
-
-    const { data: existingPregnancy } = await supabase
-    .from("pregnant")
-    .select("*")
-    .eq("userID", user.id)
-    .single();
     
     if (from === "register") {
       // Navigate to upload screen with all data
@@ -304,6 +298,11 @@ const Vulnerable = () => {
       });
     } else if (from === "profile") {
       try {
+        const { data: existingPregnancy } = await supabase
+        .from("pregnant")
+        .select("*")
+        .eq("userID", user.id)
+        .single();
         if (pregnancy === "yes") {
           if (existingPregnancy) {
             await supabase
@@ -324,21 +323,21 @@ const Vulnerable = () => {
             .select()
             if(pregnantError){
               console.error("Error in inserting pregnant table: ", pregnantError); 
-            } else {
+            } else if (pregnantData && pregnantData.length > 0) {
+              const {error} = await supabase
+              .from('vulnerabilityList')
+              .update({
+                pregnantID: pregnantData[0].id
+              })
+              .eq("userID", user.id)
+
+              if(error){
+                console.error("Error in updating vul pregnantID: ", error);
+                
+              } 
+            } 
+            else {
               console.log("Pregnant Data: ", pregnantData);
-              
-            }
-
-            const {error} = await supabase
-            .from('vulnerabilityList')
-            .update({
-              pregnantID: pregnantData[0].id
-            })
-            .eq("userID", user.id)
-
-            if(error){
-              console.error("Error in updating vul pregnantID: ", error);
-              
             }
           }
         }
@@ -506,7 +505,6 @@ const Vulnerable = () => {
                 ? 1
                 : 0,
             hasGuardian: hasGuardian === "yes" ? 1 : 0,
-            locationRiskLevel: 1,
           })
           .eq("userID", user.id)
           .select("*")

@@ -32,8 +32,8 @@ const streets = [
   { label: "Okra Street", value: "Okra Street" },
   { label: "Old Barangay", value: "Old Barangay" },
   {
-    label: "Palay Street (creekside section)",
-    value: "Palay Street (creekside section)",
+    label: "Palay Street",
+    value: "Palay Street",
   },
   { label: "Pipino Street", value: "Pipino Street" },
   { label: "Road 1", value: "Road 1" },

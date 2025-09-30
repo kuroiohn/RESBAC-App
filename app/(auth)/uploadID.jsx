@@ -35,6 +35,51 @@ export default function uploadID() {
   const { userData } = useLocalSearchParams();
   const { register } = useUser();
   const [isUploading, setIsUploading] = useState(false);
+  // no risk level 0 since no area is submerged during alert 1
+  const moderateStreets = [ // risk level 1
+    "Bagong Farmers Avenue 1", //
+    "Banner Street", //
+    "Camia Street", //
+    "Cattleya Street", //
+    "Crescent Street", //
+    "Daisy Street", //
+    "Jasmin Street", //
+    "Jewelmark Street",  //
+    "Katipunan Street", //
+    "Lacewing Street", //
+    "Liwanag Street Area",
+    "Mil Flores Street", //
+    "Monarch Street", //
+    "Moscow Street", //
+    "Okra Street", //
+    "Silverdrop Street", //
+    "Sunkist Street", //
+    "Swallowtail Street", //
+
+  ]
+  const highStreets = [
+    "Angel Santos Street", //
+    "Ilaw Street", //
+    "Kangkong Street", //
+    "Labanos Street", //
+    "Palay Street", //
+    "Upo Street" //
+  ]
+  const criticalStreets = [
+    "Ampalaya Street", //
+    "Bagong Farmers Avenue 2", //
+    "Ilaw Street", //
+    "Mais Street", //
+    "Pipino Street", //
+    "Road 1",
+    "Road 2",
+    "Road 3",
+    "Road 4",
+    "Road 5",
+    "Road Dike",
+    "Singkamas Street", //
+    "Talong Street", //
+  ]
 
   // Parse all the collected user data
   const completeUserData = userData ? JSON.parse(userData) : {};
@@ -413,7 +458,10 @@ export default function uploadID() {
               : [],
             sensoryPWD: completeUserData.vulnerability?.sensoryDisability || [],
             medDep: completeUserData.vulnerability?.healthCondition || [],
-            locationRiskLevel: "Low",
+            locationRiskLevel: 
+              criticalStreets.some((street)=> locationData.streetName.toLowerCase().includes(street.toLowerCase())) ? "Critical" :
+              highStreets.some((street)=> locationData.streetName.toLowerCase().includes(street.toLowerCase())) ? "High" : 
+              moderateStreets.some((street)=> locationData.streetName.toLowerCase().includes(street.toLowerCase())) ? "Moderate" : "Low",
             userID: authResult.user.id,
             pregnantID: pregnantID,
           })
@@ -487,18 +535,13 @@ export default function uploadID() {
               ? 1
               : 0,
           medDepScore:
-            completeUserData.vulnerability?.healthCondition?.length >= 4
-              ? 4
-              : completeUserData.vulnerability?.healthCondition?.length === 3
-              ? 3
-              : completeUserData.vulnerability?.healthCondition?.length === 2
-              ? 2
-              : completeUserData.vulnerability?.healthCondition?.length === 1
-              ? 1
-              : 0,
+            completeUserData.vulnerability?.healthCondition?.length > 0 ? 4 : 0,
           hasGuardian:
             completeUserData.vulnerability?.hasGuardian === "yes" ? 1 : 0,
-          locationRiskLevel: 1,
+          locationRiskLevel: 
+            criticalStreets.some((street)=> locationData.streetName.toLowerCase().includes(street.toLowerCase())) ? 3 :
+            highStreets.some((street)=> locationData.streetName.toLowerCase().includes(street.toLowerCase())) ? 2 : 
+            moderateStreets.some((street)=> locationData.streetName.toLowerCase().includes(street.toLowerCase())) ? 1 : 0,
           userID: authResult.user.id,
         })
         .select("*")

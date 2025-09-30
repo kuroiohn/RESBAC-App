@@ -128,6 +128,51 @@ const Profile = () => {
   // });
   const [isVerified, setIsVerified] = useState(false);
   const [loading, setLoading] = useState(true);
+   // no risk level 0 since no area is submerged during alert 1
+  const moderateStreets = [ // risk level 1
+    "Bagong Farmers Avenue 1", //
+    "Banner Street", //
+    "Camia Street", //
+    "Cattleya Street", //
+    "Crescent Street", //
+    "Daisy Street", //
+    "Jasmin Street", //
+    "Jewelmark Street",  //
+    "Katipunan Street", //
+    "Lacewing Street", //
+    "Liwanag Street Area",
+    "Mil Flores Street", //
+    "Monarch Street", //
+    "Moscow Street", //
+    "Okra Street", //
+    "Silverdrop Street", //
+    "Sunkist Street", //
+    "Swallowtail Street", //
+
+  ]
+  const highStreets = [
+    "Angel Santos Street", //
+    "Ilaw Street", //
+    "Kangkong Street", //
+    "Labanos Street", //
+    "Palay Street", //
+    "Upo Street" //
+  ]
+  const criticalStreets = [
+    "Ampalaya Street", //
+    "Bagong Farmers Avenue 2", //
+    "Ilaw Street", //
+    "Mais Street", //
+    "Pipino Street", //
+    "Road 1",
+    "Road 2",
+    "Road 3",
+    "Road 4",
+    "Road 5",
+    "Road Dike",
+    "Singkamas Street", //
+    "Talong Street", //
+  ]
 
   // const [isEditing, setIsEditing] = useState(false);
   const [editingSections, setEditingSections] = useState({
@@ -585,6 +630,35 @@ const Profile = () => {
     }
   }, [user]);
 
+  const getLocationRiskName = (streetName) => {
+    const isExactMatch = (list) => 
+      streetName && list.some(
+        (street) => streetName.toLowerCase() === street.toLowerCase()
+      );
+
+    return isExactMatch(criticalStreets) 
+      ? "Critical" 
+      : isExactMatch(highStreets)
+      ? "High"
+      : isExactMatch(moderateStreets)
+      ? "Moderate"
+      : "Low";
+  }
+  const getLocationRiskLevel = (streetName) => {
+   const isExactMatch = (list) => 
+    streetName && list.some(
+      (street) => streetName.toLowerCase() === street.toLowerCase()
+    );  
+
+    return isExactMatch(criticalStreets) 
+      ? 3 
+      : isExactMatch(highStreets)
+      ? 2
+      : isExactMatch(moderateStreets)
+      ? 1
+      : 0;
+  }
+
   // SUBSCRIBING TO REALTIME ON ALL TABLES ##############################
   useEffect(() => {
     if (!user?.id) return;
@@ -818,7 +892,7 @@ const Profile = () => {
           psychPWD: userVul.psychPWD,
           sensoryPWD: userVul.sensoryPWD,
           medDep: userVul.medDep,
-          locationRiskLevel: userVul.locationRiskLevel,
+          locationRiskLevel: getLocationRiskName(userAddress.streetName),
         })
         .eq("userID", user.id);
 
@@ -833,9 +907,70 @@ const Profile = () => {
             age >= 80 ? 3 :    // 80 - 89
             age >= 70 ? 2 :    // 70 - 79 
             age >= 60 ? 1 : 0  // 60 - 69 
-          ) 
+          ) ,
+        locationRiskLevel: getLocationRiskLevel(userAddress.streetName),
       })
       .eq("userID",user.id)
+
+      const { data: riskData, error: riskError } = await supabase
+      .from('riskScore')
+      .select('*')
+      .eq('userID', user.id)
+      .single();
+      if (riskError) {
+        console.error("Error in updating risk table: ",riskError);
+      } else {
+        console.log("risk data", riskData);
+        
+      }
+
+      //ANCHOR - PRIO API CONNECTION
+      const getPrioritization = async () => {
+        try {
+          const response = await fetch("https://xgprio.onrender.com/predict", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              values: {
+                ElderlyScore: riskData.elderlyScore,
+                PregnantOrInfantScore: riskData.pregnantInfantScore,
+                PhysicalPWDScore: riskData.physicalPWDScore,
+                PsychPWDScore: riskData.psychPWDScore,
+                SensoryPWDScore: riskData.sensoryPWDScore,
+                MedicallyDependentScore: riskData.medDepScore,
+                hasGuardian: riskData.hasGuardian,
+                locationRiskLevel: riskData.locationRiskLevel,
+              },
+            }),
+          });
+
+          const result = await response.json();
+          console.log("Result: ", result.prediction);
+          return result.prediction;
+        } catch (error) {
+          console.error("error in getting prioritization: ", error);
+        }
+      };
+      console.log("Prio DAta: ", riskData);
+      
+      const priorityLevel = await getPrioritization();
+      // Create vulnerability record - with explicit userID
+      const { data: priorityData, error: prioError } = await supabase
+        .from("priority")
+        .update({
+          prioLevel: parseFloat(priorityLevel),
+        })
+        .eq("userID", user.id)
+        .select("*")
+        .single();
+
+      console.log("priorty: ", priorityData);
+      if (prioError) {
+        console.error("Error creating priorty:", prioError);
+        throw new Error("Failed to create priorty record");
+      }
 
       // Reset editing state back to false so button goes back to blue
       setEditingSections({

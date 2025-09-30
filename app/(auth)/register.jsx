@@ -68,10 +68,14 @@ const Register = () => {
       } catch (error) {
         console.log("Error during forced logout:", error);
         // Even if logout fails, continue with registration
+      } finally {
+        setShowTerms(true);
       }
     };
     if (checkUser) {
       forceLogout();
+    } else {
+      setShowTerms(true);
     }
   }, []);
 

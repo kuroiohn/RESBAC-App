@@ -491,7 +491,7 @@ export default function uploadID() {
               : completeUserData.age >= 70
               ? 2 // 70 - 79
               : completeUserData.age >= 60
-              ? 1
+              ? 2
               : 0,
           pregnantInfantScore:
             completeUserData.vulnerability?.pregnancy === "yes" &&
@@ -504,8 +504,6 @@ export default function uploadID() {
           physicalPWDScore:
             completeUserData.vulnerability?.physicalDisability?.length >= 4
               ? 4
-              : completeUserData.vulnerability?.physicalDisability?.length === 3
-              ? 3
               : completeUserData.vulnerability?.physicalDisability?.length === 2
               ? 2
               : completeUserData.vulnerability?.physicalDisability?.length === 1
@@ -514,9 +512,6 @@ export default function uploadID() {
           psychPWDScore:
             completeUserData.vulnerability?.psychologicalDisability?.length >= 4
               ? 4
-              : completeUserData.vulnerability?.psychologicalDisability
-                  ?.length === 3
-              ? 3
               : completeUserData.vulnerability?.psychologicalDisability
                   ?.length === 2
               ? 2
@@ -527,8 +522,6 @@ export default function uploadID() {
           sensoryPWDScore:
             completeUserData.vulnerability?.sensoryDisability?.length >= 4
               ? 4
-              : completeUserData.vulnerability?.sensoryDisability?.length === 3
-              ? 3
               : completeUserData.vulnerability?.sensoryDisability?.length === 2
               ? 2
               : completeUserData.vulnerability?.sensoryDisability?.length === 1
@@ -536,8 +529,6 @@ export default function uploadID() {
               : 0,
           medDepScore:
             completeUserData.vulnerability?.healthCondition?.length > 0 ? 4 : 0,
-          hasGuardian:
-            completeUserData.vulnerability?.hasGuardian === "yes" ? 1 : 0,
           locationRiskLevel: 
             criticalStreets.some((street)=> locationData.streetName.toLowerCase().includes(street.toLowerCase())) ? 3 :
             highStreets.some((street)=> locationData.streetName.toLowerCase().includes(street.toLowerCase())) ? 2 : 
@@ -568,7 +559,7 @@ export default function uploadID() {
                 PsychPWDScore: riskData.psychPWDScore,
                 SensoryPWDScore: riskData.sensoryPWDScore,
                 MedicallyDependentScore: riskData.medDepScore,
-                hasGuardian: riskData.hasGuardian,
+                // hasGuardian: riskData.hasGuardian,
                 locationRiskLevel: riskData.locationRiskLevel,
               },
             }),

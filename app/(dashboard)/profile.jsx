@@ -906,7 +906,7 @@ const Profile = () => {
             age >= 90 ? 4 :    // 90+      
             age >= 80 ? 3 :    // 80 - 89
             age >= 70 ? 2 :    // 70 - 79 
-            age >= 60 ? 1 : 0  // 60 - 69 
+            age >= 60 ? 2 : 0  // 60 - 69 
           ) ,
         locationRiskLevel: getLocationRiskLevel(userAddress.streetName),
       })
@@ -940,7 +940,7 @@ const Profile = () => {
                 PsychPWDScore: riskData.psychPWDScore,
                 SensoryPWDScore: riskData.sensoryPWDScore,
                 MedicallyDependentScore: riskData.medDepScore,
-                hasGuardian: riskData.hasGuardian,
+                // hasGuardian: riskData.hasGuardian,
                 locationRiskLevel: riskData.locationRiskLevel,
               },
             }),

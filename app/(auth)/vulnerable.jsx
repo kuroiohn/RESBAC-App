@@ -383,63 +383,50 @@ const Vulnerable = () => {
         const age = differenceInYears(new Date(), new Date(data.dateOfBirth));
         console.log({
           // 60 - 69
-          elderlyScore:
-            age >= 90
-              ? 4 // 90+
-              : age >= 80
-              ? 3 // 80 - 89
-              : age >= 70
-              ? 2 // 70 - 79
-              : age >= 60
-              ? 1
-              : 0,
-          pregnantInfantScore:
-            pregnancy === "yes" && hasInfant === "yes"
-              ? 4
-              : pregnancy === "yes" || hasInfant === "yes"
-              ? 2
-              : 0,
-          physicalPWDScore:
-            physicalDisability?.length >= 4
-              ? 4
-              : physicalDisability?.length === 3
-              ? 3
-              : physicalDisability?.length === 2
-              ? 2
-              : physicalDisability?.length === 1
-              ? 1
-              : 0,
-          psychPWDScore:
-            psychologicalDisability?.length >= 4
-              ? 4
-              : psychologicalDisability?.length === 3
-              ? 3
-              : psychologicalDisability?.length === 2
-              ? 2
-              : psychologicalDisability?.length === 1
-              ? 1
-              : 0,
-          sensoryPWDScore:
-            sensoryDisability?.length >= 4
-              ? 4
-              : sensoryDisability?.length === 3
-              ? 3
-              : sensoryDisability?.length === 2
-              ? 2
-              : sensoryDisability?.length === 1
-              ? 1
-              : 0,
-          medDepScore:
-            healthCondition?.length >= 4
-              ? 4
-              : healthCondition?.length === 3
-              ? 3
-              : healthCondition?.length === 2
-              ? 2
-              : healthCondition?.length === 1
-              ? 1
-              : 0,
-          hasGuardian: hasGuardian === "yes" ? 1 : 0,
+            elderlyScore:
+              age >= 90
+                ? 4 // 90+
+                : age >= 80
+                ? 3 // 80 - 89
+                : age >= 70
+                ? 2 // 70 - 79
+                : age >= 60
+                ? 2
+                : 0,
+            pregnantInfantScore:
+              pregnancy === "yes" && hasInfant === "yes"
+                ? 4
+                : pregnancy === "yes" || hasInfant === "yes"
+                ? 2
+                : 0,
+            physicalPWDScore:
+              physicalDisability?.length >= 4
+                ? 4
+                : physicalDisability?.length === 2
+                ? 2
+                : physicalDisability?.length === 1
+                ? 1
+                : 0,
+            psychPWDScore:
+              psychologicalDisability?.length >= 4
+                ? 4
+                : psychologicalDisability?.length === 2
+                ? 2
+                : psychologicalDisability?.length === 1
+                ? 1
+                : 0,
+            sensoryPWDScore:
+              sensoryDisability?.length >= 4
+                ? 4
+                : sensoryDisability?.length === 2
+                ? 2
+                : sensoryDisability?.length === 1
+                ? 1
+                : 0,
+            medDepScore:
+              healthCondition?.length > 0
+                ? 4
+                : 0,
           locationRiskLevel: 1,
           userID: user.id,
         });
@@ -456,7 +443,7 @@ const Vulnerable = () => {
                 : age >= 70
                 ? 2 // 70 - 79
                 : age >= 60
-                ? 1
+                ? 2
                 : 0,
             pregnantInfantScore:
               pregnancy === "yes" && hasInfant === "yes"
@@ -467,8 +454,6 @@ const Vulnerable = () => {
             physicalPWDScore:
               physicalDisability?.length >= 4
                 ? 4
-                : physicalDisability?.length === 3
-                ? 3
                 : physicalDisability?.length === 2
                 ? 2
                 : physicalDisability?.length === 1
@@ -477,8 +462,6 @@ const Vulnerable = () => {
             psychPWDScore:
               psychologicalDisability?.length >= 4
                 ? 4
-                : psychologicalDisability?.length === 3
-                ? 3
                 : psychologicalDisability?.length === 2
                 ? 2
                 : psychologicalDisability?.length === 1
@@ -487,24 +470,15 @@ const Vulnerable = () => {
             sensoryPWDScore:
               sensoryDisability?.length >= 4
                 ? 4
-                : sensoryDisability?.length === 3
-                ? 3
                 : sensoryDisability?.length === 2
                 ? 2
                 : sensoryDisability?.length === 1
                 ? 1
                 : 0,
             medDepScore:
-              healthCondition?.length >= 4
+              healthCondition?.length > 0
                 ? 4
-                : healthCondition?.length === 3
-                ? 3
-                : healthCondition?.length === 2
-                ? 2
-                : healthCondition?.length === 1
-                ? 1
                 : 0,
-            hasGuardian: hasGuardian === "yes" ? 1 : 0,
           })
           .eq("userID", user.id)
           .select("*")
@@ -533,7 +507,7 @@ const Vulnerable = () => {
                     PsychPWDScore: riskData.psychPWDScore,
                     SensoryPWDScore: riskData.sensoryPWDScore,
                     MedicallyDependentScore: riskData.medDepScore,
-                    hasGuardian: riskData.hasGuardian,
+                    // hasGuardian: riskData.hasGuardian,
                     locationRiskLevel: riskData.locationRiskLevel,
                   },
                 }),

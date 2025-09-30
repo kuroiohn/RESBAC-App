@@ -83,6 +83,8 @@ const styles = StyleSheet.create({
   container: {
     width: "95%",
     marginBottom: 10,
+    zIndex: 5000, // Street dropdown higher
+    elevation: 5000,
   },
   dropdown: {
     borderColor: "#ccc",

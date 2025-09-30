@@ -597,7 +597,7 @@ const styles = StyleSheet.create({
     width: "100%",
     paddingHorizontal: 20, // Add some padding to match your form
     marginVertical: 10,
-    overflow: "visible"
+    overflow: "visible",
   },
   headerLine: {
     flex: 1, // Takes up the remaining space

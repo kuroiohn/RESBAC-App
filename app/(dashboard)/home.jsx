@@ -32,6 +32,7 @@ const Home = () => {
   const [callstep, setCallstep] = useState(0);
   const [showCallPicker, setShowCallPicker] = useState(false);
   const [selectedNumber, setSelectedNumber] = useState(null);
+  const [selectedContact, setSelectedContact] = useState(null);
 
   const contacts = [
     { name: "Marikina Local", number: "161" },
@@ -124,7 +125,17 @@ const Home = () => {
     }).start();
   };
 
-  const handleSelectNumber = async (contact) => {
+  const handleSelectNumber = (contact) => {
+    setSelectedContact(contact);
+    setShowCallPicker(false);
+    setCallstep(1); // now in "Calling for help..." state
+    setCallRequested(false);
+    // handleAnimationStart();
+  };
+
+  {
+    /*const handleSelectNumber = async (contact) => {
+    setSelectedContact(contact);
     setShowCallPicker(false);
     setCallstep(1); // entering "animating" state
     setCallRequested(false);
@@ -164,14 +175,52 @@ const Home = () => {
         console.error("Error opening dialer: ", err);
       }
     }, 800); // adjust delay to match your animation duration
-  };
+  }; */
+  }
 
   const handleCallPress = async () => {
+    if (callstep === 0) {
+      // Step 0 → Open modal
+      setShowCallPicker(true);
+    } else if (callstep === 1 && selectedContact) {
+      handleAnimationStart();
+      // Step 1 → Actually dial + update db → then move to step 2
+      try {
+        const url = `tel:${selectedContact.number}`;
+        await Linking.openURL(url);
+
+        setCallstep(2);
+        setCallRequested(true);
+        handleAnimationFinish();
+
+        const now = new Date();
+        const { data, error } = await supabase
+          .from("user")
+          .update({
+            pressedCallBtn: [
+              new Date(now.getTime() - now.getTimezoneOffset() * 60000)
+                .toISOString()
+                .slice(0, -1),
+              selectedContact.number.toString(),
+            ],
+          })
+          .eq("userID", user.id)
+          .select();
+
+        console.log("updated call btn:", data, error);
+      } catch (err) {
+        console.error("Error opening dialer: ", err);
+      }
+    }
+  };
+
+  {
+    /* const handleCallPress = async () => {
     if (callstep === 0) {
       // setCallstep(1); // First press
       // setCallRequested(false);
       setShowCallPicker(true); // show picker popup
-    } else if (callstep === 1) {
+    } else if (callstep === 1 && selectedContact) {
       const phoneNumber = "09684319082";
       const url = `tel:${phoneNumber}`;
       try {
@@ -196,7 +245,8 @@ const Home = () => {
         console.error("Error opening dialer: ", err);
       }
     }
-  };
+  }; */
+  }
 
   const handleCancel = async () => {
     Animated.timing(fadeAnim, {

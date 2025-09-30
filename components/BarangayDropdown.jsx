@@ -23,7 +23,6 @@ const barangays = [
   { label: "Tumana", value: "Tumana" },
 ];
 
-
 const BarangayDropdown = ({ value, onChange, disabled }) => {
   const [open, setOpen] = useState(false);
 
@@ -57,6 +56,8 @@ const styles = StyleSheet.create({
   container: {
     width: "95%",
     marginBottom: 10,
+    zIndex: 4000, // Lower than street
+    elevation: 4000,
   },
   dropdown: {
     borderColor: "#ccc",

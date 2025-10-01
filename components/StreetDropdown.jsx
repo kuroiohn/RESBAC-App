@@ -65,7 +65,7 @@ const StreetDropdown = ({ value, onChange, disabled }) => {
       }}
       placeholder='Select Street'
       disabled={disabled}
-      listMode='SCROLLVIEW'
+      listMode='MODAL'
       scrollViewProps={{
         contentContainerStyle: {
           paddingBottom: 20,

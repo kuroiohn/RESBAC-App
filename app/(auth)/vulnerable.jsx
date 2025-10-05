@@ -59,11 +59,11 @@ const Vulnerable = () => {
   const handleSubmit = () => {
     if (from === "profile") {
       // Save edits
-      console.log("Updating vulnerability info:", formData);
+      // console.log("Updating vulnerability info:", formData);
       router.replace("/dashboard/profile"); // go back to Profile
     } else {
       // Registration flow
-      console.log("Registering vulnerability:", formData);
+      // console.log("Registering vulnerability:", formData);
       router.push("/(auth)/nextStep"); // go to next registration step
     }
   };
@@ -72,7 +72,7 @@ const Vulnerable = () => {
   const [userSex, setUserSex] = useState("");
   // Parse incoming data from register screen
   const existingUserData = userData ? JSON.parse(userData) : {};
-  console.log("Received user data in vulnerable screen:", existingUserData);
+  // console.log("Received user data in vulnerable screen:", existingUserData);
 
   //form field state variables for guardian
   const [hasGuardian, setHasGuardian] = useState(null);
@@ -231,7 +231,7 @@ const Vulnerable = () => {
     }
 
     setUserSex(data.sex);
-    console.log("Sex: ", userSex);
+    // console.log("Sex: ", userSex);
 
     return data;
   };
@@ -286,7 +286,7 @@ const Vulnerable = () => {
       step: "vulnerability",
     };
 
-    console.log("Complete user data with vulnerability:", completeUserData);
+    // console.log("Complete user data with vulnerability:", completeUserData);
     
     if (from === "register") {
       // Navigate to upload screen with all data
@@ -337,7 +337,7 @@ const Vulnerable = () => {
               } 
             } 
             else {
-              console.log("Pregnant Data: ", pregnantData);
+              // console.log("Pregnant Data: ", pregnantData);
             }
           }
         }
@@ -376,6 +376,9 @@ const Vulnerable = () => {
           })
           .eq("userID", user.id);
 
+        console.log(`RISK SCORE DATA: ${physicalDisability}` );
+        
+
         //ANCHOR - RISKSCORE
         // add values of the riskscore here
         // make new usestate for all the scores
@@ -400,7 +403,7 @@ const Vulnerable = () => {
                 ? 2
                 : 0,
             physicalPWDScore:
-              physicalDisability?.length >= 4
+              physicalDisability?.length > 2
                 ? 4
                 : physicalDisability?.length === 2
                 ? 2
@@ -408,7 +411,7 @@ const Vulnerable = () => {
                 ? 1
                 : 0,
             psychPWDScore:
-              psychologicalDisability?.length >= 4
+              psychologicalDisability?.length > 2
                 ? 4
                 : psychologicalDisability?.length === 2
                 ? 2
@@ -416,7 +419,7 @@ const Vulnerable = () => {
                 ? 1
                 : 0,
             sensoryPWDScore:
-              sensoryDisability?.length >= 4
+              sensoryDisability?.length > 2
                 ? 4
                 : sensoryDisability?.length === 2
                 ? 2
@@ -452,7 +455,7 @@ const Vulnerable = () => {
                 ? 2
                 : 0,
             physicalPWDScore:
-              physicalDisability?.length >= 4
+              physicalDisability?.length > 2
                 ? 4
                 : physicalDisability?.length === 2
                 ? 2
@@ -460,7 +463,7 @@ const Vulnerable = () => {
                 ? 1
                 : 0,
             psychPWDScore:
-              psychologicalDisability?.length >= 4
+              psychologicalDisability?.length > 2
                 ? 4
                 : psychologicalDisability?.length === 2
                 ? 2
@@ -468,7 +471,7 @@ const Vulnerable = () => {
                 ? 1
                 : 0,
             sensoryPWDScore:
-              sensoryDisability?.length >= 4
+              sensoryDisability?.length > 2
                 ? 4
                 : sensoryDisability?.length === 2
                 ? 2
@@ -533,7 +536,6 @@ const Vulnerable = () => {
           })
           .eq("riskScoreID", riskData.id);
 
-        console.log("priorty: ", priorityData);
         if (prioError) {
           console.error("Error creating priorty:", prioError);
           throw new Error("Failed to create priorty record");
@@ -1090,20 +1092,7 @@ const Vulnerable = () => {
               )}
             </View>
           )}
-          {/* mobility status */}
-          {/* <View style={styles.sectionHeader}>
-                        <TitleText type='title5'>Mobility Status</TitleText>
-                        <View style={styles.headerLine}></View>
-                    </View>
-                    <View style={styles.pregnancyContainer}>
-                        <RadioGroup
-                            label='Is the individual capable of evacuation without assistance?'
-                            options={mobilityOptions}
-                            selectedValue={mobilityStatus}
-                            onValueChange={setMobilityStatus}
-                        />
-                    </View> */}
-          {/* //FIXME - add condition to go back to edit profile */}
+          
           {/* Back and Next navigation buttons */}
           <BackNextButtons
             onBack={() => router.back()}

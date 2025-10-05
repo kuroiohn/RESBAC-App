@@ -352,7 +352,7 @@ const Profile = () => {
     if (error) {
       console.error("Fetch error in user table: ", error);
     }
-    console.log("Successful fetch", data);
+    // console.log("Successful fetch", data);
     return data;
   };
   const {
@@ -426,7 +426,7 @@ const Profile = () => {
     if (error) {
       console.error("Fetch error in address table: ", error);
     }
-    console.log("Successful fetch", data);
+    // console.log("Successful fetch", data);
     return data;
   };
   const { data: addressData, error: addressError } = useQuery({
@@ -447,7 +447,7 @@ const Profile = () => {
       });
     }
   }, [user]);
-  console.log("hasGuardian: ", profileData?.hasGuardian);
+  // console.log("hasGuardian: ", profileData?.hasGuardian);
 
   const fetchGuardianData = async () => {
     // Get the current logged in user
@@ -474,7 +474,7 @@ const Profile = () => {
     if (error) {
       console.error("Fetch error in guardian table: ", error);
     }
-    console.log("Successful fetch", data);
+    // console.log("Successful fetch", data);
     return data;
   };
   const { data: guardianData, error: guardianError } = useQuery({
@@ -525,7 +525,7 @@ const Profile = () => {
     if (error) {
       console.error("Fetch error in vulList table: ", error);
     }
-    console.log("Successful fetch", data);
+    // console.log("Successful fetch", data);
     return data;
   };
   const { data: vulListData, error: vulListError } = useQuery({
@@ -550,7 +550,7 @@ const Profile = () => {
     }
   }, [user]);
 
-  console.log(userVul);
+  // console.log(userVul);
 
   const fetchVerif = async () => {
     // Get the current logged in user
@@ -571,7 +571,7 @@ const Profile = () => {
     if (error) {
       console.error("Fetch error in verif table: ", error);
     }
-    console.log("Successful fetch", data);
+    // console.log("Successful fetch", data);
     return data;
   };
   const { data: verifData, error: verifError } = useQuery({
@@ -609,7 +609,7 @@ const Profile = () => {
     if (error) {
       console.error("Fetch error in pregnant table: ", error);
     }
-    console.log("Successful fetch", data);
+    // console.log("Successful fetch", data);
     return data;
   };
   const { data: pregnantData, error: pregnantError } = useQuery({
@@ -675,7 +675,7 @@ const Profile = () => {
           filter: `userID=eq.${user.id}`,
         },
         (payload) => {
-          console.log("Realtime USER update:", payload);
+          // console.log("Realtime USER update:", payload);
           setUserData((prev) => ({
             ...prev,
             ...payload.new,
@@ -699,7 +699,7 @@ const Profile = () => {
           filter: `userID=eq.${user.id}`,
         },
         (payload) => {
-          console.log("Realtime ADDRESS update:", payload);
+          // console.log("Realtime ADDRESS update:", payload);
           setUserAddress((prev) => ({
             ...prev,
             ...payload.new,
@@ -722,7 +722,7 @@ const Profile = () => {
           filter: `userID=eq.${user.id}`,
         },
         (payload) => {
-          console.log("Realtime GUARDIAN update:", payload);
+          // console.log("Realtime GUARDIAN update:", payload);
           setUserGuardian((prev) => ({
             ...prev,
             ...payload.new,
@@ -745,7 +745,7 @@ const Profile = () => {
           filter: `userID=eq.${user.id}`,
         },
         (payload) => {
-          console.log("Realtime VUL update:", payload);
+          // console.log("Realtime VUL update:", payload);
           setUserVul((prev) => ({
             ...prev,
             ...payload.new,
@@ -802,7 +802,7 @@ const Profile = () => {
     };
   }, [user?.id]);
 
-  console.log("realtime verif: ", isVerified);
+  // console.log("realtime verif: ", isVerified);
 
   //NOTE - never tinawag
   const toggleEdit = () => {
@@ -953,7 +953,7 @@ const Profile = () => {
           console.error("error in getting prioritization: ", error);
         }
       };
-      console.log("Prio DAta: ", riskData);
+      // console.log("Prio DAta: ", riskData);
       
       const priorityLevel = await getPrioritization();
       // Create vulnerability record - with explicit userID
@@ -966,7 +966,7 @@ const Profile = () => {
         .select("*")
         .single();
 
-      console.log("priorty: ", priorityData);
+      // console.log("priorty: ", priorityData);
       if (prioError) {
         console.error("Error creating priorty:", prioError);
         throw new Error("Failed to create priorty record");

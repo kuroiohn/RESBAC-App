@@ -15,7 +15,7 @@ export const RealtimeProvider = ({ children }) => {
     if (error) {
       console.error("Fetch error in supabase alert card: ", error);
     }
-    console.log("Successful fetch", data);
+    // console.log("Successful fetch", data);
     return data;
   };
   const { data: alertsData, error: alertsError } = useQuery({
@@ -33,7 +33,7 @@ export const RealtimeProvider = ({ children }) => {
     if (error) {
       console.error("Fetch error in supabase emerP: ", error);
     }
-    console.log("Successful fetch", data);
+    // console.log("Successful fetch", data);
     return data;
   };
   // use data here to map the values and read
@@ -52,7 +52,7 @@ export const RealtimeProvider = ({ children }) => {
     if (error) {
       console.error("Fetch error in supabase evac: ", error);
     }
-    console.log("Successful fetch", data);
+    // console.log("Successful fetch", data);
     return data;
   };
   // use data here to map the values and read
@@ -68,7 +68,7 @@ export const RealtimeProvider = ({ children }) => {
     if (error) {
       console.error("Fetch error in supabase pickup: ", error);
     }
-    console.log("Successful fetch", data);
+    // console.log("Successful fetch", data);
     return data;
   };
   // use data here to map the values and read
@@ -85,7 +85,7 @@ export const RealtimeProvider = ({ children }) => {
         "postgres_changes",
         { event: "*", schema: "public", table: "alerts" },
         (payload) => {
-          console.log("Realtime change received:", payload);
+          // console.log("Realtime change received:", payload);
 
           queryClient.setQueryData(["alerts"], (oldData) => {
             if (!oldData) return [payload.new]; // initial
@@ -105,7 +105,7 @@ export const RealtimeProvider = ({ children }) => {
         "postgres_changes",
         { event: "*", schema: "public", table: "emergencyPersons" },
         (payload) => {
-          console.log("Realtime change received:", payload);
+          // console.log("Realtime change received:", payload);
 
           // Ask react-query to refetch alerts when a row is inserted/updated/deleted
           queryClient.invalidateQueries(["emergencyPersons"]);
@@ -119,7 +119,7 @@ export const RealtimeProvider = ({ children }) => {
         "postgres_changes",
         { event: "*", schema: "public", table: "evacuationCenter" },
         (payload) => {
-          console.log("Realtime change received:", payload);
+          // console.log("Realtime change received:", payload);
 
           // Ask react-query to refetch alerts when a row is inserted/updated/deleted
           queryClient.invalidateQueries(["evacuationCenter"]);
@@ -133,7 +133,7 @@ export const RealtimeProvider = ({ children }) => {
         "postgres_changes",
         { event: "*", schema: "public", table: "pickupLocations" },
         (payload) => {
-          console.log("Realtime change received:", payload);
+          // console.log("Realtime change received:", payload);
 
           // Ask react-query to refetch alerts when a row is inserted/updated/deleted
           queryClient.invalidateQueries(["pickupLocations"]);

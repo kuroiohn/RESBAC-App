@@ -38,7 +38,7 @@ const BarangayDropdown = ({ value, onChange, disabled }) => {
       }}
       placeholder='Select Barangay'
       disabled={disabled}
-      listMode='MODAL'
+      listMode='SCROLLVIEW'
       scrollViewProps={{
         contentContainerStyle: {
           paddingBottom: 20,

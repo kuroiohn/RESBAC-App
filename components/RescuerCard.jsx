@@ -1,94 +1,31 @@
 import {
   View,
   Text,
-  ImageBackground,
   Image,
   TouchableOpacity,
   StyleSheet,
   Linking,
-  Alert,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { Phone, MessageCircle } from "lucide-react-native";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useRef, useState } from "react";
-import supabase from "../contexts/supabaseClient";
+import { Phone } from "lucide-react-native";
 import { useRealtime } from "../contexts/RealtimeProvider";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function RescuerCard() {
-  const [rightHeight, setRightHeight] = useState(0);
-
   const { emerPData } = useRealtime();
 
-  // const queryClient = useQueryClient();
-  // // reads from supabase
-  // const fetchContact = async () => {
-  //   const { data, error } = await supabase.from("emergencyPersons").select();
-
-  //   if (error) {
-  //     console.error("Fetch error in supabase emerP: ", error);
-  //   }
-  //   console.log("Successful fetch", data);
-  //   return data;
-  // };
-  // // use data here to map the values and read
-  // const { data: emerPData, error: emerPError } = useQuery({
-  //   queryKey: ["emergencyPersons"],
-  //   queryFn: fetchContact,
-  // });
-  // if (emerPError) {
-  //   console.error("Error in query of emergency persons table: ", emerPError);
-  // }
-
-  // // subscribe to realtime
-  // useEffect(() => {
-  //   const emerPChannnel = supabase
-  //     .channel("emerP-changes")
-  //     .on(
-  //       "postgres_changes",
-  //       { event: "*", schema: "public", table: "emergencyPersons" },
-  //       (payload) => {
-  //         console.log("Realtime change received:", payload);
-
-  //         // Ask react-query to refetch alerts when a row is inserted/updated/deleted
-  //         queryClient.invalidateQueries(["emergencyPersons"]);
-  //       }
-  //     )
-  //     .subscribe();
-
-  //   return () => {
-  //     supabase.removeChannel(emerPChannnel);
-  //   };
-  // }, [queryClient]);
-
   const handleContactBtn = async (number) => {
-    const url = `tel:${number}`;
-    // const supported = await Linking.canOpenURL(url);
-
-    await Linking.openURL(url);
-    // if (supported) {
-    //   await Linking.openURL(url);
-    // } else {
-    //   Alert.alert(
-    //     "Error in Rescuer Card",
-    //     "Dialer not supported on this device!"
-    //   );
-    // }
+    if (number) {
+      await Linking.openURL(`tel:${number}`);
+    }
   };
 
   const handleMsgBtn = async (link) => {
-    const splitLink = link.split("/");
-    const username = splitLink.slice(3).join("/");
-    console.log("Username:", username);
-
-    // const supported = await Linking.canOpenURL(`https://m.me/${username}`);
-
-    await Linking.openURL(`https://m.me/${username}`);
-    // if (supported) {
-    //   await Linking.openURL(`https://m.me/${username}`);
-    // } else {
-    //   Alert.alert("Error in Rescuer Card", "Device cannot open link");
-    // }
+    if (link) {
+      const splitLink = link.split("/");
+      const username = splitLink.slice(3).join("/");
+      await Linking.openURL(`https://m.me/${username}`);
+    }
   };
 
   return (
@@ -102,58 +39,65 @@ export default function RescuerCard() {
             style={styles.gradient}
           >
             <View style={styles.card}>
-              <View style={styles.row}>
-                {/* Left image */}
+              {/* Top Row: Image + Info */}
+              <View style={styles.topRow}>
                 <Image
-                  source={{ uri: emerP.emerPImage }}
-                  style={[styles.profileImage, { height: rightHeight }]}
+                  source={
+                    emerP.emerPImage
+                      ? { uri: emerP.emerPImage }
+                      : require("../assets/icon.png") // 👈 placeholder
+                  }
+                  style={styles.profileImage}
                   resizeMode='cover'
                 />
 
-                {/* Right column */}
-                <View
-                  style={styles.rightColumn}
-                  onLayout={(event) =>
-                    setRightHeight(event.nativeEvent.layout.height)
-                  }
-                >
-                  <Text style={styles.name}>{emerP.emerPName}</Text>
-                  <Text style={styles.position}>{emerP.emerPRole}</Text>
-                  <Text style={styles.barangay}>{emerP.emerPBrgy}</Text>
-
-                  {/* Call Button */}
-                  <TouchableOpacity
-                    activeOpacity={0.8}
-                    onPress={() => handleContactBtn(emerP.emerPNumber)}
+                <View style={styles.infoSection}>
+                  <Text
+                    style={styles.name}
+                    numberOfLines={1}
+                    ellipsizeMode='tail'
                   >
-                    <LinearGradient
-                      colors={["#0060FF", "#0040B5"]}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 0 }}
-                      style={styles.callButton}
-                    >
-                      <Phone
-                        color='#fff'
-                        size={16}
-                        style={{ marginRight: 6 }}
-                      />
-                      <Text style={styles.callText}>Call</Text>
-                    </LinearGradient>
-                  </TouchableOpacity>
-
-                  {/* Message Button */}
-                  <TouchableOpacity
-                    style={styles.messageButton}
-                    activeOpacity={0.8}
-                    onPress={() => handleMsgBtn(emerP.emerPMessLink)}
-                  >
-                    <Image
-                      source={require("../assets/messenger-icon.png")}
-                      style={{ width: 16, height: 16, marginRight: 6 }}
-                    />
-                    <Text style={styles.messageText}>Message</Text>
-                  </TouchableOpacity>
+                    {emerP.emerPName}
+                  </Text>
+                  <Text style={styles.position}>
+                    {emerP.emerPRole || "No role specified"}
+                  </Text>
+                  <Text style={styles.barangay}>
+                    {emerP.emerPBrgy || "No barangay info"}
+                  </Text>
                 </View>
+              </View>
+
+              {/* Bottom: Buttons (Same Row) */}
+              <View style={styles.buttonsRow}>
+                {/* 📞 Call Button with number */}
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={() => handleContactBtn(emerP.emerPNumber)}
+                  style={[styles.callButton, { flex: 1 }]}
+                >
+                  <Ionicons
+                    name='call'
+                    size={16}
+                    color='#fff'
+                    style={{ marginRight: 6 }}
+                  />
+
+                  <Text style={styles.callText}>Call</Text>
+                </TouchableOpacity>
+
+                {/* 💬 Message Button */}
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={() => handleMsgBtn(emerP.emerPMessLink)}
+                  style={[styles.messageButton, { flex: 1 }]}
+                >
+                  <Image
+                    source={require("../assets/messenger-icon.png")}
+                    style={{ width: 16, height: 16, marginRight: 6 }}
+                  />
+                  <Text style={styles.messageText}>Message</Text>
+                </TouchableOpacity>
               </View>
             </View>
           </LinearGradient>
@@ -167,36 +111,42 @@ const styles = StyleSheet.create({
   borderWrapper: {
     borderRadius: 14,
     padding: 1,
-    marginVertical: 0,
     width: 300,
     marginRight: 16,
     overflow: "hidden",
   },
+  gradient: {
+    borderRadius: 14,
+    padding: 1,
+  },
   card: {
-    backgroundColor: "white",
+    backgroundColor: "#fff",
     borderRadius: 12,
-    padding: 12,
+    overflow: "hidden",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.15,
     shadowRadius: 2,
     elevation: 3,
   },
-  row: {
+  topRow: {
     flexDirection: "row",
+    padding: 12,
     alignItems: "center",
-    gap: 14,
   },
   profileImage: {
-    width: 90,
-    borderRadius: 12,
+    width: 60,
+    height: 60,
+    borderRadius: 30, // 👈 circle
     backgroundColor: "#e5e7eb",
+    marginRight: 12,
   },
-  rightColumn: {
+  infoSection: {
     flex: 1,
+    justifyContent: "center",
   },
   name: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "700",
     color: "#111827",
     marginBottom: 2,
@@ -209,19 +159,25 @@ const styles = StyleSheet.create({
   barangay: {
     fontSize: 12,
     color: "#6b7280",
-    marginBottom: 10,
+  },
+
+  buttonsColumn: {
+    flexDirection: "column",
+    gap: 8,
+    padding: 12,
   },
   callButton: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 8,
+    backgroundColor: "#0060FF",
     borderRadius: 8,
+    paddingVertical: 10,
   },
   callText: {
     color: "#fff",
     fontWeight: "600",
-    fontSize: 13,
+    fontSize: 14,
   },
   messageButton: {
     flexDirection: "row",
@@ -229,8 +185,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: "#f9fafb",
     borderRadius: 8,
-    paddingVertical: 8,
-    marginTop: 6,
+    paddingVertical: 10,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 0.5 },
     shadowOpacity: 0.15,
@@ -240,11 +195,13 @@ const styles = StyleSheet.create({
   messageText: {
     color: "#0060FF",
     fontWeight: "600",
-    fontSize: 13,
+    fontSize: 14,
   },
-
-  gradient: {
-    borderRadius: 14,
-    padding: 1, // keeps thin gradient border
+  buttonsRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 8,
+    paddingHorizontal: 12,
+    paddingBottom: 12,
   },
 });

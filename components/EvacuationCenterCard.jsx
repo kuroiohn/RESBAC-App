@@ -1,18 +1,33 @@
-import { useEffect } from "react";
-import { MaterialIcons } from "@expo/vector-icons";
-import { View, Text, StyleSheet, Image, TouchableOpacity } from "react-native";
+import { MaterialIcons, Ionicons } from "@expo/vector-icons";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
+  Linking,
+} from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import supabase from "../contexts/supabaseClient";
 import { useRealtime } from "../contexts/RealtimeProvider";
 
-const EvacuationCenterCard = ({ evac, style, onPress }) => {
+const EvacuationCenterCard = () => {
   const router = useRouter();
-  const {evacData} = useRealtime()
+  const { evacData } = useRealtime();
 
-  const handlePress = () => {
-    router.push("/pickUpLocations");
+  const handleCall = (phoneNumber) => {
+    if (phoneNumber) {
+      Linking.openURL(`tel:${phoneNumber}`);
+    }
+  };
+
+  const handleNavigate = (address) => {
+    if (address) {
+      const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+        address
+      )}`;
+      Linking.openURL(url);
+    }
   };
 
   return (
@@ -20,7 +35,16 @@ const EvacuationCenterCard = ({ evac, style, onPress }) => {
       {evacData?.map((evac) => (
         <TouchableOpacity
           key={evac.id}
-          onPress={() => router.push("/pickUpLocations")}
+          onPress={() =>
+            router.push({
+              pathname: "/pickUpLocations",
+              params: {
+                selectedId: evac.id, // ✅ pass evac ID
+                tab: "evacuationCenter",
+                scrollTo: evac.evacName,
+              },
+            })
+          }
           activeOpacity={0.9}
           style={{ marginRight: 16 }}
         >
@@ -31,6 +55,7 @@ const EvacuationCenterCard = ({ evac, style, onPress }) => {
             style={styles.borderWrapper}
           >
             <View style={styles.card}>
+              {/* 🖼 Image */}
               <View style={styles.imageWrapper}>
                 <Image
                   source={{ uri: evac.evacImage }}
@@ -38,23 +63,65 @@ const EvacuationCenterCard = ({ evac, style, onPress }) => {
                   resizeMode='cover'
                 />
 
-                {/* Status overlay */}
+                {/* Status Tag */}
                 <View style={styles.statusOverlay}>
                   <Text style={styles.statusTag}>Open</Text>
                 </View>
               </View>
 
+              {/* 📄 Content */}
               <View style={styles.contentSection}>
-                <Text style={styles.header}>{evac.evacName}</Text>
+                <Text
+                  style={styles.header}
+                  numberOfLines={1}
+                  ellipsizeMode='tail'
+                >
+                  {evac.evacName}
+                </Text>
 
-                <View style={styles.addressRow}>
-                  {/*<MaterialIcons
-                    name='location-pin'
-                    size={18}
-                    color='#0060FF'
-                    style={styles.locationIcon}
-                  /> */}
-                  <Text style={styles.subtext}>{evac.evacAddress}</Text>
+                <View style={styles.addressAndButtonsRow}>
+                  {/* Address */}
+                  <View style={styles.addressContainer}>
+                    <Text
+                      numberOfLines={2}
+                      ellipsizeMode='tail'
+                      style={styles.subtext}
+                    >
+                      {evac.evacAddress}
+                    </Text>
+                  </View>
+
+                  {/* Buttons */}
+                  <View style={styles.buttonsRow}>
+                    {/* 📞 */}
+                    <TouchableOpacity
+                      onPress={() => handleCall(evac.evacContact)}
+                      style={styles.iconCircle}
+                    >
+                      <Ionicons
+                        name='call'
+                        size={16}
+                        color={evac.evacContact ? "#0060FF" : "#999"}
+                      />
+                    </TouchableOpacity>
+
+                    {/* 🧭 */}
+                    <TouchableOpacity
+                      onPress={() =>
+                        router.push({
+                          pathname: "/pickUpLocations",
+                          params: {
+                            selectedId: evac.id,
+                            tab: "evacuationCenter",
+                            showMap: Date.now(), // 👈 make this unique every time
+                          },
+                        })
+                      }
+                      style={styles.iconCircle}
+                    >
+                      <Ionicons name='navigate' size={18} color='#0060FF' />
+                    </TouchableOpacity>
+                  </View>
                 </View>
               </View>
             </View>
@@ -71,17 +138,13 @@ const styles = StyleSheet.create({
   borderWrapper: {
     borderRadius: 12,
     padding: 1,
-    marginVertical: 0,
-    width: 300, // match your card width
-    marginRight: 0,
+    width: 300,
     overflow: "hidden",
   },
   card: {
     backgroundColor: "white",
     borderRadius: 10,
     paddingBottom: 10,
-
-    // shadows
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 0.5 },
     shadowOpacity: 0.25,
@@ -97,13 +160,6 @@ const styles = StyleSheet.create({
     height: 140,
     borderRadius: 8,
   },
-  contentSection: {
-    padding: 12,
-    alignItems: "flex-start",
-  },
-  topRow: {
-    marginBottom: 6,
-  },
   statusTag: {
     fontSize: 12,
     fontWeight: "600",
@@ -117,30 +173,53 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 12,
     left: 12,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
+  },
+  contentSection: {
+    paddingHorizontal: 12,
+    paddingTop: 8,
+    alignItems: "flex-start",
   },
   header: {
     fontSize: 16,
     fontWeight: "600",
     color: "#000",
-    marginBottom: 0,
+    marginBottom: 4,
     paddingHorizontal: 5,
   },
-  addressRow: {
+
+  // 📍 Address + Buttons
+  addressAndButtonsRow: {
     flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "flex-start",
+    width: "100%",
     paddingHorizontal: 5,
+    gap: 8,
   },
-  locationIcon: {
-    marginTop: 2,
-    width: 18,
+  addressContainer: {
+    flex: 1,
   },
   subtext: {
-    flex: 1,
     fontSize: 13,
     color: "#555",
     lineHeight: 18,
+  },
+  buttonsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  iconCircle: {
+    backgroundColor: "#F0F0F0",
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowOffset: { width: 0, height: 1 },
+    shadowRadius: 2,
+    elevation: 1,
   },
 });

@@ -192,7 +192,9 @@ const Login = () => {
 
         console.log("MPIN data updated with password for auto-login");
 
+        setTimeout(() => {
         router.replace("/(dashboard)/home");
+      }, 500);
       } else {
         // Check if user has MPIN in database but no local storage
         console.log("No local MPIN found, checking database...");

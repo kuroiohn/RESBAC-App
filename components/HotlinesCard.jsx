@@ -1,0 +1,183 @@
+import {
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  StyleSheet,
+  Linking,
+} from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { Phone } from "lucide-react-native";
+import { useRealtime } from "../contexts/RealtimeProvider";
+import { Ionicons } from "@expo/vector-icons";
+
+export default function HotlinesCard() {
+  const { emerHData } = useRealtime();
+
+  const handleContactBtn = async (number) => {
+    if (number) {
+      await Linking.openURL(`tel:${number}`);
+    }
+  };
+
+  const handleMsgBtn = async (link) => {
+    if (link) {
+      const splitLink = link.split("/");
+      const username = splitLink.slice(3).join("/");
+      await Linking.openURL(`https://m.me/${username}`);
+    }
+  };
+
+  return (
+    <>
+      {emerHData?.map((emerH) => (
+        <View key={emerH.id} style={styles.borderWrapper}>
+          <LinearGradient
+            colors={["#0060FF", "rgba(0, 96, 255, 0)"]}
+            start={{ x: 0.5, y: 0 }}
+            end={{ x: 0.5, y: 1 }}
+            style={styles.gradient}
+          >
+            <View style={styles.card}>
+              {/* Top Row: Image + Info */}
+              <View style={styles.topRow}>
+
+                <View style={styles.infoSection}>
+                  <Text
+                    style={styles.name}
+                    numberOfLines={1}
+                    ellipsizeMode='tail'
+                  >
+                    {emerH.emerHName}
+                  </Text>
+                  <Text style={styles.position}>
+                    {emerH.emerHDescription || "No role specified"}
+                  </Text>
+                </View>
+              </View>
+
+              {/* Bottom: Buttons (Same Row) */}
+              <View style={styles.buttonsRow}>
+                {/* 📞 Call Button with number */}
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={() => handleContactBtn(emerH.emerHNumber)}
+                  style={[styles.callButton, { flex: 1 }]}
+                >
+                  <Ionicons
+                    name='call'
+                    size={16}
+                    color='#fff'
+                    style={{ marginRight: 6 }}
+                  />
+
+                  <Text style={styles.callText}>Call</Text>
+                </TouchableOpacity>
+
+              </View>
+            </View>
+          </LinearGradient>
+        </View>
+      ))}
+    </>
+  );
+}
+
+const styles = StyleSheet.create({
+  borderWrapper: {
+    borderRadius: 14,
+    padding: 1,
+    width: 300,
+    marginRight: 16,
+    overflow: "hidden",
+  },
+  gradient: {
+    borderRadius: 14,
+    padding: 1,
+  },
+  card: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.15,
+    shadowRadius: 2,
+    elevation: 3,
+  },
+  topRow: {
+    flexDirection: "row",
+    padding: 12,
+    alignItems: "center",
+  },
+  profileImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 30, // 👈 circle
+    backgroundColor: "#e5e7eb",
+    marginRight: 12,
+  },
+  infoSection: {
+    flex: 1,
+    justifyContent: "center",
+  },
+  name: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#111827",
+    marginBottom: 2,
+  },
+  position: {
+    fontSize: 13,
+    color: "#374151",
+    marginBottom: 2,
+  },
+  barangay: {
+    fontSize: 12,
+    color: "#6b7280",
+  },
+
+  buttonsColumn: {
+    flexDirection: "column",
+    gap: 8,
+    padding: 12,
+  },
+  callButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#0060FF",
+    borderRadius: 8,
+    paddingVertical: 10,
+  },
+  callText: {
+    color: "#fff",
+    fontWeight: "600",
+    fontSize: 14,
+  },
+  messageButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#f9fafb",
+    borderRadius: 8,
+    paddingVertical: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 0.5 },
+    shadowOpacity: 0.15,
+    shadowRadius: 1,
+    elevation: 2,
+  },
+  messageText: {
+    color: "#0060FF",
+    fontWeight: "600",
+    fontSize: 14,
+  },
+  buttonsRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 8,
+    paddingHorizontal: 12,
+    paddingBottom: 12,
+  },
+});

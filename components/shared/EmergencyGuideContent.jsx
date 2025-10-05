@@ -27,6 +27,7 @@ import ThemedLoader from "../ThemedLoader";
 import AlertCard from "../AlertCard";
 import { useUser } from "../../hooks/useUser";
 import supabase from "../../contexts/supabaseClient";
+import HotlinesCard from "../HotlinesCard";
 
 const EmergencyGuideContent = () => {
   const [loading, setLoading] = useState(true);
@@ -127,9 +128,17 @@ const EmergencyGuideContent = () => {
               <AlertCard />
             </>
         )}
-          
+      
+        <ThemedText style={[styles.textLeft]}>Hotlines</ThemedText>
+        {/* Rescuer Card at the bottom */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ paddingLeft: 4 }}
+        >
+          <HotlinesCard />
+        </ScrollView>
         
-
         <ThemedText style={[styles.textLeft]}>Rescuers</ThemedText>
         {/* Rescuer Card at the bottom */}
         <ScrollView

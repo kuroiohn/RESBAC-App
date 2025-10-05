@@ -44,6 +44,23 @@ export const RealtimeProvider = ({ children }) => {
   if (emerPError) {
     console.error("Error in query of emergency persons table: ", emerPError);
   }
+  
+  const fetchHotlines = async () => {
+    const { data, error } = await supabase.from("emergencyHotlines").select();
+
+    if (error) {
+      console.error("Fetch error in supabase emerH: ", error);
+    }
+    // console.log("Successful fetch", data);
+    return data;
+  };
+  const { data: emerHData, error: emerHError } = useQuery({
+    queryKey: ["emergencyHotlines"],
+    queryFn: fetchHotlines,
+  });
+  if (emerHError) {
+    console.error("Error in query of emergency hotlines table: ", emerHError);
+  }
 
   //ANCHOR - EVAC CARD
   const fetchEvacData = async () => {
@@ -112,6 +129,20 @@ export const RealtimeProvider = ({ children }) => {
         }
       )
       .subscribe();
+    
+      const emerHChannnel = supabase
+      .channel("emerH-changes")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "emergencyHotlines" },
+        (payload) => {
+          // console.log("Realtime change received:", payload);
+
+          // Ask react-query to refetch alerts when a row is inserted/updated/deleted
+          queryClient.invalidateQueries(["emergencyHotlines"]);
+        }
+      )
+      .subscribe();
 
     const evacChannel = supabase
       .channel("evac-changes")
@@ -144,6 +175,7 @@ export const RealtimeProvider = ({ children }) => {
     return () => {
       supabase.removeChannel(alertsChannel);
       supabase.removeChannel(emerPChannnel);
+      supabase.removeChannel(emerHChannnel);
       supabase.removeChannel(evacChannel);
       supabase.removeChannel(pickupChannel);
     };
@@ -151,7 +183,7 @@ export const RealtimeProvider = ({ children }) => {
 
   return (
     <AlertsContext.Provider
-      value={{ alertsData, emerPData, evacData, pickupData }}
+      value={{ alertsData, emerPData, evacData, pickupData, emerHData }}
     >
       {children}
     </AlertsContext.Provider>

@@ -83,7 +83,7 @@ export default function uploadID() {
 
   // Parse all the collected user data
   const completeUserData = userData ? JSON.parse(userData) : {};
-  console.log("Complete user data in uploadID:", completeUserData);
+  // console.log("Complete user data in uploadID:", completeUserData);
 
   // Clean location data before saving to database
   // Both manual address and GPS verification are now required
@@ -287,7 +287,7 @@ export default function uploadID() {
 
       // Get clean location data
       const locationData = getCleanLocationData(completeUserData);
-      console.log("Clean location data:", locationData);
+      // console.log("Clean location data:", locationData);
 
       // Create address record
       const { data: addressData, error: addressError } = await supabase
@@ -307,7 +307,7 @@ export default function uploadID() {
         throw new Error("Failed to create address record");
       }
 
-      console.log("Address created:", addressData);
+      // console.log("Address created:", addressData);
 
       //ANCHOR - CLUSTERING
       const { data: clusterData, error: clusterError } = await supabase
@@ -341,7 +341,7 @@ export default function uploadID() {
       );
 
       const result = await response.json();
-      console.log("Result: ", result.clusters);
+      // console.log("Result: ", result.clusters);
 
       let clusterID = null;
       //ANCHOR - update cluster table
@@ -361,7 +361,7 @@ export default function uploadID() {
           console.error(`Error updating userID:`, clusterUpsertError);
           continue;
         } else {
-          console.log("Cluster row:", clusterRow);
+          // console.log("Cluster row:", clusterRow);
           if (c.userID === authResult.user.id) {
             clusterID = clusterRow[0].id; // keep your new user’s cluster
           }
@@ -391,7 +391,7 @@ export default function uploadID() {
                 console.error("Error creating guardian:", guardianError);
                 return null;
               } else {
-                console.log("Guardian created:", guardianResult);
+                // console.log("Guardian created:", guardianResult);
                 return guardianResult;
               }
             })()
@@ -416,7 +416,7 @@ export default function uploadID() {
           throw new Error("Failed to create in pregnant table");
         }
 
-        console.log("Pregnant entry created:", pregnantData);
+        // console.log("Pregnant entry created:", pregnantData);
         pregnantID = pregnantData.id;
       }
 
@@ -435,7 +435,7 @@ export default function uploadID() {
       if (vulStatusError) {
         console.error("Error in insert in vulstatus table: ", vulStatusError);
       }
-      console.log("Vulnerability list created:", vulnerabilityListData);
+      // console.log("Vulnerability list created:", vulnerabilityListData);
 
       // Create vulnerability list record - with explicit userID
       const { data: vulnerabilityListData, error: vulListError } =
@@ -472,11 +472,10 @@ export default function uploadID() {
         console.error("Error creating vulnerability list:", vulListError);
         throw new Error("Failed to create vulnerability list");
       }
-      console.log("Vulnerability list created:", vulnerabilityListData);
+      // console.log("Vulnerability list created:", vulnerabilityListData);
 
       const {
-        data: { user },
-        error,
+        data: { user }
       } = await supabase.auth.getUser();
 
       const { data: riskData, error: riskError } = await supabase
@@ -502,7 +501,7 @@ export default function uploadID() {
               ? 2
               : 0,
           physicalPWDScore:
-            completeUserData.vulnerability?.physicalDisability?.length >= 4
+            completeUserData.vulnerability?.physicalDisability?.length > 2
               ? 4
               : completeUserData.vulnerability?.physicalDisability?.length === 2
               ? 2
@@ -510,7 +509,7 @@ export default function uploadID() {
               ? 1
               : 0,
           psychPWDScore:
-            completeUserData.vulnerability?.psychologicalDisability?.length >= 4
+            completeUserData.vulnerability?.psychologicalDisability?.length > 2
               ? 4
               : completeUserData.vulnerability?.psychologicalDisability
                   ?.length === 2
@@ -520,7 +519,7 @@ export default function uploadID() {
               ? 1
               : 0,
           sensoryPWDScore:
-            completeUserData.vulnerability?.sensoryDisability?.length >= 4
+            completeUserData.vulnerability?.sensoryDisability?.length > 2
               ? 4
               : completeUserData.vulnerability?.sensoryDisability?.length === 2
               ? 2
@@ -541,7 +540,7 @@ export default function uploadID() {
         console.error("Error creating riskscore list:", riskError);
         throw new Error("Failed to create riskscore list");
       }
-      console.log("riskscore list created:", riskData);
+      // console.log("riskscore list created:", riskData);
 
       //ANCHOR - PRIO API CONNECTION
       const getPrioritization = async () => {
@@ -566,7 +565,7 @@ export default function uploadID() {
           });
 
           const result = await response.json();
-          console.log("Result: ", result.prediction);
+          // console.log("Result: ", result.prediction);
           return result.prediction;
         } catch (error) {
           console.error("error in getting prioritization: ", error);
@@ -585,10 +584,23 @@ export default function uploadID() {
         .select("*")
         .single();
 
-      console.log("priorty: ", priorityData);
       if (prioError) {
         console.error("Error creating priorty:", prioError);
         throw new Error("Failed to create priorty record");
+      }
+      
+      // Create vulnerability record - with explicit userID
+      const { data: statusData, error: statusError } = await supabase
+        .from("requestStatus")
+        .insert({
+          userID: authResult.user.id,
+        })
+        .select("*")
+        .single();
+
+      console.log("priorty: ", statusData);
+      if (statusError) {
+        console.error("Error creating status:", statusError);
       }
 
       // Create vulnerability record - with explicit userID
@@ -623,12 +635,6 @@ export default function uploadID() {
         throw new Error("Failed to create verification record");
       }
 
-      console.log("Verification created:", verifData);
-
-      //TODO - insert to cluster table
-      // get clustering from old model if no model yet
-      // include cluster.id to user table clusterID
-
       const { error: userError } = await supabase
         .from("user")
         .insert({
@@ -644,6 +650,7 @@ export default function uploadID() {
           householdSize:
             parseInt(completeUserData.vulnerability?.householdCount) || 1,
           addressID: addressData.id,
+          statusID: statusData.id,
           hasGuardian: completeUserData.vulnerability?.hasGuardian === "yes",
           guardianID: guardianData?.id || null,
           vulnerabilityID: vulnerabilityData.id,
@@ -679,8 +686,8 @@ export default function uploadID() {
       }
       const currentUser = loginData.user;
 
-      console.log("Current user: ", currentUser);
-      console.log("Final user data:", finalUserData);
+      // console.log("Current user: ", currentUser);
+      // console.log("Final user data:", finalUserData);
 
       // Navigate to MPIN setup instead of dashboard
       console.log("Redirecting to MPIN setup...");

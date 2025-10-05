@@ -62,7 +62,7 @@ const Home = () => {
       if (error) {
         console.error("Fetch error in supabase pressedCallBtn: ", error);
       }
-      console.log("Successful fetch", data.pressedCallBtn);
+      // console.log("Successful fetch", data.pressedCallBtn);
       if (data) {
         setCallRequested(data.pressedCallBtn ? true : false);
         setCallstep(data.pressedCallBtn ? 2 : 0);

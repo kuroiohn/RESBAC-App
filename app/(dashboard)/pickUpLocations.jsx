@@ -55,6 +55,22 @@ const PickUpLocation = () => {
 
   if (!data || data.length === 0) return null;
 
+  const handlePrev = () => {
+    if (activeIndex > 0) {
+      const newIndex = activeIndex - 1;
+      setActiveIndex(newIndex);
+      flatListRef.current?.scrollToIndex({ index: newIndex, animated: true });
+    }
+  };
+
+  const handleNext = () => {
+    if (activeIndex < data.length - 1) {
+      const newIndex = activeIndex + 1;
+      setActiveIndex(newIndex);
+      flatListRef.current?.scrollToIndex({ index: newIndex, animated: true });
+    }
+  };
+
   const currentLocation = data[activeIndex] || {};
   if (!currentLocation) return null;
 

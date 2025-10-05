@@ -29,7 +29,7 @@ function ThemedButton({ style, children, ...props }) {
 
 const styles = StyleSheet.create({
   wrapper: {
-    width: "80%",
+    width: "88%",
     marginVertical: 5,
     borderRadius: 7,
     overflow: "hidden", // keeps gradient & ripple inside rounded corners

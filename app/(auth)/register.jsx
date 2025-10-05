@@ -409,7 +409,7 @@ const Register = () => {
               <Text style={styles.fieldError}>{formErrors.contactNumber}</Text>
             )}
 
-            {/* Barangay input field - ALWAYS REQUIRED */}
+            {/* Street - ALWAYS REQUIRED */}
             <StreetDropdown
               value={street}
               onFocus={() => Keyboard.dismiss()} // close keyboard before opening dropdown

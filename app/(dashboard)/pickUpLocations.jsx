@@ -168,8 +168,12 @@ const PickUpLocation = () => {
   // Escape quotes for safe JS injection
   const safePopupTitle = popupTitle.replace(/'/g, "\\'");
 
-  const src = userCoords?.geolocationCoords?.split(",").map(Number); // user's address
-  const dest = coords; // evacuation or pickup coords
+  const src = userCoords?.geolocationCoords
+    ? userCoords.geolocationCoords.split(",").map(Number)
+    : [0, 0];
+  const dest = coords && coords.length === 2
+    ? coords
+    : [0, 0]; // evacuation or pickup coords
 
   const leafletHtml = coords
     ? `

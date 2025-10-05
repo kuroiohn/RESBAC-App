@@ -17,8 +17,9 @@ import { Ionicons } from "@expo/vector-icons";
 import { WebView } from "react-native-webview";
 import { useNavigation } from "@react-navigation/native";
 import { useRealtime } from "../../contexts/RealtimeProvider";
-
+import { useUser } from "../../hooks/useUser";
 import { useLocalSearchParams } from "expo-router";
+import supabase from "../../contexts/supabaseClient";
 
 const { width, height } = Dimensions.get("window");
 
@@ -27,9 +28,27 @@ const PickUpLocation = () => {
   const [activeTab, setActiveTab] = useState("evacuationCenter");
   const [activeIndex, setActiveIndex] = useState(0);
   const [mapVisible, setMapVisible] = useState(false);
+  const [userCoords,setUserCoords] = useState("")
   const flatListRef = useRef(null);
   const { evacData, pickupData } = useRealtime();
   const navigation = useNavigation();
+  const {user} = useUser()
+
+  useEffect(() => {
+    const fetchUserCoords = async () => {
+      const {data, error: userError} = await supabase
+      .from('address')
+      .select('geolocationCoords')
+      .eq('userID', user.id)
+
+      if(userError){
+        console.error("Error in user fetch: ", userError);
+        
+      }
+      setUserCoords(data[0])
+    }
+    fetchUserCoords()
+  },[])
 
   useLayoutEffect(() => {
     navigation.setOptions({ headerShown: false });
@@ -80,7 +99,9 @@ const PickUpLocation = () => {
       : currentLocation.pickupContact) || "";
 
   // 📌 Static Tumana, Marikina coords
-  const coords = [14.6537, 121.1022];
+  const coords = activeTab === "evacuationCenter" ? 
+  currentLocation.evacGeolocation?.split(",").map(Number) :
+  currentLocation.pickupGeolocation?.split(",").map(Number) 
 
   const handleCall = () => {
     if (phoneNumber) {
@@ -147,6 +168,9 @@ const PickUpLocation = () => {
   // Escape quotes for safe JS injection
   const safePopupTitle = popupTitle.replace(/'/g, "\\'");
 
+  const src = userCoords?.geolocationCoords?.split(",").map(Number); // user's address
+  const dest = coords; // evacuation or pickup coords
+
   const leafletHtml = coords
     ? `
     <!DOCTYPE html>
@@ -170,50 +194,58 @@ const PickUpLocation = () => {
             padding: 0;
           }
           .leaflet-routing-container {
-            font-size: 14px;
+            display: none
           }
         </style>
       </head>
       <body>
         <div id="map"></div>
         <script>
-          var map = L.map('map').setView([${coords[0]}, ${coords[1]}], 16); //  zoomed in
+          const source = [${src[0]}, ${src[1]}];
+          const destination = [${dest[0]}, ${dest[1]}];
+          var map = L.map('map').setView(destination, 17); //  zoomed in
 
           L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap'
           }).addTo(map);
 
-          var marker = L.marker([${coords[0]}, ${coords[1]}]).addTo(map)
-            .bindPopup('${safePopupTitle}').openPopup();
+          L.marker(destination)
+            .addTo(map)
+            .bindTooltip('${safePopupTitle}', {
+              permanent: true,
+              direction: 'top',
+              offset: [-15, 0],
+              className: 'marker-label'
+            })
+            .openTooltip();
 
+          // home marker with permanent label
+          L.marker(source)
+            .addTo(map)
+            .bindTooltip('Home', {
+              permanent: true,
+              direction: 'top',
+              offset: [-15, 0],
+              className: 'marker-label'
+            })
+            .openTooltip();
 
-
-          // 🧭 Try to get user location
-          map.locate({ setView: false, maxZoom: 18 });
-
-          map.on('locationfound', function(e) {
-            var userLatLng = e.latlng;
-            L.marker(userLatLng).addTo(map).bindPopup('You are here').openPopup();
-
-            // Draw route from user to evacuation center
-            L.Routing.control({
-              waypoints: [
-                L.latLng(userLatLng.lat, userLatLng.lng),
-                L.latLng(${coords[0]}, ${coords[1]})
-              ],
-              lineOptions: {
-                styles: [{ color: '#0060FF', weight: 4 }]
-              },
-              addWaypoints: false,
-              draggableWaypoints: false,
-              fitSelectedRoutes: true,
-              showAlternatives: false
-            }).addTo(map);
-          });
-
-          map.on('locationerror', function() {
-            console.log('Could not get user location');
-          });
+          L.Routing.control({
+            waypoints: [
+              L.latLng(source[0], source[1]),
+              L.latLng(destination[0], destination[1])
+            ],
+            lineOptions: {
+              styles: [{ color: 'red', weight: 4 }]
+            },
+            altLineOptions: {
+              styles: [{ color: 'red', opacity: 0.5, weight: 3}]
+            },
+            addWaypoints: false,
+            draggableWaypoints: false,
+            fitSelectedRoutes: true,
+            showAlternatives: true
+          }).addTo(map);
         </script>
       </body>
     </html>
@@ -294,7 +326,7 @@ const PickUpLocation = () => {
           <Ionicons name='navigate' size={20} color='#0060FF' />
         </TouchableOpacity>
 
-        <Text style={styles.navigateText}>How far am I from here?</Text>
+        <Text style={styles.navigateText}>How far from home?</Text>
       </View>
 
       {/* Tabs */}

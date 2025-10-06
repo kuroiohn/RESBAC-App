@@ -566,7 +566,7 @@ const Profile = () => {
       .eq("userID", user.id)
       .single();
 
-    setIsVerified(data.isVerified);
+    setIsVerified(data?.isVerified);
 
     if (error) {
       console.error("Fetch error in verif table: ", error);
@@ -583,7 +583,7 @@ const Profile = () => {
   }
   useEffect(() => {
     if (verifData) {
-      setIsVerified(verifData.isVerified);
+      setIsVerified(verifData?.isVerified);
     }
   }, [user]);
   

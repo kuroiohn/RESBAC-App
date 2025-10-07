@@ -30,6 +30,7 @@
     },
     "edgeToEdgeEnabled": true,
     "package": "com.lukewarmraven.RESBAC1",
+    "useNextNotificationsApi": true,
     "intentFilters": [
       {
         "action": "VIEW",

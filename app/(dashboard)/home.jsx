@@ -161,10 +161,6 @@ const Home = () => {
   // pang animate
   const handleAnimationFinish = () => {
     setAnimating(false);
-    // if (callstep === 1){
-    //   setCallstep(2)
-    //   setCallRequested(true);
-    // }
 
     Animated.timing(fadeAnim, {
       toValue: 1,
@@ -173,128 +169,84 @@ const Home = () => {
     }).start();
   };
 
-  const handleSelectNumber = (contact) => {
-    setSelectedContact(contact);
-    setShowCallPicker(false);
-    setCallstep(1); // now in "Calling for help..." state
-    setCallRequested(false);
-    // handleAnimationStart();
-  };
+  const handleSelectNumber = async (contact) => {
+    // setSelectedContact(contact);
+    // setShowCallPicker(false);
+    // setCallstep(1); // now in "Calling for help..." state
+    // setCallRequested(true);
+    try {
+      setShowCallPicker(false); // close modal
+      setSelectedContact(contact);
 
-  {
-    /*const handleSelectNumber = async (contact) => {
-    setSelectedContact(contact);
-    setShowCallPicker(false);
-    setCallstep(1); // entering "animating" state
-    setCallRequested(false);
+      // open dialer
+      const phoneUrl = `tel:${contact.number}`;
+      await Linking.openURL(phoneUrl);
 
-    // start button animation
-    handleAnimationStart();
-
-    // wait briefly for animation before proceeding
-    setTimeout(async () => {
-      handleAnimationFinish(); // complete animation
-      setCallstep(2);
+      // update state and DB after dialer opens
       setCallRequested(true);
+      setCallstep(2);
 
-      // now open dialer
-      const url = `tel:${contact.number}`;
-      try {
-        await Linking.openURL(url);
-
-        // update supabase
-        const now = new Date();
-        const { data, error } = await supabase
-          .from("user")
-          .update({
-            pressedCallBtn: [
-              new Date(now.getTime() - now.getTimezoneOffset() * 60000)
-                .toISOString()
-                .slice(0, -1)
-                .toString(),
-              contact.number.toString(),
-            ],
-          })
-          .eq("userID", user.id)
-          .select();
-
-        console.log("updated call btn:", data, error);
-      } catch (err) {
-        console.error("Error opening dialer: ", err);
-      }
-    }, 800); // adjust delay to match your animation duration
-  }; */
-  }
-
-  const handleCallPress = async () => {
-    if (callstep === 0) {
-      // Step 0 → Open modal
-      setShowCallPicker(true);
-    } else if (callstep === 1 && selectedContact) {
-      handleAnimationStart();
-      // Step 1 → Actually dial + update db → then move to step 2
-      try {
-        const url = `tel:${selectedContact.number}`;
-        await Linking.openURL(url);
-
-        setCallstep(2);
-        setCallRequested(true);
-        handleAnimationFinish();
-
-        const now = new Date();
-        const { data, error } = await supabase
-          .from("user")
-          .update({
-            pressedCallBtn: [
-              new Date(now.getTime() - now.getTimezoneOffset() * 60000)
-                .toISOString()
-                .slice(0, -1),
-              selectedContact.number.toString(),
-            ],
-          })
-          .eq("userID", user.id)
-          .select();
-
-        console.log("updated call btn:", data, error);
-      } catch (err) {
-        console.error("Error opening dialer: ", err);
-      }
-    }
-  };
-
-  {
-    /* const handleCallPress = async () => {
-    if (callstep === 0) {
-      // setCallstep(1); // First press
-      // setCallRequested(false);
-      setShowCallPicker(true); // show picker popup
-    } else if (callstep === 1 && selectedContact) {
-      const phoneNumber = "09684319082";
-      const url = `tel:${phoneNumber}`;
-      try {
-        await Linking.openURL(url);
-        setCallstep(2);
-        setCallRequested(true);
-
-        const now = new Date();
-        const { data, error } = await supabase
-          .from("user")
-          .update({
-            pressedCallBtn: new Date(
-              now.getTime() - now.getTimezoneOffset() * 60000
-            )
+      const now = new Date();
+      const { data, error } = await supabase
+        .from("user")
+        .update({
+          pressedCallBtn: [
+            new Date(now.getTime() - now.getTimezoneOffset() * 60000)
               .toISOString()
               .slice(0, -1),
-          })
-          .eq("userID", user.id)
-          .select();
-        console.log("updated call btn:", data, error);
-      } catch (err) {
-        console.error("Error opening dialer: ", err);
+            contact.number.toString(),
+          ],
+        })
+        .eq("userID", user.id)
+        .select();
+
+      if (error) {
+        console.error("Error updating call button: ", error);
+      } else {
+        console.log("Updated call button:", data);
       }
+    } catch (err) {
+      console.error("Error during call:", err);
     }
-  }; */
-  }
+  };
+
+  const handleCallPress = async () => {
+    setShowCallPicker(true);
+    // if (callstep === 0) {
+    //   // Step 0 → Open modal
+    //   setShowCallPicker(true);
+    // } else if (callstep === 1 && selectedContact) {
+    //   handleAnimationStart();
+    //   // Step 1 → Actually dial + update db → then move to step 2
+    //   try {
+    //     const url = `tel:${selectedContact.number}`;
+    //     await Linking.openURL(url);
+
+    //     setCallstep(2);
+    //     setCallRequested(true);
+    //     handleAnimationFinish();
+
+    //     const now = new Date();
+    //     const { data, error } = await supabase
+    //       .from("user")
+    //       .update({
+    //         pressedCallBtn: [
+    //           new Date(now.getTime() - now.getTimezoneOffset() * 60000)
+    //             .toISOString()
+    //             .slice(0, -1),
+    //           selectedContact.number.toString(),
+    //         ],
+    //       })
+    //       .eq("userID", user.id)
+    //       .select();
+
+    //     console.log("updated call btn:", data, error);
+    //   } catch (err) {
+    //     console.error("Error opening dialer: ", err);
+    //   }
+    // }
+    // setShowCallPicker(false)
+  };
 
   const handleCancel = async () => {
     Animated.timing(fadeAnim, {
@@ -339,7 +291,7 @@ const Home = () => {
         </ThemedText>
 
         {/* Initial state */}
-        {callstep === 0 && !callRequested && (
+        {callstep === 0 && (
           <>
             <ThemedText>Press the button below and help will</ThemedText>
             <ThemedText>reach you shortly.</ThemedText>
@@ -358,7 +310,7 @@ const Home = () => {
         )}
 
         {/* Animating state */}
-        {callstep === 1 && !callRequested && (
+        {/* {callstep === 1 && !callRequested && (
           <>
             <ThemedText style={{ marginTop: 20, fontWeight: "bold" }}>
               Calling for help...
@@ -375,10 +327,10 @@ const Home = () => {
               <Text style={styles.cancelBtnText}>Cancel Request</Text>
             </TouchableOpacity>
           </>
-        )}
+        )} */}
 
         {/* After request */}
-        {callRequested && callstep === 2 && (
+        {callRequested && (
           <View style={styles.chatContainer}>
             {/* Top banner */}
             <ThemedText style={styles.standbyText}>
@@ -499,7 +451,9 @@ const Home = () => {
               <TouchableOpacity
                 key={i}
                 style={styles.contactBtn}
-                onPress={() => handleSelectNumber(c)}
+                onPress={() => {
+                  handleSelectNumber(c)
+                }}
               >
                 <Text style={{ fontSize: 16 }}>{c.name}</Text>
                 <Text style={{ fontSize: 14, color: "#555" }}>{c.number}</Text>

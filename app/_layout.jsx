@@ -1,4 +1,4 @@
-import { StyleSheet, Text, useColorScheme, View, Platform } from "react-native";
+import { StyleSheet, Text, useColorScheme, View, Platform, Alert } from "react-native";
 import { Stack } from "expo-router";
 import { Colors } from "../constants/Colors";
 import { StatusBar } from "expo-status-bar";
@@ -30,57 +30,90 @@ export default function RootLayout() {
 
     // register for push notifications and save token to Supabase
     const registerForPushNotifications = async () => {
-      if (!Constants.isDevice) {
-        console.log("Push notifications require a physical device");
-        return;
-      }
+      // Device check temporarily disabled - Constants.isDevice returns false in some dev clients
+      // if (!Constants.isDevice) {
+      //   console.log("Push notifications require a physical device");
+      //   return;
+      // }
 
       const { status: existingStatus } =
         await Notifications.getPermissionsAsync();
       let finalStatus = existingStatus;
 
       if (existingStatus !== "granted") {
-        const { status } = await Notifications.requestPermissionsAsync();
-        finalStatus = status;
-      }
+        // Show allow notifications
+        const requestPermission = () =>
+          new Promise((resolve) => {
+            Alert.alert(
+              "Enable Notifications",
+              "RESBAC needs notification permission to send you important disaster alerts and emergency updates.",
+              [
+                {
+                  text: "Enable",
+                  onPress: async () => {
+                    const { status } =
+                      await Notifications.requestPermissionsAsync();
+                    resolve(status);
+                  },
+                },
+                {
+                  text: "Not Now",
+                  style: "cancel",
+                  onPress: () => {
+                    console.log("Push notification permission denied by user");
+                    resolve("denied");
+                  },
+                },
+              ]
+            );
+          });
 
-      if (finalStatus !== "granted") {
-        console.log("Push notification permission not granted");
-        return;
+        finalStatus = await requestPermission();
+
+        if (finalStatus !== "granted") {
+          if (finalStatus === "denied") {
+            Alert.alert(
+              "Notifications Disabled",
+              "You won't receive emergency alerts. You can enable notifications later in your device settings.",
+              [{ text: "OK" }]
+            );
+          }
+          return;
+        }
       }
 
       try {
         const token = (await Notifications.getExpoPushTokenAsync()).data;
         console.log("Expo push token:", token);
 
-        // Get current user session
+        // Get current user session (can be null for guests)
         const { data: { session } } = await supabase.auth.getSession();
 
-        if (session?.user) {
-          // Save token to Supabase
-          const deviceInfo = {
-            platform: Platform.OS,
-          };
+        const deviceInfo = {
+          platform: Platform.OS,
+        };
 
-          const { error } = await supabase
-            .from("push_tokens")
-            .upsert(
-              {
-                user_id: session.user.id,
-                push_token: token,
-                device_info: deviceInfo,
-                updated_at: new Date().toISOString(),
-              },
-              { onConflict: "push_token" }
-            );
+        // Save token for both logged-in users and guests
+        const { error } = await supabase
+          .from("push_tokens")
+          .upsert(
+            {
+              user_id: session?.user?.id || null,
+              push_token: token,
+              device_info: deviceInfo,
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: "push_token" }
+          );
 
-          if (error) {
-            console.error("Error saving push token:", error);
-          } else {
-            console.log("Push token saved to Supabase");
-          }
+        if (error) {
+          console.error("Error saving push token:", error);
         } else {
-          console.log("No user session found, token not saved");
+          console.log(
+            session?.user
+              ? "Push token saved for logged-in user"
+              : "Push token saved for guest user"
+          );
         }
       } catch (error) {
         console.error("Error registering for push notifications:", error);

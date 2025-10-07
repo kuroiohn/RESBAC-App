@@ -454,7 +454,7 @@ export default function uploadID() {
             physicalPWD:
               completeUserData.vulnerability?.physicalDisability || [],
             psychPWD: completeUserData.vulnerability?.psychologicalDisability
-              ? [completeUserData.vulnerability.psychologicalDisability]
+              ? completeUserData.vulnerability.psychologicalDisability
               : [],
             sensoryPWD: completeUserData.vulnerability?.sensoryDisability || [],
             medDep: completeUserData.vulnerability?.healthCondition || [],

@@ -95,7 +95,8 @@ const Home = () => {
             status,
             message,
             updated_at,
-            readStatus
+            readStatus,
+            sent_at
           )`)
         .eq("userID", user.id)
         .maybeSingle();
@@ -327,8 +328,8 @@ const Home = () => {
     }
   };
 
-  console.log("Callrequested: ", callRequested);
-  console.log("animating: ", animating);
+  // console.log("Callrequested: ", callRequested);
+  // console.log("animating: ", animating);
 
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>

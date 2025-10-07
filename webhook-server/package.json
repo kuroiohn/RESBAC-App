@@ -1,0 +1,10 @@
+{
+  "name": "resbac-webhook",
+  "version": "1.0.0",
+  "description": "Webhook server for RESBAC push notifications",
+  "main": "api/send-notification.js",
+  "scripts": {
+    "dev": "vercel dev"
+  },
+  "dependencies": {}
+}

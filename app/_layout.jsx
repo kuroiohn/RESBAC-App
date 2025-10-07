@@ -68,8 +68,8 @@ export default function RootLayout() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <RealtimeProvider>
         <UserProvider>
+      <RealtimeProvider>
           <StatusBar style='dark' />
           <Stack
             screenOptions={{
@@ -88,8 +88,8 @@ export default function RootLayout() {
               options={{ headerShown: false }}
             />
           </Stack>
-        </UserProvider>
       </RealtimeProvider>
+        </UserProvider>
     </QueryClientProvider>
   );
 }

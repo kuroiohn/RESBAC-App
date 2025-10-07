@@ -23,6 +23,7 @@ import { useUser } from "../../hooks/useUser";
 import supabase from "../../contexts/supabaseClient";
 import PickupLocationsCard from "../../components/PickupLocationsCard";
 import { useNavigation } from "@react-navigation/native";
+import { useRealtime } from "../../contexts/RealtimeProvider";
 
 const Home = () => {
   const { user } = useUser();
@@ -34,13 +35,29 @@ const Home = () => {
   const [showCallPicker, setShowCallPicker] = useState(false);
   const [selectedNumber, setSelectedNumber] = useState(null);
   const [selectedContact, setSelectedContact] = useState(null);
+  const [reqStatus, setReqStatus] = useState(null)
+
+  const {reqData} = useRealtime()
 
   const [userMessage, setUserMessage] = useState("");
   const [message, setMessage] = useState("");
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (!message.trim()) return;
     setUserMessage(message.trim());
+    const {data: sendData, error: sendError} = await supabase
+    .from('requestStatus')
+    .update({
+      message: message,
+      sent_at: new Date(),
+      readStatus: false
+    })
+    .eq('userID', user.id)
+    if(sendError){
+      console.error("Error in sending message to db: ", sendError);      
+    }
+
+    setMessage("")
   };
 
   const handleEditMessage = () => {
@@ -73,19 +90,31 @@ const Home = () => {
 
       const { data, error } = await supabase
         .from("user")
-        .select("pressedCallBtn")
+        .select(`pressedCallBtn,
+          requestStatus (
+            status,
+            message,
+            updated_at,
+            readStatus
+          )`)
         .eq("userID", user.id)
         .maybeSingle();
 
       if (error) {
-        console.error("Fetch error in supabase pressedCallBtn: ", error);
+        console.error("Fetch error in supabase usertable: ", error);
       }
       // console.log("Successful fetch", data.pressedCallBtn);
       if (data) {
         setCallRequested(data.pressedCallBtn ? true : false);
         setCallstep(data.pressedCallBtn ? 2 : 0);
+        setReqStatus({
+          status: data.requestStatus.status,
+          message: data.requestStatus.message,
+          updated_at: data.requestStatus.updated_at,
+          readStatus: data.requestStatus.readStatus,
+        })
       } else {
-        console.warn("No row found in pressedcallbtn for user ", user.id);
+        console.warn("No row found in user ", user.id);
       }
 
       return data;
@@ -362,24 +391,55 @@ const Home = () => {
             </Text>
 
             {/* Chat area */}
-            <ScrollView
-              style={styles.chatScroll}
-              contentContainerStyle={{ paddingBottom: 100 }}
-            >
-              {/* Admin message */}
-              <View style={[styles.chatBubble, styles.adminBubble]}>
-                <Text style={styles.chatText}>
-                  🚨 Rescue team has been dispatched.
-                </Text>
-              </View>
+            {
+              reqData.map((r) => (    
+                <ScrollView
+                key={r.id}
+                  style={styles.chatScroll}
+                  contentContainerStyle={{ paddingBottom: 100 }}
+                >
+                  {/* Admin message */}
+                  <View style={[styles.chatBubble, styles.adminBubble]}>
+                    <Text style={styles.chatText}>
+                      STATUS: {
+                      r.status === 3 ? "Rescuers are ON THEIR WAY. Please stay at a safe place and look out for incoming rescuers." : 
+                      r.status === 2 ? "Rescue request shared with rescuers. Please wait while rescuers prepare to get to you." : 
+                      r.status === 1 ? "Admin received your rescue request. Please wait while they share your information with the rescuers." : 
+                       "Rescue request sent to admin. Waiting for admin to see your request." 
+                      }
+                    </Text>
+                    <Text style={styles.chatText}>
+                      {new Date(r.updated_at).toLocaleTimeString([],{
+                        hour:"numeric",
+                        minute: "numeric"
+                      })}
+                    </Text>
+                  </View>
 
-              {/* User message bubble - always visible */}
-              <View style={[styles.chatBubble, styles.userBubble]}>
-                <Text style={styles.userText}>
-                  {userMessage ? userMessage : "No message sent yet..."}
-                </Text>
-              </View>
-            </ScrollView>
+                  {/* User message bubble - always visible */}
+                  <View style={[styles.chatBubble, styles.userBubble]}>
+                    <Text style={styles.userText}>
+                      {r.message ? 
+                      (
+                        <>
+                          <Text>
+                            {`${r.message}\n`} 
+                          </Text>
+                          <Text style={styles.editGuide}>
+                            {r?.sent_at ? new Date(r?.sent_at).toLocaleTimeString([],{
+                              hour:"numeric",
+                              minute: "numeric"
+                            }) : ""}
+                          </Text>
+                        </>
+                      )
+                       : 
+                      "No message sent yet..."}
+                    </Text>
+                  </View>
+                </ScrollView>
+              ))
+            }
 
             {/* Message input bar - stays visible */}
             <View style={styles.inputBar}>
@@ -392,11 +452,11 @@ const Home = () => {
                 onChangeText={setMessage}
               />
               <TouchableOpacity
-                onPress={userMessage ? handleEditMessage : handleSendMessage}
+                onPress={handleSendMessage}
                 style={styles.sendBtn}
               >
                 <Text style={styles.sendBtnText}>
-                  {userMessage ? "Edit" : "Send"}
+                  {"Send"}
                 </Text>
               </TouchableOpacity>
             </View>

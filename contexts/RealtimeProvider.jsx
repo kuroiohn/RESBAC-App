@@ -1,11 +1,13 @@
 import { useContext, createContext, useEffect } from "react";
 import supabase from "./supabaseClient";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useUser } from "../hooks/useUser";
 
 const AlertsContext = createContext([]);
 export const useRealtime = () => useContext(AlertsContext);
 
 export const RealtimeProvider = ({ children }) => {
+  const {user} = useUser()
   const queryClient = useQueryClient();
   //ANCHOR - ALERTS
   // reads from supabase
@@ -93,6 +95,25 @@ export const RealtimeProvider = ({ children }) => {
     queryKey: ["pickupLocations"],
     queryFn: fetchPickupData,
   });
+  
+  //ANCHOR - REQ
+  const fetchReqStatus = async () => {
+    const { data, error } = await supabase
+    .from("requestStatus")
+    .select()
+    .eq("userID",user.id);
+
+    if (error) {
+      console.error("Fetch error in supabase reqStatus: ", error);
+    }
+    // console.log("Successful fetch", data);
+    return data;
+  };
+  // use data here to map the values and read
+  const { data: reqData, error: reqError } = useQuery({
+    queryKey: ["requestStatus"],
+    queryFn: fetchReqStatus,
+  });
 
   // Subscribe to realtime changes
   useEffect(() => {
@@ -172,18 +193,31 @@ export const RealtimeProvider = ({ children }) => {
       )
       .subscribe();
 
+    const reqChannel = supabase
+      .channel("req-changes")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "requestStatus" },
+        (payload) => {
+          console.log("Realtime change:", payload);
+          queryClient.invalidateQueries(["requestStatus"]); 
+        }
+      )
+      .subscribe();
+
     return () => {
       supabase.removeChannel(alertsChannel);
       supabase.removeChannel(emerPChannnel);
       supabase.removeChannel(emerHChannnel);
       supabase.removeChannel(evacChannel);
+      supabase.removeChannel(reqChannel);
       supabase.removeChannel(pickupChannel);
     };
   }, []);
 
   return (
     <AlertsContext.Provider
-      value={{ alertsData, emerPData, evacData, pickupData, emerHData }}
+      value={{ alertsData, emerPData, evacData, pickupData, emerHData, reqData }}
     >
       {children}
     </AlertsContext.Provider>

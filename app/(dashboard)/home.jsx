@@ -7,6 +7,7 @@ import {
   Linking,
   Modal,
   View,
+  TextInput,
 } from "react-native";
 import { useState, useRef, useEffect, use } from "react";
 
@@ -33,6 +34,23 @@ const Home = () => {
   const [showCallPicker, setShowCallPicker] = useState(false);
   const [selectedNumber, setSelectedNumber] = useState(null);
   const [selectedContact, setSelectedContact] = useState(null);
+
+  const [userMessage, setUserMessage] = useState("");
+  const [message, setMessage] = useState("");
+
+  const handleSendMessage = () => {
+    if (!message.trim()) return;
+    setUserMessage(message.trim());
+  };
+
+  const handleEditMessage = () => {
+    if (!message.trim()) return;
+    setUserMessage(message.trim());
+  };
+
+  useEffect(() => {
+    if (userMessage) setMessage(userMessage);
+  }, [userMessage]);
 
   const contacts = [
     { name: "Marikina Local", number: "161" },
@@ -331,24 +349,67 @@ const Home = () => {
 
         {/* After request */}
         {callRequested && callstep === 2 && (
-          <Animated.View style={{ alignItems: "center" }}>
-            <ThemedText style={{ marginVertical: 10, textAlign: "center" }}>
+          <View style={styles.chatContainer}>
+            {/* Top banner */}
+            <ThemedText style={styles.standbyText}>
               Please stand by, or look for a safe {"\n"}
               place to stay until rescue has arrived.
             </ThemedText>
-            <Spacer />
-            <CallButton
-              onAnimationStart={handleAnimationStart}
-              onAnimationFinish={handleAnimationFinish}
-              disabled={callstep === 2}
-            />
-            <Spacer />
-            <TouchableOpacity onPress={handleCancel} style={styles.cancelBtn}>
-              <Text style={styles.cancelBtnText}>Cancel Request</Text>
+
+            <Text style={styles.editGuide}>
+              📝 You can update your message anytime. Only one message is
+              allowed.
+            </Text>
+
+            {/* Chat area */}
+            <ScrollView
+              style={styles.chatScroll}
+              contentContainerStyle={{ paddingBottom: 100 }}
+            >
+              {/* Admin message */}
+              <View style={[styles.chatBubble, styles.adminBubble]}>
+                <Text style={styles.chatText}>
+                  🚨 Rescue team has been dispatched.
+                </Text>
+              </View>
+
+              {/* User message bubble - always visible */}
+              <View style={[styles.chatBubble, styles.userBubble]}>
+                <Text style={styles.userText}>
+                  {userMessage ? userMessage : "No message sent yet..."}
+                </Text>
+              </View>
+            </ScrollView>
+
+            {/* Message input bar - stays visible */}
+            <View style={styles.inputBar}>
+              <TextInput
+                style={styles.input}
+                placeholder='Type your message...'
+                placeholderTextColor='#999'
+                multiline
+                value={message}
+                onChangeText={setMessage}
+              />
+              <TouchableOpacity
+                onPress={userMessage ? handleEditMessage : handleSendMessage}
+                style={styles.sendBtn}
+              >
+                <Text style={styles.sendBtnText}>
+                  {userMessage ? "Edit" : "Send"}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Cancel red button */}
+            <TouchableOpacity onPress={handleCancel} style={styles.cancelLink}>
+              <Text style={styles.cancelLinkText}>Cancel rescue request</Text>
             </TouchableOpacity>
-            <Spacer />
-          </Animated.View>
+          </View>
         )}
+
+        <Spacer height={20} />
+
         {callRequested && <MarkSafeBtn />}
         {/* Alerts + Guide only in initial state */}
         {callstep !== 1 && (
@@ -458,5 +519,174 @@ const styles = StyleSheet.create({
     padding: 12,
     borderBottomWidth: 1,
     borderColor: "#ddd",
+  },
+
+  // new add october 07
+
+  adminFeedbackContainer: {
+    backgroundColor: "#fafafa",
+    borderWidth: 1,
+    borderColor: "#0060ff",
+    borderRadius: 12,
+    padding: 12,
+    width: "95%",
+    marginTop: 10,
+  },
+  adminFeedbackTitle: {
+    fontWeight: "bold",
+    color: "#0060ff",
+    marginBottom: 4,
+  },
+  adminFeedbackText: {
+    color: "#333",
+  },
+
+  messageContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fafafa",
+    borderColor: "#ccc",
+    borderWidth: 1,
+    borderRadius: 25,
+    paddingHorizontal: 10,
+    width: "90%",
+    minHeight: 50,
+  },
+  messageInput: {
+    flex: 1,
+    color: "#000",
+    paddingVertical: 8,
+    paddingHorizontal: 5,
+  },
+  sendButton: {
+    backgroundColor: "red",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+    marginLeft: 8,
+  },
+  sendButtonText: {
+    color: "#fff",
+    fontWeight: "bold",
+  },
+
+  chatContainer: {
+    flex: 1,
+    width: "95%",
+    backgroundColor: "#fafafa",
+    paddingTop: 10,
+    paddingHorizontal: 15,
+  },
+
+  standbyText: {
+    textAlign: "center",
+    fontSize: 16,
+    color: "#333",
+    lineHeight: 22,
+    marginBottom: 15,
+  },
+
+  chatScroll: {
+    flex: 1,
+    width: "100%",
+  },
+
+  chatBubble: {
+    padding: 10,
+    marginVertical: 5,
+    borderRadius: 15,
+    maxWidth: "80%",
+  },
+
+  adminBubble: {
+    alignSelf: "flex-start",
+    backgroundColor: "#0060ff",
+  },
+
+  userBubble: {
+    alignSelf: "flex-end",
+    backgroundColor: "#e0e0e0",
+  },
+
+  chatText: {
+    color: "#fff",
+    fontSize: 14,
+  },
+  userBubbleText: {
+    color: "#000",
+  },
+
+  inputBar: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    backgroundColor: "#fff",
+    borderTopWidth: 1,
+    borderRadius: 8,
+    borderColor: "#0060ff",
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+
+    // Shadow for iOS
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 0.5 },
+    shadowOpacity: 0.25,
+    shadowRadius: 0.5,
+
+    // Shadow for Android
+    elevation: 2,
+  },
+
+  input: {
+    flex: 1,
+    fontSize: 14,
+    paddingVertical: 6,
+    paddingHorizontal: 8,
+    maxHeight: 100,
+  },
+
+  sendBtn: {
+    backgroundColor: "#0060ff",
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    marginLeft: 6,
+  },
+
+  sendBtnText: {
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: 14,
+  },
+
+  cancelLink: {
+    backgroundColor: "#ff3b30",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    alignSelf: "center",
+    marginBottom: 70,
+    minWidth: 180,
+    alignItems: "center",
+  },
+  cancelLinkText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "600",
+    textAlign: "center",
+  },
+
+  editGuide: {
+    textAlign: "center",
+    fontSize: 12,
+    color: "#666",
+    marginBottom: 10,
+  },
+  userText: {
+    color: "#000",
+    fontSize: 14,
   },
 });

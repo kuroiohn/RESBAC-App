@@ -200,6 +200,20 @@ const Home = () => {
         .eq("userID", user.id)
         .select();
 
+      const {error: reqCallError} = await supabase
+      .from('requestStatus')
+      .update({
+        updated_at: new Date(),
+        message: null,
+        status: 0,
+        sent_at: null,
+        readStatus: false
+      })
+      .eq('userID',user.id)
+
+      if (reqCallError) {
+        console.error("Error updating call button: ", reqCallError);
+      } 
       if (error) {
         console.error("Error updating call button: ", error);
       } else {
@@ -278,6 +292,20 @@ const Home = () => {
     if (error) {
       console.error("Error in updating call btn", error);
     }
+
+    const {error: reqCancelError} = await supabase
+      .from('requestStatus')
+      .update({
+        message: null,
+        status: 0,
+        sent_at: null,
+        readStatus: false
+      })
+      .eq('userID',user.id)
+
+      if (reqCancelError) {
+        console.error("Error updating call button: ", reqCancelError);
+      } 
   };
 
   // console.log("Callrequested: ", callRequested);
@@ -345,7 +373,7 @@ const Home = () => {
 
             {/* Chat area */}
             {
-              reqData.map((r) => (    
+              reqData?.map((r) => (    
                 <ScrollView
                 key={r.id}
                   style={styles.chatScroll}

@@ -35,9 +35,10 @@ const Home = () => {
   const [showCallPicker, setShowCallPicker] = useState(false);
   const [selectedNumber, setSelectedNumber] = useState(null);
   const [selectedContact, setSelectedContact] = useState(null);
-  const [reqStatus, setReqStatus] = useState(null)
+  const [reqStatus, setReqStatus] = useState(null);
+  const [showInput, setShowInput] = useState(false);
 
-  const {reqData} = useRealtime()
+  const { reqData } = useRealtime();
 
   const [userMessage, setUserMessage] = useState("");
   const [message, setMessage] = useState("");
@@ -45,19 +46,19 @@ const Home = () => {
   const handleSendMessage = async () => {
     if (!message.trim()) return;
     setUserMessage(message.trim());
-    const {data: sendData, error: sendError} = await supabase
-    .from('requestStatus')
-    .update({
-      message: message,
-      sent_at: new Date(),
-      readStatus: false
-    })
-    .eq('userID', user.id)
-    if(sendError){
-      console.error("Error in sending message to db: ", sendError);      
+    const { data: sendData, error: sendError } = await supabase
+      .from("requestStatus")
+      .update({
+        message: message,
+        sent_at: new Date(),
+        readStatus: false,
+      })
+      .eq("userID", user.id);
+    if (sendError) {
+      console.error("Error in sending message to db: ", sendError);
     }
 
-    setMessage("")
+    setMessage("");
   };
 
   const handleEditMessage = () => {
@@ -90,14 +91,16 @@ const Home = () => {
 
       const { data, error } = await supabase
         .from("user")
-        .select(`pressedCallBtn,
+        .select(
+          `pressedCallBtn,
           requestStatus (
             status,
             message,
             updated_at,
             readStatus,
             sent_at
-          )`)
+          )`
+        )
         .eq("userID", user.id)
         .maybeSingle();
 
@@ -113,7 +116,7 @@ const Home = () => {
           message: data.requestStatus.message,
           updated_at: data.requestStatus.updated_at,
           readStatus: data.requestStatus.readStatus,
-        })
+        });
       } else {
         console.warn("No row found in user ", user.id);
       }
@@ -200,20 +203,20 @@ const Home = () => {
         .eq("userID", user.id)
         .select();
 
-      const {error: reqCallError} = await supabase
-      .from('requestStatus')
-      .update({
-        updated_at: new Date(),
-        message: null,
-        status: 0,
-        sent_at: null,
-        readStatus: false
-      })
-      .eq('userID',user.id)
+      const { error: reqCallError } = await supabase
+        .from("requestStatus")
+        .update({
+          updated_at: new Date(),
+          message: null,
+          status: 0,
+          sent_at: null,
+          readStatus: false,
+        })
+        .eq("userID", user.id);
 
       if (reqCallError) {
         console.error("Error updating call button: ", reqCallError);
-      } 
+      }
       if (error) {
         console.error("Error updating call button: ", error);
       } else {
@@ -293,19 +296,19 @@ const Home = () => {
       console.error("Error in updating call btn", error);
     }
 
-    const {error: reqCancelError} = await supabase
-      .from('requestStatus')
+    const { error: reqCancelError } = await supabase
+      .from("requestStatus")
       .update({
         message: null,
         status: 0,
         sent_at: null,
-        readStatus: false
+        readStatus: false,
       })
-      .eq('userID',user.id)
+      .eq("userID", user.id);
 
-      if (reqCancelError) {
-        console.error("Error updating call button: ", reqCancelError);
-      } 
+    if (reqCancelError) {
+      console.error("Error updating call button: ", reqCancelError);
+    }
   };
 
   // console.log("Callrequested: ", callRequested);
@@ -366,86 +369,123 @@ const Home = () => {
               place to stay until rescue has arrived.
             </ThemedText>
 
-            <Text style={styles.editGuide}>
-              📝 You can update your message anytime. Only one message is
-              allowed.
-            </Text>
-
             {/* Chat area */}
-            {
-              reqData?.map((r) => (    
-                <ScrollView
+            {reqData?.map((r) => (
+              <ScrollView
                 key={r.id}
-                  style={styles.chatScroll}
-                  contentContainerStyle={{ paddingBottom: 100 }}
-                >
-                  {/* Admin message */}
-                  <View style={[styles.chatBubble, styles.adminBubble]}>
-                    <Text style={styles.chatText}>
-                      STATUS: {
-                      r.status === 3 ? "Rescuers are ON THEIR WAY. Please stay at a safe place and look out for incoming rescuers." : 
-                      r.status === 2 ? "Rescue request shared with rescuers. Please wait while rescuers prepare to get to you." : 
-                      r.status === 1 ? "Admin received your rescue request. Please wait while they share your information with the rescuers." : 
-                       "Rescue request sent to admin. Waiting for admin to see your request." 
-                      }
-                    </Text>
-                    <Text style={styles.chatText}>
-                      {new Date(r.updated_at).toLocaleTimeString([],{
-                        hour:"numeric",
-                        minute: "numeric"
+                style={styles.chatScroll}
+                contentContainerStyle={{ paddingBottom: 100 }}
+              >
+                <View style={styles.statusCard}>
+                  <Text style={styles.statusLabel}>Current Status</Text>
+                  <View style={styles.statusLine} />
+                  <Text style={styles.statusMessage}>
+                    {r.status === 3 ? (
+                      "🚨 Rescuers are ON THEIR WAY. Please stay at a safe place and look out for incoming rescuers."
+                    ) : r.status === 2 ? (
+                      "Rescue request shared with rescuers. Please wait while they prepare to get to you."
+                    ) : r.status === 1 ? (
+                      "Admin received your rescue request. Please wait while they share your information with the rescuers."
+                    ) : (
+                      <Text>
+                        Rescue request sent to admin.{"\n"}Waiting for admin to
+                        see your request.
+                      </Text>
+                    )}
+                  </Text>
+                  <Text style={styles.timestamp}>
+                    Last updated:{" "}
+                    {new Date(r.updated_at).toLocaleTimeString([], {
+                      hour: "numeric",
+                      minute: "numeric",
+                    })}
+                  </Text>
+                </View>
+
+                <View style={styles.messageCard}>
+                  <Text style={styles.messageLabel}>Your Message</Text>
+                  <View style={styles.statusLine} />
+                  <Text style={styles.userMessageText}>
+                    {r.message || "No message sent yet..."}
+                  </Text>
+                  {r.sent_at && (
+                    <Text style={styles.timestamp}>
+                      Sent at{" "}
+                      {new Date(r.sent_at).toLocaleTimeString([], {
+                        hour: "numeric",
+                        minute: "numeric",
                       })}
                     </Text>
-                  </View>
-
-                  {/* User message bubble - always visible */}
-                  <View style={[styles.chatBubble, styles.userBubble]}>
-                    <Text style={styles.userText}>
-                      {r.message ? 
-                      (
-                        <>
-                          <Text>
-                            {`${r.message}\n`} 
-                          </Text>
-                          <Text style={styles.editGuide}>
-                            {r?.sent_at ? new Date(r?.sent_at).toLocaleTimeString([],{
-                              hour:"numeric",
-                              minute: "numeric"
-                            }) : ""}
-                          </Text>
-                        </>
-                      )
-                       : 
-                      "No message sent yet..."}
-                    </Text>
-                  </View>
-                </ScrollView>
-              ))
-            }
-
-            {/* Message input bar - stays visible */}
-            <View style={styles.inputBar}>
-              <TextInput
-                style={styles.input}
-                placeholder='Type your message...'
-                placeholderTextColor='#999'
-                multiline
-                value={message}
-                onChangeText={setMessage}
-              />
-              <TouchableOpacity
-                onPress={handleSendMessage}
-                style={styles.sendBtn}
-              >
-                <Text style={styles.sendBtnText}>
-                  {"Send"}
-                </Text>
-              </TouchableOpacity>
+                  )}
+                </View>
+              </ScrollView>
+            ))}
+            {/* Top Row - Cancel + Send Message */}
+            <View style={styles.topRow}>
+              {!showInput && (
+                <TouchableOpacity
+                  onPress={handleCancel}
+                  style={styles.cancelRescueBtn}
+                >
+                  <Text style={styles.cancelRescueBtnText}>
+                    Cancel Rescue Request
+                  </Text>
+                </TouchableOpacity>
+              )}
+              {!showInput && (
+                <TouchableOpacity
+                  onPress={() => setShowInput(true)}
+                  style={styles.initialSendBtn}
+                >
+                  <Text style={styles.initialSendBtnText}>Send Message</Text>
+                </TouchableOpacity>
+              )}
             </View>
 
-            {/* Cancel red button */}
-            <TouchableOpacity onPress={handleCancel} style={styles.cancelLink}>
-              <Text style={styles.cancelLinkText}>Cancel rescue request</Text>
-            </TouchableOpacity>
+            {/* Message Input Section - Shown when Send Message is clicked */}
+            {showInput && (
+              <View style={styles.messageSection}>
+                <Text style={styles.editGuide}>
+                  📝 You can update your message anytime.{"\n"}Only one message
+                  is allowed.
+                </Text>
+
+                <TextInput
+                  style={styles.input}
+                  placeholder='Type your message...'
+                  placeholderTextColor='#999'
+                  multiline
+                  value={message} // 👈 only this
+                  onChangeText={setMessage}
+                  scrollEnabled
+                />
+
+                {/* Row with Send and Cancel side by side */}
+                <View style={styles.inputButtonsRow}>
+                  <TouchableOpacity onPress={() => setShowInput(false)}>
+                    <Text style={styles.cancelInputText}>Cancel</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    onPress={handleSendMessage}
+                    style={styles.sendBtn}
+                  >
+                    <Text style={styles.sendBtnText}>Send</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <View style={styles.blueLine} />
+
+                <TouchableOpacity
+                  onPress={handleCancel}
+                  style={styles.cancelRescueBtn}
+                >
+                  <Text style={styles.cancelRescueBtnText}>
+                    Cancel Rescue Request
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
         )}
 
@@ -480,7 +520,7 @@ const Home = () => {
                 key={i}
                 style={styles.contactBtn}
                 onPress={() => {
-                  handleSelectNumber(c)
+                  handleSelectNumber(c);
                 }}
               >
                 <Text style={{ fontSize: 16 }}>{c.name}</Text>
@@ -567,7 +607,7 @@ const styles = StyleSheet.create({
   // new add october 07
 
   adminFeedbackContainer: {
-    backgroundColor: "#fafafa",
+    backgroundColor: "#0060ff",
     borderWidth: 1,
     borderColor: "#0060ff",
     borderRadius: 12,
@@ -584,17 +624,6 @@ const styles = StyleSheet.create({
     color: "#333",
   },
 
-  messageContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#fafafa",
-    borderColor: "#ccc",
-    borderWidth: 1,
-    borderRadius: 25,
-    paddingHorizontal: 10,
-    width: "90%",
-    minHeight: 50,
-  },
   messageInput: {
     flex: 1,
     color: "#000",
@@ -615,7 +644,7 @@ const styles = StyleSheet.create({
 
   chatContainer: {
     flex: 1,
-    width: "95%",
+    width: "100%",
     backgroundColor: "#fafafa",
     paddingTop: 10,
     paddingHorizontal: 15,
@@ -683,53 +712,201 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
 
-  input: {
-    flex: 1,
-    fontSize: 14,
-    paddingVertical: 6,
-    paddingHorizontal: 8,
-    maxHeight: 100,
-  },
-
-  sendBtn: {
-    backgroundColor: "#0060ff",
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
-    marginLeft: 6,
-  },
-
-  sendBtnText: {
-    color: "#fff",
-    fontWeight: "bold",
-    fontSize: 14,
-  },
-
-  cancelLink: {
-    backgroundColor: "#ff3b30",
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    alignSelf: "center",
-    marginBottom: 70,
-    minWidth: 180,
+  topRow: {
+    flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-between",
+    width: "100%",
+    paddingHorizontal: 10,
+    marginBottom: 10,
   },
-  cancelLinkText: {
+
+  initialSendBtn: {
+    backgroundColor: "#0060ff",
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+  },
+
+  initialSendBtnText: {
     color: "#fff",
-    fontSize: 14,
     fontWeight: "600",
-    textAlign: "center",
+    fontSize: 14,
+  },
+
+  cancelLinkText: {
+    color: "red",
+    fontWeight: "600",
+  },
+
+  messageSection: {
+    width: "100%",
+    paddingHorizontal: 10,
+    alignItems: "center",
   },
 
   editGuide: {
     textAlign: "center",
-    fontSize: 12,
-    color: "#666",
+    fontSize: 13,
+    color: "#555",
     marginBottom: 10,
   },
-  userText: {
-    color: "#000",
+
+  input: {
+    width: "100%",
+    backgroundColor: "#f2f2f2",
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    height: 35,
+    maxHeight: 35,
+    textAlignVertical: "top",
+    marginBottom: 10,
+  },
+
+  sendBtn: {
+    backgroundColor: "#0060ff",
+    borderRadius: 20,
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    alignSelf: "flex-end",
+    marginBottom: 10,
+  },
+
+  sendBtnText: {
+    color: "#fff",
+    fontWeight: "600",
+  },
+
+  cancelBelowBtn: {
+    marginTop: 5,
+  },
+
+  cancelRescueBtn: {
+    backgroundColor: "#666",
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    alignSelf: "center",
+  },
+
+  cancelRescueBtnText: {
+    color: "#fff",
+    fontWeight: "600",
     fontSize: 14,
+  },
+  inputButtonsRow: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    alignItems: "center",
+    width: "100%",
+    marginTop: 5,
+    gap: 10, // for RN 0.71+, or use marginRight on children otherwise
+  },
+
+  cancelInputText: {
+    color: "red",
+    fontWeight: "600",
+    fontSize: 14,
+    marginBottom: 10,
+  },
+
+  blueLine: {
+    height: 1, // thickness of the line
+    width: "100%",
+    backgroundColor: "#0060ff",
+    marginBottom: 20,
+  },
+
+  // new interface
+
+  statusCard: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    padding: 15,
+
+    // Top accent border only
+    borderWidth: 2,
+    borderColor: "transparent", // 👈 remove borders on other sides
+
+    // iOS shadow
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+
+    // Android shadow
+    elevation: 2,
+    marginBottom: 15,
+  },
+
+  statusLabel: {
+    fontSize: 16,
+    fontWeight: "700",
+    marginBottom: 5,
+    color: "#0060ff",
+  },
+
+  statusLine: {
+    height: 2,
+    backgroundColor: "#0060ff",
+    marginBottom: 10,
+    width: 50,
+  },
+
+  statusMessage: {
+    fontSize: 14,
+    color: "#333",
+    marginBottom: 8,
+  },
+
+  timestamp: {
+    fontSize: 12,
+    color: "#777",
+    fontStyle: "italic",
+  },
+
+  messageCard: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    padding: 15,
+
+    // iOS shadow
+    shadowColor: "#000",
+    shadowOpacity: 0.08, //  lower opacity for softness
+    shadowRadius: 8, //  larger radius for nice blur
+    shadowOffset: { width: 0, height: 4 }, //  subtle downward shadow
+
+    // Android shadow
+    elevation: 2, // 👈 keep low to mimic softness
+  },
+
+  messageLabel: {
+    fontSize: 16,
+    fontWeight: "700",
+    marginBottom: 5,
+    color: "#0060ff",
+  },
+
+  userMessageText: {
+    fontSize: 14,
+    color: "#333",
+    marginBottom: 8,
+  },
+
+  editBtn: {
+    backgroundColor: "#0060ff",
+    borderRadius: 5,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    alignSelf: "flex-start",
+  },
+
+  editBtnText: {
+    color: "#fff",
+    fontSize: 13,
+    fontWeight: "600",
   },
 });

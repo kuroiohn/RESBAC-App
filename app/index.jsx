@@ -61,7 +61,7 @@ const Home = () => {
           resizeMode='contain'
         />
 
-        <Text style={styles.welcomeTitle}>Welcome to</Text>
+        <Text style={styles.welcomeTitle}>Welcome To</Text>
         <Text style={styles.welcomeAppName}>RESBAC</Text>
         <Text style={styles.welcomeSubtitle}>Your safety is our priority</Text>
       </LinearGradient>
@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
   },
   welcomeAppName: {
     color: "#ffffff",
-    fontSize: 44,
+    fontSize: 55,
     fontWeight: "bold",
     textAlign: "center",
     marginBottom: 5,

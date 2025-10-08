@@ -6,6 +6,7 @@ import {
   Easing,
   Pressable,
   Alert,
+  Image,
 } from "react-native";
 import { useEffect, useRef, useState } from "react";
 import { useRouter, useLocalSearchParams } from "expo-router";
@@ -14,6 +15,7 @@ import { useUser } from "../../hooks/useUser";
 import { SecureStorage } from "../../utils/secureStorage";
 import supabase from "../../contexts/supabaseClient";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { LinearGradient } from "expo-linear-gradient";
 
 // themed components
 import ThemedLogo from "../../components/ThemedLogo";
@@ -230,74 +232,83 @@ const MPin = () => {
 
   return (
     <ThemedView style={styles.container}>
-      <ThemedText style={{ ...styles.title2, color: "#0060ff", marginTop: 70 }}>
-        Enter MPIN
-      </ThemedText>
-      <ThemedText style={styles.title3}>
-        Quick access for {userEmail}
-      </ThemedText>
+      {/* Top Blue Gradient Section */}
+      <LinearGradient colors={["#0060ff", "#003A99"]} style={styles.topSection}>
+        <Image
+          source={require("../../assets/resbacWhite.png")}
+          style={styles.logo}
+          resizeMode='contain'
+        />
+        <ThemedText style={styles.title2}>Enter MPIN</ThemedText>
+        <ThemedText style={styles.title3}>
+          Quick access for {userEmail}
+        </ThemedText>
 
-      {userEmail ? (
-        <>
-          {/* Dot Display */}
-          <View style={styles.dotsContainer}>
-            {[0, 1, 2, 3].map((i) => (
-              <Animated.View
-                key={i}
-                style={[
-                  styles.dot,
-                  {
-                    transform: [
-                      {
-                        scale: dotAnimations[i].interpolate({
-                          inputRange: [0, 1],
-                          outputRange: [0.5, 1],
-                        }),
-                      },
-                    ],
-                    opacity: dotAnimations[i],
-                  },
-                ]}
-              />
-            ))}
-          </View>
-
-          {/* Custom Keypad */}
-          <View style={styles.keypad}>
-            {["1", "2", "3", "4", "5", "6", "7", "8", "9"].map((num) =>
-              renderKey(num, () => handleKeyPress(num))
-            )}
-            {renderKey("⌫", handleDelete, true)}
-            {renderKey("0", () => handleKeyPress("0"))}
-            {isLoading ? (
-              <View style={styles.loaderWrapper}>
-                <ThemedLoader size={28} />
-              </View>
-            ) : (
-              renderKey("✓", handleMpinSubmit, true)
-            )}
-          </View>
-
-          <Spacer height={20} />
-
-          <ThemedText
-            style={styles.backToLogin}
-            onPress={() => router.replace("/login")}
-          >
-            ← Use Email Login Instead
-          </ThemedText>
-        </>
-      ) : (
-        <View style={{ alignItems: "center", marginTop: 50 }}>
-          <ThemedText>No email provided</ThemedText>
-          <ThemedText
-            style={styles.backToLogin}
-            onPress={() => router.replace("/login")}
-          >
-            ← Use Email/Password Instead
-          </ThemedText>
+        {/* Dot Display */}
+        <View style={styles.dotsContainer}>
+          {[0, 1, 2, 3].map((i) => (
+            <Animated.View
+              key={i}
+              style={[
+                styles.dot,
+                {
+                  transform: [
+                    {
+                      scale: dotAnimations[i].interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [0.5, 1],
+                      }),
+                    },
+                  ],
+                  opacity: dotAnimations[i],
+                },
+              ]}
+            />
+          ))}
         </View>
-      )}
+      </LinearGradient>
+
+      {/* Bottom White Section */}
+      <View style={styles.bottomSection}>
+        {userEmail ? (
+          <>
+            {/* Flat Keypad */}
+            <View style={styles.keypad}>
+              {["1", "2", "3", "4", "5", "6", "7", "8", "9"].map((num) =>
+                renderKey(num, () => handleKeyPress(num))
+              )}
+              {renderKey("⌫", handleDelete, true)}
+              {renderKey("0", () => handleKeyPress("0"))}
+              {isLoading ? (
+                <View style={styles.loaderWrapper}>
+                  <ThemedLoader size={28} />
+                </View>
+              ) : (
+                renderKey("✓", handleMpinSubmit, true)
+              )}
+            </View>
+
+            <Spacer height={20} />
+
+            <ThemedText
+              style={styles.backToLogin}
+              onPress={() => router.replace("/login")}
+            >
+              ← Use Email Login Instead
+            </ThemedText>
+          </>
+        ) : (
+          <View style={{ alignItems: "center", marginTop: 50 }}>
+            <ThemedText>No email provided</ThemedText>
+            <ThemedText
+              style={styles.backToLogin}
+              onPress={() => router.replace("/login")}
+            >
+              ← Use Email/Password Instead
+            </ThemedText>
+          </View>
+        )}
+      </View>
     </ThemedView>
   );
 };
@@ -305,19 +316,15 @@ const MPin = () => {
 export default MPin;
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
+  container: { flex: 1 },
   title2: {
-    color: "#161616",
+    color: "white",
     fontSize: 32,
     fontWeight: "bold",
     textAlign: "center",
   },
   title3: {
-    color: "#919191",
+    color: "white",
     fontSize: 15,
     marginBottom: 20,
     textAlign: "center",
@@ -332,54 +339,35 @@ const styles = StyleSheet.create({
     width: 11,
     height: 11,
     borderRadius: 8,
-    backgroundColor: Colors.primary,
+    backgroundColor: "white",
   },
   keypad: {
     width: "80%",
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "center",
-    gap: 15,
-    marginTop: 100,
+    rowGap: 15,
+    columnGap: 55,
+    marginTop: 0,
   },
+
   key: {
     width: 70,
     height: 70,
-    borderRadius: 35,
-    backgroundColor: "#fff",
     justifyContent: "center",
     alignItems: "center",
-    margin: 5,
-
-    // subtle bottom shadow
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 0.5 },
-    shadowOpacity: 0.25,
-    shadowRadius: 0.5,
-    elevation: 2,
-  },
-
-  keyPressed: {
-    backgroundColor: Colors.primary, // blue when pressed
-  },
-
-  keyTextPressed: {
-    color: "#fff", // white text when pressed
-  },
-
-  specialKey: {
-    backgroundColor: Colors.primary, // blue for special keys
   },
   keyText: {
-    fontSize: 24,
-    color: Colors.primary, // default blue for numbers
+    fontSize: 28,
+    color: "#0060ff",
     fontWeight: "600",
   },
   specialKeyText: {
-    color: "#fff", // white text for special keys
-    fontSize: 24,
+    fontSize: 28,
+    color: "#0060ff",
     fontWeight: "600",
   },
+
   backToLogin: {
     color: Colors.primary,
     fontSize: 16,
@@ -392,5 +380,23 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     margin: 5,
+  },
+  logo: {
+    width: 200,
+    height: 80,
+    marginBottom: 10,
+  },
+  topSection: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 40,
+  },
+  bottomSection: {
+    flex: 1,
+    backgroundColor: "#ffffff",
+    paddingVertical: 20,
+    justifyContent: "flex-start",
+    alignItems: "center",
   },
 });

@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   Alert,
   Pressable,
+  Image,
 } from "react-native";
 import { Link, useRouter } from "expo-router";
 import { Colors } from "../../constants/Colors";
@@ -17,6 +18,7 @@ import { SecureStorage } from "../../utils/secureStorage";
 import supabase from "../../contexts/supabaseClient";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { MaterialIcons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 
 //themed components
 import ThemedLogo from "../../components/ThemedLogo";
@@ -193,8 +195,8 @@ const Login = () => {
         console.log("MPIN data updated with password for auto-login");
 
         setTimeout(() => {
-        router.replace("/(dashboard)/home");
-      }, 500);
+          router.replace("/(dashboard)/home");
+        }, 500);
       } else {
         // Check if user has MPIN in database but no local storage
         console.log("No local MPIN found, checking database...");
@@ -280,195 +282,220 @@ const Login = () => {
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <ThemedView style={styles.container} safe={true}>
-        {/* Back Button fixed at top-left */}
-        <Pressable
-          onPress={() => router.back()}
-          style={{ position: "absolute", top: 70, left: 10, padding: 10 }}
+      <View style={styles.container}>
+        {/* Top Blue Gradient Blackground */}
+        <LinearGradient
+          colors={["#0060ff", "#003A99"]}
+          style={styles.topSection}
         >
-          <Text style={{ color: "#0060ff", fontSize: 16 }}>← Back</Text>
-        </Pressable>
-        <ThemedLogo />
+          <Image
+            source={require("../../assets/mapOverlay.png")}
+            style={styles.mapOverlay}
+            resizeMode='cover'
+          />
+          <Image
+            source={require("../../assets/resbacWhite.png")}
+            style={styles.logo}
+            resizeMode='contain'
+          />
 
-        {quickAccessEmail && loginMethod === "mpin" ? (
-          // Quick Access Mode - Show MPIN directly for known user
-          <View style={styles.quickAccessSection}>
-            <ThemedText style={styles.quickAccessWelcome}>
-              Welcome back,
-            </ThemedText>
-            <ThemedText style={styles.quickAccessEmail}>
-              {quickAccessEmail}
-            </ThemedText>
-            <Spacer height={200} />
-            <ThemedButton
-              onPress={handleMpinLogin}
-              style={styles.quickAccessButton}
-            >
-              <MaterialIcons
-                name='dialpad'
-                size={20}
-                color='#f2f2f2'
-                style={styles.icon}
-              />
-              <Text style={styles.buttonText}>Use MPIN</Text>
-            </ThemedButton>
+          {quickAccessEmail && loginMethod === "mpin" ? (
+            <>
+              <ThemedText style={styles.quickAccessWelcome}>
+                Welcome back,
+              </ThemedText>
+              <ThemedText style={styles.quickAccessEmail}>
+                {quickAccessEmail}
+              </ThemedText>
+            </>
+          ) : (
+            <>
+              <ThemedText style={styles.quickAccessWelcome}>RESBAC</ThemedText>
+              <ThemedText style={styles.quickAccessEmail}>
+                Sign in to start your session.
+              </ThemedText>
+            </>
+          )}
 
-            <ThemedButton
-              onPress={() => {
-                setLoginMethod("email");
-                setQuickAccessEmail(null);
-              }}
-              style={styles.switchToEmailLoginBtn}
-            >
-              <MaterialIcons
-                name='email'
-                size={20}
-                color='#f2f2f2'
-                style={styles.icon}
-              />
-              <Text style={styles.buttonText}>Use email/password instead</Text>
-            </ThemedButton>
-          </View>
-        ) : (
-          // Standard Login Mode
-          <>
-            <Text style={styles.quickAccessWelcome}>RESBAC</Text>
-            <Text style={styles.quickAccessEmail}>
-              Sign in to start your session.
-            </Text>
+          {/* Back Button fixed at top-left */}
+          <Pressable
+            onPress={() => router.back()}
+            style={{ position: "absolute", top: 70, left: 10, padding: 10 }}
+          >
+            <Text style={{ color: "white", fontSize: 16 }}>← Back</Text>
+          </Pressable>
+        </LinearGradient>
 
-            {/* Login Method Selector */}
-            <View style={styles.methodSelector}>
-              <TouchableOpacity
-                style={[
-                  styles.methodButton,
-                  loginMethod === "email" && styles.methodButtonActive,
-                ]}
-                onPress={() => setLoginMethod("email")}
+        <View style={styles.bottomSection}>
+          {quickAccessEmail && loginMethod === "mpin" ? (
+            // Quick Access Mode - Show MPIN directly for known user
+            <View style={styles.quickAccessSection}>
+              <Spacer height={100} />
+              <ThemedButton
+                onPress={handleMpinLogin}
+                style={styles.quickAccessButton}
               >
-                <Text
-                  style={[
-                    styles.methodButtonText,
-                    loginMethod === "email" && styles.methodButtonTextActive,
-                  ]}
-                >
-                  Email & Password
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.methodButton,
-                  loginMethod === "mpin" && styles.methodButtonActive,
-                ]}
-                onPress={() => setLoginMethod("mpin")}
+                <MaterialIcons
+                  name='dialpad'
+                  size={20}
+                  color='#f2f2f2'
+                  style={styles.icon}
+                />
+                <Text style={styles.buttonText}>Use MPIN</Text>
+              </ThemedButton>
+
+              <ThemedButton
+                onPress={() => {
+                  setLoginMethod("email");
+                  setQuickAccessEmail(null);
+                }}
+                style={styles.switchToEmailLoginBtn}
               >
-                <Text
-                  style={[
-                    styles.methodButtonText,
-                    loginMethod === "mpin" && styles.methodButtonTextActive,
-                  ]}
-                >
-                  Quick MPIN
+                <MaterialIcons
+                  name='email'
+                  size={20}
+                  color='#f2f2f2'
+                  style={styles.icon}
+                />
+                <Text style={styles.buttonText}>
+                  Use email/password instead
                 </Text>
-              </TouchableOpacity>
+              </ThemedButton>
             </View>
-
-            <Spacer height={100} />
-
-            <Spacer height={20} />
-
-            {loginMethod === "email" ? (
-              // Email/Password Login Form
-              <>
-                <ThemedTextInput
-                  style={{ width: "80%", marginBottom: 20 }}
-                  placeholder='Email'
-                  keyboardType='email-address'
-                  autoCapitalize='none'
-                  autoCorrect={false}
-                  onChangeText={(text) => {
-                    setEmail(text);
-                    if (error) setError(null);
-                  }}
-                  value={email}
-                  editable={!isLoading}
-                />
-
-                <ThemedTextInput
-                  style={{ width: "80%", marginBottom: 20 }}
-                  placeholder='Password'
-                  onChangeText={(text) => {
-                    setPassword(text);
-                    if (error) setError(null);
-                  }}
-                  value={password}
-                  secureTextEntry
-                  editable={!isLoading}
-                />
-
-                <ThemedButton
-                  onPress={handleSubmit}
-                  disabled={isLoading}
-                  style={isLoading ? styles.disabledButton : null}
+          ) : (
+            // Standard Login Mode
+            <>
+              {/* Login Method Selector */}
+              <View style={styles.methodSelector}>
+                <TouchableOpacity
+                  style={[
+                    styles.methodButton,
+                    loginMethod === "email" && styles.methodButtonActive,
+                  ]}
+                  onPress={() => setLoginMethod("email")}
                 >
-                  {isLoading ? (
-                    <ActivityIndicator color='#f2f2f2' size='small' />
-                  ) : (
-                    <Text style={{ color: "#f2f2f2" }}>Login</Text>
-                  )}
-                </ThemedButton>
-              </>
-            ) : (
-              // MPIN Manual Entry (when no quick access available)
-              <View style={styles.mpinSection}>
-                <ThemedText style={styles.mpinInstructions}>
-                  Enter email for MPIN access
-                </ThemedText>
-
-                <ThemedTextInput
-                  style={{ width: "80%", marginBottom: 20 }}
-                  placeholder='Email Address'
-                  keyboardType='email-address'
-                  autoCapitalize='none'
-                  autoCorrect={false}
-                  onChangeText={setEmail}
-                  value={email}
-                />
-
-                <ThemedButton
-                  onPress={handleMpinLogin}
-                  disabled={!email.trim()}
-                  style={styles.quickAccessButton}
+                  <Text
+                    style={[
+                      styles.methodButtonText,
+                      loginMethod === "email" && styles.methodButtonTextActive,
+                    ]}
+                  >
+                    Email & Password
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.methodButton,
+                    loginMethod === "mpin" && styles.methodButtonActive,
+                  ]}
+                  onPress={() => setLoginMethod("mpin")}
                 >
-                  <MaterialIcons
-                    name='dialpad'
-                    size={20}
-                    color='#f2f2f2'
-                    style={styles.icon}
-                  />
-                  <Text style={styles.buttonText}>Enter MPIN</Text>
-                </ThemedButton>
-
-                <ThemedText style={styles.mpinNote}>
-                  Don't remember your MPIN? Use email/password above
-                </ThemedText>
+                  <Text
+                    style={[
+                      styles.methodButtonText,
+                      loginMethod === "mpin" && styles.methodButtonTextActive,
+                    ]}
+                  >
+                    Quick MPIN
+                  </Text>
+                </TouchableOpacity>
               </View>
-            )}
-          </>
-        )}
 
-        <TitleText type='title4' style={{ marginRight: 111 }}>
-          Don't have an Account?{" "}
-          <Link href='/(auth)/register' asChild>
-            <Text style={{ color: "#0060ff", fontWeight: "600" }}>
-              Register instead
-            </Text>
-          </Link>
-        </TitleText>
+              <Spacer height={20} />
 
-        <Spacer />
-        {error && <Text style={styles.error}>{error}</Text>}
-      </ThemedView>
+              {loginMethod === "email" ? (
+                // Email/Password Login Form
+                <>
+                  <ThemedTextInput
+                    style={{ width: "90%", marginBottom: 20 }}
+                    placeholder='Email'
+                    keyboardType='email-address'
+                    autoCapitalize='none'
+                    autoCorrect={false}
+                    onChangeText={(text) => {
+                      setEmail(text);
+                      if (error) setError(null);
+                    }}
+                    value={email}
+                    editable={!isLoading}
+                  />
+
+                  <ThemedTextInput
+                    style={{ width: "90%", marginBottom: 20 }}
+                    placeholder='Password'
+                    onChangeText={(text) => {
+                      setPassword(text);
+                      if (error) setError(null);
+                    }}
+                    value={password}
+                    secureTextEntry
+                    editable={!isLoading}
+                  />
+
+                  <ThemedButton
+                    onPress={handleSubmit}
+                    disabled={isLoading}
+                    style={isLoading ? styles.disabledButton : null}
+                  >
+                    {isLoading ? (
+                      <ActivityIndicator color='#f2f2f2' size='small' />
+                    ) : (
+                      <Text style={{ color: "#f2f2f2" }}>Login</Text>
+                    )}
+                  </ThemedButton>
+                </>
+              ) : (
+                // MPIN Manual Entry (when no quick access available)
+                <View style={styles.mpinSection}>
+                  <ThemedText style={styles.mpinInstructions}>
+                    Enter email for MPIN access
+                  </ThemedText>
+
+                  <ThemedTextInput
+                    style={{ width: "90%", marginBottom: 20 }}
+                    placeholder='Email Address'
+                    keyboardType='email-address'
+                    autoCapitalize='none'
+                    autoCorrect={false}
+                    onChangeText={setEmail}
+                    value={email}
+                  />
+
+                  <ThemedButton
+                    onPress={handleMpinLogin}
+                    disabled={!email.trim()}
+                    style={styles.quickAccessButton}
+                  >
+                    <MaterialIcons
+                      name='dialpad'
+                      size={20}
+                      color='#f2f2f2'
+                      style={styles.icon}
+                    />
+                    <Text style={styles.buttonText}>Enter MPIN</Text>
+                  </ThemedButton>
+
+                  <ThemedText style={styles.mpinNote}>
+                    Don't remember your MPIN? Use email/password above
+                  </ThemedText>
+                </View>
+              )}
+            </>
+          )}
+
+          <TitleText type='title4' style={{ marginRight: 111 }}>
+            Don't have an Account?{" "}
+            <Link href='/(auth)/register' asChild>
+              <Text style={{ color: "#0060ff", fontWeight: "600" }}>
+                Register instead
+              </Text>
+            </Link>
+          </TitleText>
+
+          <Spacer />
+          {error && <Text style={styles.error}>{error}</Text>}
+        </View>
+      </View>
     </TouchableWithoutFeedback>
   );
 };
@@ -476,17 +503,12 @@ const Login = () => {
 export default Login;
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
   methodSelector: {
     flexDirection: "row",
     borderRadius: 8,
     backgroundColor: "#f0f0f0",
     padding: 4,
-    width: "80%",
+    width: "90%",
   },
   methodButton: {
     flex: 1,
@@ -496,7 +518,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   methodButtonActive: {
-    backgroundColor: Colors.primary,
+    backgroundColor: "#0060ff",
   },
   methodButtonText: {
     fontSize: 14,
@@ -533,11 +555,11 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 0,
     textAlign: "center",
-    color: Colors.primary,
+    color: "white",
   },
   quickAccessEmail: {
     fontSize: 16,
-    color: "#666",
+    color: "white",
     marginBottom: 20,
     textAlign: "center",
   },
@@ -589,5 +611,81 @@ const styles = StyleSheet.create({
     alignItems: "center",
     width: "100%",
     gap: 8,
+  },
+
+  // new
+
+  container: { flex: 1 },
+  topSection: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 40,
+  },
+  mapOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    opacity: 0.09,
+  },
+  logo: {
+    width: 200,
+    height: 80,
+  },
+  welcomeTitle: {
+    color: "#ffffff",
+    fontSize: 24,
+    marginTop: 20,
+    textAlign: "center",
+    fontWeight: "600",
+  },
+  welcomeEmail: {
+    color: "#ffffff",
+    fontSize: 16,
+    textAlign: "center",
+    marginTop: 5,
+  },
+  bottomSection: {
+    flex: 1,
+    backgroundColor: "#ffffff",
+    padding: 20,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  mpinSection: {
+    alignItems: "center",
+    width: "100%",
+  },
+  mpinInstructions: {
+    textAlign: "center",
+    marginBottom: 20,
+    fontSize: 16,
+  },
+  buttonText: {
+    color: "#f2f2f2",
+    fontWeight: "600",
+  },
+  quickAccessButton: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    width: "100%",
+    gap: 8,
+  },
+  switchToEmailLoginBtn: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    width: "100%",
+    gap: 8,
+  },
+  error: {
+    color: Colors.warning,
+    padding: 10,
+    backgroundColor: "#f5c1c8",
+    borderColor: Colors.warning,
+    borderWidth: 1,
+    borderRadius: 5,
+    marginTop: 15,
+    textAlign: "center",
   },
 });

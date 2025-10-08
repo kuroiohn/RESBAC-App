@@ -165,8 +165,8 @@ const Register = () => {
       errors.sex = "Sex is required";
     }
 
-    if (!houseInfo){
-      errors.houseInfo = "House information is required"
+    if (!houseInfo) {
+      errors.houseInfo = "House information is required";
     }
 
     // Password validation
@@ -414,7 +414,7 @@ const Register = () => {
             {formErrors.contactNumber && (
               <Text style={styles.fieldError}>{formErrors.contactNumber}</Text>
             )}
-            
+
             {/* house information input field */}
             <ThemedTextInput
               style={{ width: "95%", marginBottom: 10 }}
@@ -424,7 +424,6 @@ const Register = () => {
                 setHouseInfo(text);
                 clearFieldError("houseInfo");
               }}
-              keyboardType='phone-pad'
               editable={isAgreed}
             />
             {formErrors.houseInfo && (

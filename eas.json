@@ -8,7 +8,13 @@
       "developmentClient": true,
       "distribution": "internal",
       "android":{
-        "buildType":"apk"
+        "buildType":"apk",
+        "extraFiles": [
+          {
+            "src": "./google-services.json",
+            "dest": "app/google-services.json"
+          }
+        ]
       }
     },
     "preview": {

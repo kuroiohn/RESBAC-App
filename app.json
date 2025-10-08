@@ -29,8 +29,8 @@
       "backgroundColor": "#ffffff"
     },
     "edgeToEdgeEnabled": true,
-    "package": "com.lukewarmraven.RESBAC1",
-    "useNextNotificationsApi": true,
+    "package": "com.lukewarmraven.resbac",
+    "googleServicesFile": "./android/app/google-services.json",
     "intentFilters": [
       {
         "action": "VIEW",

@@ -416,6 +416,7 @@ const Profile = () => {
       .single();
 
     setUserAddress({
+      houseInfo: data.houseInfo || "",
       streetName: data.streetName || "",
       brgyName: data.brgyName || "",
       cityName: data.cityName || "",
@@ -859,6 +860,7 @@ const Profile = () => {
       await supabase
         .from("address")
         .update({
+          houseInfo: userAddress.houseInfo,
           streetName: userAddress.streetName,
           brgyName: userAddress.brgyName,
           cityName: userAddress.cityName,
@@ -1418,6 +1420,13 @@ const Profile = () => {
             </View>
           )}
 
+          {renderField(
+            "address",
+            "houseInfo",
+            "House Information",
+            userAddress.houseInfo,
+            true
+          )}
           {renderField(
             "address",
             "streetName",

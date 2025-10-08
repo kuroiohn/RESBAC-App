@@ -85,6 +85,7 @@ const Register = () => {
   const [age, setAge] = useState(0); // set age
   const [email, setEmail] = useState(""); // User's email address (used for authentication)
   const [contactNumber, setContactNumber] = useState(""); // User's contact phone number
+  const [houseInfo, setHouseInfo] = useState(""); // User's contact phone number
   const [street, setStreet] = useState(null); // state for street dropdown
   const [barangay, setBarangay] = useState(null); // state for barangay dropdown
   const [address, setAddress] = useState(""); // User's physical address
@@ -164,6 +165,10 @@ const Register = () => {
       errors.sex = "Sex is required";
     }
 
+    if (!houseInfo){
+      errors.houseInfo = "House information is required"
+    }
+
     // Password validation
     if (!password || password.trim() === "") {
       errors.password = "Password is required";
@@ -212,6 +217,7 @@ const Register = () => {
       email,
       password,
       contactNumber,
+      houseInfo,
       street,
       barangay, //newly added
       address, // User's manually typed address
@@ -407,6 +413,22 @@ const Register = () => {
             />
             {formErrors.contactNumber && (
               <Text style={styles.fieldError}>{formErrors.contactNumber}</Text>
+            )}
+            
+            {/* house information input field */}
+            <ThemedTextInput
+              style={{ width: "95%", marginBottom: 10 }}
+              placeholder='House Information (No., Flr, Blk, etc.)'
+              value={houseInfo}
+              onChangeText={(text) => {
+                setHouseInfo(text);
+                clearFieldError("houseInfo");
+              }}
+              keyboardType='phone-pad'
+              editable={isAgreed}
+            />
+            {formErrors.houseInfo && (
+              <Text style={styles.fieldError}>{formErrors.houseInfo}</Text>
             )}
 
             {/* Street - ALWAYS REQUIRED */}

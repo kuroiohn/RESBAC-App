@@ -88,6 +88,8 @@ export default function uploadID() {
   // Clean location data before saving to database
   // Both manual address and GPS verification are now required
   const getCleanLocationData = (userData) => {
+    // house info
+    const gpsHouseInfo = userData.houseInfo || "None"
     // Get GPS data
     const gpsCoordinates =
       userData.location && userData.location.coordinates
@@ -110,6 +112,7 @@ export default function uploadID() {
       userData.location?.address?.address_line
 
     return {
+      houseInfo: gpsHouseInfo,
       streetName: gpsStreetName,
       cityName: gpsCityName,
       brgyName: gpsBrgyName,
@@ -293,6 +296,7 @@ export default function uploadID() {
       const { data: addressData, error: addressError } = await supabase
         .from("address")
         .insert({
+          houseInfo: locationData.houseInfo,
           streetName: locationData.streetName,
           brgyName: locationData.brgyName,
           cityName: locationData.cityName,

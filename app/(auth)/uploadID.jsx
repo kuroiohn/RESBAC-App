@@ -320,6 +320,9 @@ export default function uploadID() {
 
       if (clusterError) {
         console.error("Error fetching cluster data:", clusterError);
+      } else {
+        console.log("Cluster Number before uploading to database: ", clusterData);
+        
       }
 
       const response = await fetch(

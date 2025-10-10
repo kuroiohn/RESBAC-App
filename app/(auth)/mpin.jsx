@@ -240,8 +240,9 @@ const MPin = () => {
           resizeMode='contain'
         />
         <ThemedText style={styles.title2}>Enter MPIN</ThemedText>
+        <Spacer height={10} />
         <ThemedText style={styles.title3}>
-          Quick access for {userEmail}
+          Quick access for {"\n"} {userEmail}
         </ThemedText>
 
         {/* Dot Display */}
@@ -288,7 +289,7 @@ const MPin = () => {
               )}
             </View>
 
-            <Spacer height={20} />
+            <Spacer height={10} />
 
             <ThemedText
               style={styles.backToLogin}
@@ -346,8 +347,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "center",
-    rowGap: 15,
-    columnGap: 55,
+    rowGap: 5,
+    columnGap: 45,
     marginTop: 0,
   },
 

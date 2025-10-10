@@ -115,10 +115,10 @@ const Profile = () => {
     locationRiskLevel: "",
     userID: "",
   });
-  const [userPregnant,setUserPregnant] = useState({
+  const [userPregnant, setUserPregnant] = useState({
     dueDate: "",
-    trimester: ""
-  })
+    trimester: "",
+  });
   // const [userVulStatus, setUserVulStatus] = useState({
   //   physicalStatus: [],
   //   psychStatus: [],
@@ -128,8 +128,9 @@ const Profile = () => {
   // });
   const [isVerified, setIsVerified] = useState(false);
   const [loading, setLoading] = useState(true);
-   // no risk level 0 since no area is submerged during alert 1
-  const moderateStreets = [ // risk level 1
+  // no risk level 0 since no area is submerged during alert 1
+  const moderateStreets = [
+    // risk level 1
     "Bagong Farmers Avenue 1", //
     "Banner Street", //
     "Camia Street", //
@@ -137,7 +138,7 @@ const Profile = () => {
     "Crescent Street", //
     "Daisy Street", //
     "Jasmin Street", //
-    "Jewelmark Street",  //
+    "Jewelmark Street", //
     "Katipunan Street", //
     "Lacewing Street", //
     "Liwanag Street Area",
@@ -148,16 +149,15 @@ const Profile = () => {
     "Silverdrop Street", //
     "Sunkist Street", //
     "Swallowtail Street", //
-
-  ]
+  ];
   const highStreets = [
     "Angel Santos Street", //
     "Ilaw Street", //
     "Kangkong Street", //
     "Labanos Street", //
     "Palay Street", //
-    "Upo Street" //
-  ]
+    "Upo Street", //
+  ];
   const criticalStreets = [
     "Ampalaya Street", //
     "Bagong Farmers Avenue 2", //
@@ -172,7 +172,7 @@ const Profile = () => {
     "Road Dike",
     "Singkamas Street", //
     "Talong Street", //
-  ]
+  ];
 
   // const [isEditing, setIsEditing] = useState(false);
   const [editingSections, setEditingSections] = useState({
@@ -587,7 +587,7 @@ const Profile = () => {
       setIsVerified(verifData?.isVerified);
     }
   }, [user]);
-  
+
   //ANCHOR - pregnant fetch
   const fetchPregnant = async () => {
     // Get the current logged in user
@@ -600,11 +600,11 @@ const Profile = () => {
     const { data, error } = await supabase
       .from("pregnant")
       .select("*")
-      .eq("userID", user.id)
+      .eq("userID", user.id);
 
     setUserPregnant({
       dueDate: data?.[0]?.dueDate ?? "",
-      trimester: data?.[0]?.trimester ?? ""
+      trimester: data?.[0]?.trimester ?? "",
     });
 
     if (error) {
@@ -616,7 +616,7 @@ const Profile = () => {
   const { data: pregnantData, error: pregnantError } = useQuery({
     queryKey: ["pregnant"],
     queryFn: fetchPregnant,
-    enabled: userVul.pregnantInfant[0] === "yes"
+    enabled: userVul.pregnantInfant[0] === "yes",
   });
   if (pregnantError) {
     console.error("Error in fetching pregnant table: ", pregnantError);
@@ -625,40 +625,38 @@ const Profile = () => {
   useEffect(() => {
     if (pregnantData) {
       setUserPregnant({
-      dueDate: pregnantData?.dueDate,
-      trimester: pregnantData?.trimester
-    });
+        dueDate: pregnantData?.dueDate,
+        trimester: pregnantData?.trimester,
+      });
     }
   }, [user]);
 
   const getLocationRiskName = (streetName) => {
-    const isExactMatch = (list) => 
-      streetName && list.some(
-        (street) => streetName.toLowerCase() === street.toLowerCase()
-      );
+    const isExactMatch = (list) =>
+      streetName &&
+      list.some((street) => streetName.toLowerCase() === street.toLowerCase());
 
-    return isExactMatch(criticalStreets) 
-      ? "Critical" 
+    return isExactMatch(criticalStreets)
+      ? "Critical"
       : isExactMatch(highStreets)
       ? "High"
       : isExactMatch(moderateStreets)
       ? "Moderate"
       : "Low";
-  }
+  };
   const getLocationRiskLevel = (streetName) => {
-   const isExactMatch = (list) => 
-    streetName && list.some(
-      (street) => streetName.toLowerCase() === street.toLowerCase()
-    );  
+    const isExactMatch = (list) =>
+      streetName &&
+      list.some((street) => streetName.toLowerCase() === street.toLowerCase());
 
-    return isExactMatch(criticalStreets) 
-      ? 3 
+    return isExactMatch(criticalStreets)
+      ? 3
       : isExactMatch(highStreets)
       ? 2
       : isExactMatch(moderateStreets)
       ? 1
       : 0;
-  }
+  };
 
   // SUBSCRIBING TO REALTIME ON ALL TABLES ##############################
   useEffect(() => {
@@ -773,8 +771,8 @@ const Profile = () => {
         }
       )
       .subscribe();
-    
-      // VERIFICATION table subscription
+
+    // VERIFICATION table subscription
     const pregnantSub = supabase
       .channel("pregnant-changes")
       .on(
@@ -881,6 +879,49 @@ const Profile = () => {
           .eq("userID", user.id);
       }
 
+      // Update guardian table (insert if none exists)
+      if (
+        editingSections.guardian &&
+        (userGuardian.fullName ||
+          userGuardian.relationship ||
+          userGuardian.guardianContact ||
+          userGuardian.guardianAddress)
+      ) {
+        // Check if guardian exists
+        const { data: existingGuardian } = await supabase
+          .from("guardian")
+          .select("userID")
+          .eq("userID", user.id)
+          .single();
+
+        if (existingGuardian) {
+          // Update
+          await supabase
+            .from("guardian")
+            .update({
+              fullName: userGuardian.fullName,
+              relationship: userGuardian.relationship,
+              guardianContact: userGuardian.guardianContact,
+              guardianAddress: userGuardian.guardianAddress,
+            })
+            .eq("userID", user.id);
+        } else {
+          // Insert
+          await supabase.from("guardian").insert({
+            userID: user.id,
+            fullName: userGuardian.fullName,
+            relationship: userGuardian.relationship,
+            guardianContact: userGuardian.guardianContact,
+            guardianAddress: userGuardian.guardianAddress,
+          });
+          // Optionally update hasGuardian in user table
+          await supabase
+            .from("user")
+            .update({ hasGuardian: true })
+            .eq("userID", user.id);
+        }
+      }
+
       // Update vulnerability table ###################################
       await supabase
         .from("vulnerabilityList")
@@ -900,30 +941,34 @@ const Profile = () => {
 
       Alert.alert("Success", "Profile updated!");
 
-      const age = differenceInYears(new Date(), new Date(userData.dob))
+      const age = differenceInYears(new Date(), new Date(userData.dob));
       await supabase
-      .from('riskScore')
-      .update({
-        elderlyScore: (
-            age >= 90 ? 4 :    // 90+      
-            age >= 80 ? 3 :    // 80 - 89
-            age >= 70 ? 2 :    // 70 - 79 
-            age >= 60 ? 2 : 0  // 60 - 69 
-          ) ,
-        locationRiskLevel: getLocationRiskLevel(userAddress.streetName),
-      })
-      .eq("userID",user.id)
+        .from("riskScore")
+        .update({
+          // 60 - 69
+          elderlyScore:
+            age >= 90
+              ? 4 // 90+
+              : age >= 80
+              ? 3 // 80 - 89
+              : age >= 70
+              ? 2 // 70 - 79
+              : age >= 60
+              ? 2
+              : 0,
+          locationRiskLevel: getLocationRiskLevel(userAddress.streetName),
+        })
+        .eq("userID", user.id);
 
       const { data: riskData, error: riskError } = await supabase
-      .from('riskScore')
-      .select('*')
-      .eq('userID', user.id)
-      .single();
+        .from("riskScore")
+        .select("*")
+        .eq("userID", user.id)
+        .single();
       if (riskError) {
-        console.error("Error in updating risk table: ",riskError);
+        console.error("Error in updating risk table: ", riskError);
       } else {
         console.log("risk data", riskData);
-        
       }
 
       //ANCHOR - PRIO API CONNECTION
@@ -956,7 +1001,7 @@ const Profile = () => {
         }
       };
       // console.log("Prio DAta: ", riskData);
-      
+
       const priorityLevel = await getPrioritization();
       // Create vulnerability record - with explicit userID
       const { data: priorityData, error: prioError } = await supabase
@@ -992,7 +1037,7 @@ const Profile = () => {
   const updateField = (section, field, value) => {
     if (section === "userData") {
       setUserData((prev) => ({ ...prev, [field]: value }));
-    } else if (section === "guardian" && userData.hasGuardian) {
+    } else if (section === "guardian") {
       setUserGuardian((prev) => ({ ...prev, [field]: value }));
     } else if (section === "address") {
       setUserAddress((prev) => ({ ...prev, [field]: value }));
@@ -1477,89 +1522,87 @@ const Profile = () => {
       </View>
       {/* <View style={styles.row}>{renderField("vulnerability", "Vulnerability", userData.vulnerability, false)}</View> */}
 
-      {userData.hasGuardian === true && (
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Guardian Information</Text>
+      <View style={styles.section}>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Guardian Information</Text>
 
-            {/* edit guardian */}
-            <TouchableOpacity
-              style={styles.ellipsisButton}
-              onPress={() => toggleSectionEdit("guardian")}
-            >
-              <MaterialIcons
-                name='edit'
-                size={18}
-                color='#0060ff'
-                style={{ marginRight: 4 }}
-              />
-              <Text style={styles.ellipsisText}>Edit</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.divider} />
-
-          {/* Only show editable fields if editingSections.guardian is true */}
-          {editingSections.guardian && (
-            <View style={styles.editActions}>
-              <View style={{ flexDirection: "row", gap: 10 }}>
-                {/* Cancel Button */}
-                <TouchableOpacity
-                  style={[styles.saveButton, { backgroundColor: "#aaa" }]}
-                  onPress={() => toggleSectionEdit("guardian")} // close edit mode
-                >
-                  <Feather name='x' size={18} color='#fff' />
-                  <Text style={styles.saveButtonText}>Cancel</Text>
-                </TouchableOpacity>
-
-                {/* Save Button */}
-                <TouchableOpacity
-                  style={[styles.saveButton, { backgroundColor: "#0060ff" }]}
-                  onPress={saveChanges}
-                >
-                  <Feather name='check' size={18} color='#fff' />
-                  <Text style={styles.saveButtonText}>Save Changes</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          )}
-
-          <View style={styles.row}>
-            {renderField(
-              "guardian",
-              "fullName",
-              "Name",
-              userGuardian.fullName,
-              true
-            )}
-            {renderField(
-              "guardian",
-              "relationship",
-              "Relationship",
-              userGuardian.relationship,
-              true
-            )}
-          </View>
-          <View style={styles.row}>
-            {renderField(
-              "guardian",
-              "guardianContact",
-              "Contact",
-              userGuardian.guardianContact,
-              true
-            )}
-          </View>
-          <View style={styles.row}>
-            {renderField(
-              "guardian",
-              "guardianAddress",
-              "Address",
-              userGuardian.guardianAddress,
-              true
-            )}
-          </View>
+          {/* edit guardian */}
+          <TouchableOpacity
+            style={styles.ellipsisButton}
+            onPress={() => toggleSectionEdit("guardian")}
+          >
+            <MaterialIcons
+              name='edit'
+              size={18}
+              color='#0060ff'
+              style={{ marginRight: 4 }}
+            />
+            <Text style={styles.ellipsisText}>Edit</Text>
+          </TouchableOpacity>
         </View>
-      )}
+
+        <View style={styles.divider} />
+
+        {/* Only show editable fields if editingSections.guardian is true */}
+        {editingSections.guardian && (
+          <View style={styles.editActions}>
+            <View style={{ flexDirection: "row", gap: 10 }}>
+              {/* Cancel Button */}
+              <TouchableOpacity
+                style={[styles.saveButton, { backgroundColor: "#aaa" }]}
+                onPress={() => toggleSectionEdit("guardian")} // close edit mode
+              >
+                <Feather name='x' size={18} color='#fff' />
+                <Text style={styles.saveButtonText}>Cancel</Text>
+              </TouchableOpacity>
+
+              {/* Save Button */}
+              <TouchableOpacity
+                style={[styles.saveButton, { backgroundColor: "#0060ff" }]}
+                onPress={saveChanges}
+              >
+                <Feather name='check' size={18} color='#fff' />
+                <Text style={styles.saveButtonText}>Save Changes</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+
+        <View style={styles.row}>
+          {renderField(
+            "guardian",
+            "fullName",
+            "Name",
+            userGuardian.fullName,
+            true
+          )}
+          {renderField(
+            "guardian",
+            "relationship",
+            "Relationship",
+            userGuardian.relationship,
+            true
+          )}
+        </View>
+        <View style={styles.row}>
+          {renderField(
+            "guardian",
+            "guardianContact",
+            "Contact",
+            userGuardian.guardianContact,
+            true
+          )}
+        </View>
+        <View style={styles.row}>
+          {renderField(
+            "guardian",
+            "guardianAddress",
+            "Address",
+            userGuardian.guardianAddress,
+            true
+          )}
+        </View>
+      </View>
 
       <View
         style={{
@@ -1599,59 +1642,60 @@ const Profile = () => {
           true
         )}
       </View>
-        
-      <View style={styles.row}>
-      {
-        userVul.pregnantInfant[0] === "yes" &&
-        (
-          <>
-          {<View style={styles.rowItem}>
 
-            {renderField(
-              "vulnerability",
-              "pregnantInfant",
-              "Pregnant",
-              userVul.pregnantInfant[0] === "yes"
-                ? "Yes"
-                : "No" || "",
-              true
-            )}
-          </View>}
-          {<View style={styles.rowItem}>
-            {renderField(
-              "vulnerability",
-              "pregnant",
-              "Trimester",
-              userPregnant?.trimester,
-              true
-            )}
-          </View>}
-          {<View style={styles.rowItem}>
-            {renderField(
-              "vulnerability",
-              "pregnant",
-              "Due Date",
-              new Date(userPregnant?.dueDate).toLocaleDateString("en-US", {month:"short",year:"numeric"}),
-              true
-            )}
-          </View>}
+      <View style={styles.row}>
+        {userVul.pregnantInfant[0] === "yes" && (
+          <>
+            {
+              <View style={styles.rowItem}>
+                {renderField(
+                  "vulnerability",
+                  "pregnantInfant",
+                  "Pregnant",
+                  userVul.pregnantInfant[0] === "yes" ? "Yes" : "No" || "",
+                  true
+                )}
+              </View>
+            }
+            {
+              <View style={styles.rowItem}>
+                {renderField(
+                  "vulnerability",
+                  "pregnant",
+                  "Trimester",
+                  userPregnant?.trimester,
+                  true
+                )}
+              </View>
+            }
+            {
+              <View style={styles.rowItem}>
+                {renderField(
+                  "vulnerability",
+                  "pregnant",
+                  "Due Date",
+                  new Date(userPregnant?.dueDate).toLocaleDateString("en-US", {
+                    month: "short",
+                    year: "numeric",
+                  }),
+                  true
+                )}
+              </View>
+            }
           </>
-        )
-      }
+        )}
       </View>
-      {userVul.pregnantInfant[1] === "yes" &&
+      {userVul.pregnantInfant[1] === "yes" && (
         <View style={styles.row}>
           {renderField(
             "vulnerability",
             "pregnantInfant",
             "Infant",
-            userVul.pregnantInfant[1] === "yes"
-              ? "Yes"
-              : "No" || "",
+            userVul.pregnantInfant[1] === "yes" ? "Yes" : "No" || "",
             true
           )}
         </View>
-      }
+      )}
       <View style={styles.row}>
         {renderField(
           "vulnerability",
@@ -1663,6 +1707,7 @@ const Profile = () => {
           true
         )}
       </View>
+
       <View style={styles.row}>
         {renderField(
           "vulnerability",

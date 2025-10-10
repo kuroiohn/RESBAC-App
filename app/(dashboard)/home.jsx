@@ -37,6 +37,7 @@ const Home = () => {
   const [selectedContact, setSelectedContact] = useState(null);
   const [reqStatus, setReqStatus] = useState(null);
   const [showInput, setShowInput] = useState(false);
+  const [showMessageModal, setShowMessageModal] = useState(false);
 
   const { reqData } = useRealtime();
 
@@ -383,9 +384,16 @@ const Home = () => {
                     {r.status === 3 ? (
                       "🚨 Rescuers are ON THEIR WAY. Please stay at a safe place and look out for incoming rescuers."
                     ) : r.status === 2 ? (
-                      "Rescue request shared with rescuers. Please wait while they prepare to get to you."
+                      <Text>
+                        Rescue request shared with rescuers. {"\n"}Please wait
+                        while they prepare to get to you.
+                      </Text>
                     ) : r.status === 1 ? (
-                      "Admin received your rescue request. Please wait while they share your information with the rescuers."
+                      <Text>
+                        Admin received your rescue request. {"\n"}Please wait
+                        while they share your information {"\n"}with the
+                        rescuers.
+                      </Text>
                     ) : (
                       <Text>
                         Rescue request sent to admin.{"\n"}Waiting for admin to
@@ -434,7 +442,7 @@ const Home = () => {
               )}
               {!showInput && (
                 <TouchableOpacity
-                  onPress={() => setShowInput(true)}
+                  onPress={() => setShowMessageModal(true)}
                   style={styles.initialSendBtn}
                 >
                   <Text style={styles.initialSendBtnText}>Send Message</Text>
@@ -443,49 +451,51 @@ const Home = () => {
             </View>
 
             {/* Message Input Section - Shown when Send Message is clicked */}
-            {showInput && (
-              <View style={styles.messageSection}>
-                <Text style={styles.editGuide}>
-                  📝 You can update your message anytime.{"\n"}Only one message
-                  is allowed.
-                </Text>
-
-                <TextInput
-                  style={styles.input}
-                  placeholder='Type your message...'
-                  placeholderTextColor='#999'
-                  multiline
-                  value={message} // 👈 only this
-                  onChangeText={setMessage}
-                  scrollEnabled
-                />
-
-                {/* Row with Send and Cancel side by side */}
-                <View style={styles.inputButtonsRow}>
-                  <TouchableOpacity onPress={() => setShowInput(false)}>
-                    <Text style={styles.cancelInputText}>Cancel</Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    onPress={handleSendMessage}
-                    style={styles.sendBtn}
-                  >
-                    <Text style={styles.sendBtnText}>Send</Text>
-                  </TouchableOpacity>
-                </View>
-
-                <View style={styles.blueLine} />
-
-                <TouchableOpacity
-                  onPress={handleCancel}
-                  style={styles.cancelRescueBtn}
-                >
-                  <Text style={styles.cancelRescueBtnText}>
-                    Cancel Rescue Request
+            <Modal
+              visible={showMessageModal}
+              transparent={true}
+              animationType='fade'
+              onRequestClose={() => setShowMessageModal(false)}
+            >
+              <View style={styles.modalOverlay}>
+                <View style={styles.modalBox}>
+                  <Text style={{ color: "#0060ff" }}>Send a Message</Text>
+                  <Spacer height={20} />
+                  <Text style={styles.editGuide}>
+                    📝 You can update your message anytime.{"\n"}Only one
+                    message is allowed.
                   </Text>
-                </TouchableOpacity>
+
+                  <TextInput
+                    style={styles.input}
+                    placeholder='Type your message...'
+                    placeholderTextColor='#999'
+                    multiline
+                    value={message}
+                    onChangeText={setMessage}
+                    scrollEnabled
+                  />
+
+                  <View style={styles.inputButtonsRow}>
+                    <TouchableOpacity
+                      onPress={() => setShowMessageModal(false)}
+                    >
+                      <Text style={styles.cancelInputText}>Cancel</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      onPress={() => {
+                        handleSendMessage();
+                        setShowMessageModal(false);
+                      }}
+                      style={styles.sendBtn}
+                    >
+                      <Text style={styles.sendBtnText}>Send</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
               </View>
-            )}
+            </Modal>
           </View>
         )}
 
@@ -587,7 +597,7 @@ const styles = StyleSheet.create({
 
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
+    backgroundColor: "rgba(0,0,0,0.6)",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -758,8 +768,8 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    height: 35,
-    maxHeight: 35,
+    height: 70,
+    maxHeight: 70,
     textAlignVertical: "top",
     marginBottom: 10,
   },

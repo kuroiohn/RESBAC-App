@@ -49,7 +49,7 @@ export default function RescuerCard() {
           if (existing.length > 0) {
             // Update existing row
             await db.runAsync(
-              `UPDATE rescuers SET created_at = ?, emerPNumber = ?, emerPRole = ?, emerPBrgy = ?, emerPMessLink = ?, emerPImage = ?  WHERE emerHName = ?`,
+              `UPDATE rescuers SET created_at = ?, emerPNumber = ?, emerPRole = ?, emerPBrgy = ?, emerPMessLink = ?, emerPImage = ?  WHERE emerPName = ?`,
               [item.emerPName, item.created_at, item.emerPNumber, item.emerPRole,item.emerPBrgy, item.emerPMessLink, item.emerPImage]
             );
           } else {
@@ -91,9 +91,11 @@ export default function RescuerCard() {
     }
   };
 
+  const renderData = emerPData?.length ? emerPData : local;
+
   return (
     <>
-      {emerPData?.map((emerP) => (
+      {renderData?.map((emerP) => (
         <View key={emerP.id} style={styles.borderWrapper}>
           <LinearGradient
             colors={["#0060FF", "rgba(0, 96, 255, 0)"]}
@@ -102,83 +104,8 @@ export default function RescuerCard() {
             style={styles.gradient}
           >
             <View style={styles.card}>
-              {/* Top Row: Image + Info */}
-              <View style={styles.topRow}>
-                <Image
-                  source={
-                    emerP.emerPImage
-                      ? { uri: emerP.emerPImage }
-                      : require("../assets/icon.png") // 👈 placeholder
-                  }
-                  style={styles.profileImage}
-                  resizeMode='cover'
-                />
-
-                <View style={styles.infoSection}>
-                  <Text
-                    style={styles.name}
-                    numberOfLines={1}
-                    ellipsizeMode='tail'
-                  >
-                    {emerP.emerPName}
-                  </Text>
-                  <Text style={styles.position}>
-                    {emerP.emerPRole || "No role specified"}
-                  </Text>
-                  <Text style={styles.barangay}>
-                    {emerP.emerPBrgy || "No barangay info"}
-                  </Text>
-                </View>
-              </View>
-
-              {/* Bottom: Buttons (Same Row) */}
-              <View style={styles.buttonsRow}>
-                {/* 📞 Call Button with number */}
-                <TouchableOpacity
-                  activeOpacity={0.8}
-                  onPress={() => handleContactBtn(emerP.emerPNumber)}
-                  style={[styles.callButton, { flex: 1 }]}
-                >
-                  <Ionicons
-                    name='call'
-                    size={16}
-                    color='#fff'
-                    style={{ marginRight: 6 }}
-                  />
-
-                  <Text style={styles.callText}>Call</Text>
-                </TouchableOpacity>
-
-                {/* 💬 Message Button */}
-                <TouchableOpacity
-                  activeOpacity={0.8}
-                  onPress={() => handleMsgBtn(emerP.emerPMessLink)}
-                  style={[styles.messageButton, { flex: 1 }]}
-                >
-                  <Image
-                    source={require("../assets/messenger-icon.png")}
-                    style={{ width: 16, height: 16, marginRight: 6 }}
-                  />
-                  <Text style={styles.messageText}>Message</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </LinearGradient>
-        </View>
-      ))}
-      
-      {local
-      ?.sort((a,b) => {new Date(a.created_at) - new Date(b.created_at)})
-      .map((emerP) => (
-        <View key={emerP.id} style={styles.borderWrapper}>
-          <LinearGradient
-            colors={["#0060FF", "rgba(0, 96, 255, 0)"]}
-            start={{ x: 0.5, y: 0 }}
-            end={{ x: 0.5, y: 1 }}
-            style={styles.gradient}
-          >
-            <View style={styles.card}>
-              <Text>Local</Text>
+              {renderData === local &&
+                <Text>Local</Text>}
               {/* Top Row: Image + Info */}
               <View style={styles.topRow}>
                 <Image

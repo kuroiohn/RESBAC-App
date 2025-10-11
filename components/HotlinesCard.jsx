@@ -77,23 +77,17 @@ export default function HotlinesCard() {
     loadUsers()
   },[])
 
+  const renderData = emerHData?.length ? emerHData : local;
+
   const handleContactBtn = async (number) => {
     if (number) {
       await Linking.openURL(`tel:${number}`);
     }
   };
 
-  const handleMsgBtn = async (link) => {
-    if (link) {
-      const splitLink = link.split("/");
-      const username = splitLink.slice(3).join("/");
-      await Linking.openURL(`https://m.me/${username}`);
-    }
-  };
-
   return (
     <>
-      {emerHData
+      {renderData
       ?.sort((a,b) => new Date(a.created_at) - new Date(b.created_at))
       .map((emerH) => (
         <View key={emerH.id} style={styles.borderWrapper}>
@@ -104,61 +98,11 @@ export default function HotlinesCard() {
             style={styles.gradient}
           >
             <View style={styles.card}>
+              {renderData === local &&
+                <Text>Local</Text>}
               {/* Top Row: Image + Info */}
               <View style={styles.topRow}>
 
-                <View style={styles.infoSection}>
-                  <Text
-                    style={styles.name}
-                    numberOfLines={1}
-                    ellipsizeMode='tail'
-                  >
-                    {emerH.emerHName}
-                  </Text>
-                  <Text style={styles.position}>
-                    {emerH.emerHDescription || "No role specified"}
-                  </Text>
-                </View>
-              </View>
-
-              {/* Bottom: Buttons (Same Row) */}
-              <View style={styles.buttonsRow}>
-                {/* 📞 Call Button with number */}
-                <TouchableOpacity
-                  activeOpacity={0.8}
-                  onPress={() => handleContactBtn(emerH.emerHNumber)}
-                  style={[styles.callButton, { flex: 1 }]}
-                >
-                  <Ionicons
-                    name='call'
-                    size={16}
-                    color='#fff'
-                    style={{ marginRight: 6 }}
-                  />
-
-                  <Text style={styles.callText}>Call</Text>
-                </TouchableOpacity>
-
-              </View>
-            </View>
-          </LinearGradient>
-        </View>
-      ))}
-
-      {local
-      ?.sort((a,b) => new Date(a.created_at) - new Date(b.created_at))
-      .map((emerH) => (
-        <View key={emerH.id} style={styles.borderWrapper}>
-          <LinearGradient
-            colors={["#0060FF", "rgba(0, 96, 255, 0)"]}
-            start={{ x: 0.5, y: 0 }}
-            end={{ x: 0.5, y: 1 }}
-            style={styles.gradient}
-          >
-            <View style={styles.card}>
-                <Text>Local {emerH.id}</Text>
-              {/* Top Row: Image + Info */}
-              <View style={styles.topRow}>
                 <View style={styles.infoSection}>
                   <Text
                     style={styles.name}

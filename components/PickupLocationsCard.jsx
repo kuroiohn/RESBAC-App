@@ -78,6 +78,8 @@ const PickupLocationsCard = () => {
     loadUsers()
   },[])
 
+  const renderData = pickupData?.length ? pickupData : local;
+
   const handleCall = (phoneNumber) => {
     if (phoneNumber) {
       Linking.openURL(`tel:${phoneNumber}`);
@@ -86,7 +88,7 @@ const PickupLocationsCard = () => {
 
   return (
     <>
-      {pickupData
+      {renderData
       ?.sort((a,b)=> new Date(b.created_at) - new Date(a.created_at))
       .map((pickup) => (
         <TouchableOpacity
@@ -112,105 +114,8 @@ const PickupLocationsCard = () => {
             style={styles.borderWrapper}
           >
             <View style={styles.card}>
-              {/* Image + status overlay */}
-              <View style={styles.imageWrapper}>
-                <Image
-                  source={{ uri: pickup.pickupImage }}
-                  style={styles.image}
-                  resizeMode='cover'
-                />
-                <View style={styles.statusOverlay}>
-                  <Text style={styles.statusTag}>Available</Text>
-                </View>
-              </View>
-
-              {/* Content */}
-              <View style={styles.contentSection}>
-                <Text
-                  style={styles.header}
-                  numberOfLines={1}
-                  ellipsizeMode='tail'
-                >
-                  {pickup.pickupName}
-                </Text>
-
-                <View style={styles.addressAndButtonsRow}>
-                  {/* Address */}
-                  <View style={styles.addressContainer}>
-                    <Text
-                      numberOfLines={2}
-                      ellipsizeMode='tail'
-                      style={styles.subtext}
-                    >
-                      {pickup.pickupAddress}
-                    </Text>
-                  </View>
-
-                  {/* Buttons */}
-                  <View style={styles.buttonsRow}>
-                    {/* 📞 Call */}
-                    <TouchableOpacity
-                      onPress={() => handleCall(pickup.pickupContact)}
-                      style={styles.iconCircle}
-                    >
-                      <Ionicons
-                        name='call'
-                        size={16}
-                        color={pickup.pickupContact ? "#0060FF" : "#999"}
-                      />
-                    </TouchableOpacity>
-
-                    {/* 🧭 Navigate */}
-                    <TouchableOpacity
-                      onPress={() =>
-                        router.push({
-                          pathname: "/pickUpLocations",
-                          params: {
-                            selectedId: pickup.id,
-                            tab: "pickupLocations",
-                            showMap: Date.now(), // 👈 unique value each time!
-                          },
-                        })
-                      }
-                      style={styles.iconCircle}
-                    >
-                      <Ionicons name='navigate' size={18} color='#0060FF' />
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              </View>
-            </View>
-          </LinearGradient>
-        </TouchableOpacity>
-      ))}
-      
-      {local
-      ?.sort((a,b)=> new Date(b.created_at) - new Date(a.created_at))
-      .map((pickup) => (
-        <TouchableOpacity
-          key={pickup.id}
-          // 👇 navigate to PickUpLocation and scroll to the selected pickup
-          onPress={() =>
-            router.push({
-              pathname: "/pickUpLocations",
-              params: {
-                selectedId: pickup.id,
-                // optional: activeTab if you want it to open on pickup tab
-                tab: "pickupLocations",
-              },
-            })
-          }
-          activeOpacity={0.9}
-          style={{ marginRight: 16 }}
-        >
-          <LinearGradient
-            colors={["#0060FF", "rgba(0,96,255,0)"]}
-            start={{ x: 0.5, y: 0 }}
-            end={{ x: 0.5, y: 1 }}
-            style={styles.borderWrapper}
-          >
-            <View style={styles.card}>
-              <Text>Local</Text>
+              {renderData === local &&
+                <Text>Local</Text>}
               {/* Image + status overlay */}
               <View style={styles.imageWrapper}>
                 <Image

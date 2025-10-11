@@ -78,6 +78,8 @@ const EvacuationCenterCard = () => {
     loadUsers()
   },[])
 
+  const renderData = evacData?.length ? evacData : local;
+
   const handleCall = (phoneNumber) => {
     if (phoneNumber) {
       Linking.openURL(`tel:${phoneNumber}`);
@@ -95,7 +97,7 @@ const EvacuationCenterCard = () => {
 
   return (
     <>
-      {evacData
+      {renderData
       ?.sort((a,b)=> new Date(b.created_at) - new Date(a.created_at))
       .map((evac) => (
         <TouchableOpacity
@@ -120,107 +122,8 @@ const EvacuationCenterCard = () => {
             style={styles.borderWrapper}
           >
             <View style={styles.card}>
-              {/* 🖼 Image */}
-              <View style={styles.imageWrapper}>
-                <Image
-                  source={{ uri: evac.evacImage }}
-                  style={styles.image}
-                  resizeMode='cover'
-                />
-
-                {/* Status Tag */}
-                <View style={styles.statusOverlay}>
-                  <Text style={styles.statusTag}>Open</Text>
-                </View>
-              </View>
-
-              {/* 📄 Content */}
-              <View style={styles.contentSection}>
-                <Text
-                  style={styles.header}
-                  numberOfLines={1}
-                  ellipsizeMode='tail'
-                >
-                  {evac.evacName}
-                </Text>
-
-                <View style={styles.addressAndButtonsRow}>
-                  {/* Address */}
-                  <View style={styles.addressContainer}>
-                    <Text
-                      numberOfLines={2}
-                      ellipsizeMode='tail'
-                      style={styles.subtext}
-                    >
-                      {evac.evacAddress}
-                    </Text>
-                  </View>
-
-                  {/* Buttons */}
-                  <View style={styles.buttonsRow}>
-                    {/* 📞 */}
-                    <TouchableOpacity
-                      onPress={() => handleCall(evac.evacContact)}
-                      style={styles.iconCircle}
-                    >
-                      <Ionicons
-                        name='call'
-                        size={16}
-                        color={evac.evacContact ? "#0060FF" : "#999"}
-                      />
-                    </TouchableOpacity>
-
-                    {/* 🧭 */}
-                    <TouchableOpacity
-                      onPress={() =>
-                        router.push({
-                          pathname: "/pickUpLocations",
-                          params: {
-                            selectedId: evac.id,
-                            tab: "evacuationCenter",
-                            showMap: Date.now(), // 👈 make this unique every time
-                          },
-                        })
-                      }
-                      style={styles.iconCircle}
-                    >
-                      <Ionicons name='navigate' size={18} color='#0060FF' />
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              </View>
-            </View>
-          </LinearGradient>
-        </TouchableOpacity>
-      ))}
-      
-      
-      {local
-      ?.sort((a,b)=> new Date(b.created_at) - new Date(a.created_at))
-      .map((evac) => (
-        <TouchableOpacity
-          key={evac.id}
-          onPress={() =>
-            router.push({
-              pathname: "/pickUpLocations",
-              params: {
-                selectedId: evac.id, // ✅ pass evac ID
-                tab: "evacuationCenter",
-                scrollTo: evac.evacName,
-              },
-            })
-          }
-          activeOpacity={0.9}
-          style={{ marginRight: 16 }}
-        >
-          <LinearGradient
-            colors={["#0060FF", "rgba(0,96,255,0)"]}
-            start={{ x: 0.5, y: 0 }}
-            end={{ x: 0.5, y: 1 }}
-            style={styles.borderWrapper}
-          >
-            <View style={styles.card}>
-              <Text>Local</Text>
+              {renderData === local &&
+                <Text>Local</Text>}
               {/* 🖼 Image */}
               <View style={styles.imageWrapper}>
                 <Image

@@ -10,11 +10,24 @@ import { useEffect } from "react";
 import * as Notifications from "expo-notifications";
 import Constants from "expo-constants";
 import supabase from "../contexts/supabaseClient";
+// import { db } from "../database/db";
 
 const queryClient = new QueryClient();
 
 export default function RootLayout() {
+  // db.execAsync(
+  //   `CREATE TABLE IF NOT EXISTS hotlines(
+  //   id integer primary key autoincrement,
+  //   created_at text,
+  //   emerHName text,
+  //   emerHNumber text, 
+  //   emerHDescription text
+  //   )`
+  // )
+
   const theme = Colors.light;
+  const projectId = Constants.expoConfig?.extra?.eas?.projectId ||
+  Constants.easConfig?.projectId; // fallback for some builds
 
   useEffect(() => {
     // hide nav bar on Android
@@ -62,8 +75,8 @@ export default function RootLayout() {
     if (finalStatus !== "granted") return;
 
     try {
-      const token = (await Notifications.getExpoPushTokenAsync()).data;
-      console.log("Expo push token:", token);
+      const token = (await Notifications.getExpoPushTokenAsync({projectId})).data;
+      console.log(`Expo push token with : ${projectId}`, token);
 
       const { data: { session } } = await supabase.auth.getSession();
       const deviceInfo = { platform: Platform.OS };

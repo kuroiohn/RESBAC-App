@@ -57,7 +57,7 @@ export default async function handler(req, res) {
       android: {
         icon: 'notification-icon',
         color: '#ffffff',
-        imageUrl: 'https://ubjzyfxedngrsewkaccy.supabase.co/storage/v1/object/public/assets/white-icon.png'
+        imageUrl: 'https://ubjzyfxedngrsewkaccy.supabase.co/storage/v1/object/public/assets/blue-icon.png'
       }
     }));
 

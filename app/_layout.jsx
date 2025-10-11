@@ -143,6 +143,19 @@ export default function RootLayout() {
           pickupGeolocation text null,
           pickupImage text null,
           pickupContact text null);
+
+          create table if not exists alerts(
+          id integer primary key autoincrement,
+          created_at text null,
+          activatedat text null,
+          alertTitle text null,
+          alertDescription text null,
+          isActive integer null,
+          alertLocation text null,
+          alertType text null,
+          riverLevel text null,
+          alertLink text null
+          )
           `)
 
       const dbPath = `${FileSystem.documentDirectory}SQLite/userDatabase.db`;

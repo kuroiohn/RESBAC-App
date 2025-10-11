@@ -7,12 +7,64 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRealtime } from "../contexts/RealtimeProvider";
 import { BellOff } from "lucide-react-native";
 import { Megaphone, ExternalLink } from "lucide-react-native";
+import { useSQLiteContext } from "expo-sqlite";
 
 const AlertCard = ({ alertLevel = 1 }) => {
   const queryClient = useQueryClient();
   const [time, setTime] = useState(new Date()); //NOTE - not used
-
   const { alertsData } = useRealtime();
+  const db = useSQLiteContext()
+  const [local,setLocal] = useState([])
+
+  const loadUsers = async () => {
+    try {
+      const results = await db.getAllAsync(`select * from alerts`);
+      setLocal(results)
+    } catch (error){
+      console.error("Error in fetching from local offline storage:", error);
+    }
+  }
+  console.log("SQLite DB instance:", db);
+
+  const deleteSqlite = async () =>{
+    await db.runAsync('delete from alerts')
+  }
+
+  useEffect(() => {
+    if (!db || !alertsData) return;
+
+    const insertData = async () => {
+      try {
+        await db.runAsync('delete from alerts')
+
+        for (const item of alertsData) {
+          const activeInt = item.isActive ? 1 : 0
+          await db.runAsync(
+            `INSERT INTO alerts (alertTitle, created_at, alertDescription, isActive, alertLocation, alertType, riverLevel, alertLink) VALUES (?,?,?,?,?,?,?,?)`,
+            [item.alertTitle, item.created_at, item.alertDescription, activeInt, item.alertLocation, item.alertType, item.riverLevel, item.alertLink]
+          );
+        }
+
+        const results = await db.getAllAsync(`SELECT * FROM alerts`);
+        console.log("Local DB rows:", results);
+        setLocal(results.map((row)=>({
+          ...row,
+          isActive: row.isActive === 1
+        })));
+      } catch (error) {
+        console.error("SQLite insert error:", error);
+      }
+    };
+
+    insertData();
+  }, [db, alertsData]);
+
+  useEffect(()=> {
+    // deleteSqlite()
+    loadUsers()
+  },[])
+
+  const renderData = alertsData?.length ? alertsData : local;
 
   // Update clock every second
   useEffect(() => {
@@ -69,21 +121,6 @@ const AlertCard = ({ alertLevel = 1 }) => {
     return words[0] + "\n" + words.slice(1).join(" ");
   };
 
-  const getWaterLevel = () => {
-    switch (alertLevel) {
-      case 1:
-        return 15;
-      case 2:
-        return 17;
-      case 3:
-        return 18;
-      default:
-        return "--";
-    }
-  };
-
-  const waterLevel = getWaterLevel();
-
   const getAlertIcon = (type) => {
     switch (type) {
       case "flood":
@@ -101,8 +138,10 @@ const AlertCard = ({ alertLevel = 1 }) => {
 
   return (
     <>
-      {alertsData?.some((alert) => alert.isActive) ? (
-        alertsData?.map(
+      {renderData?.some((alert) => alert.isActive) ? (
+        renderData
+        ?.sort((a,b) => new Date(b.activatedat) - new Date(a.activatedat))
+        .map(
           (alert) =>
             alert.isActive && (
               <LinearGradient
@@ -113,6 +152,8 @@ const AlertCard = ({ alertLevel = 1 }) => {
                 style={styles.borderWrapper}
               >
                 <View style={styles.innerCard}>
+                  {renderData === local &&
+                    <Text>Local</Text>}
                   {/* Top right date + icon */}
                   <View style={styles.dateRow}>
                     <Text style={styles.dateText}>

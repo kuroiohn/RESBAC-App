@@ -348,7 +348,7 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     justifyContent: "center",
     rowGap: 5,
-    columnGap: 45,
+    columnGap: 35,
     marginTop: 0,
   },
 

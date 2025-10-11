@@ -29,7 +29,7 @@
       "backgroundColor": "#ffffff"
     },
     "notification": {
-      "icon": "./assets/white-icon.png",
+      "icon": "./assets/notif-icon.png",
       "color": "#ffffff"
     },
     "edgeToEdgeEnabled": true,

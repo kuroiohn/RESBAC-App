@@ -25,8 +25,12 @@
   },
   "android": {
     "adaptiveIcon": {
-      "foregroundImage": "./assets/adaptive-icon.png",
+      "foregroundImage": "./assets/icon.png",
       "backgroundColor": "#ffffff"
+    },
+    "notification": {
+      "icon": "./assets/white-icon.png",
+      "color": "#ffffff"
     },
     "edgeToEdgeEnabled": true,
     "package": "com.lukewarmraven.resbac",

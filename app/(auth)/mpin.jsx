@@ -194,7 +194,7 @@ const MPin = () => {
         ]
       );
     } catch (error) {
-      console.error("MPIN unlock error:", error);
+      // console.error("MPIN unlock error:", error);
       Alert.alert(
         "Authentication Failed",
         error.message || "Invalid MPIN. Please try again."

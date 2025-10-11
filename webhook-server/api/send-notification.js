@@ -50,10 +50,14 @@ export default async function handler(req, res) {
       data: {
         alertType: record.alertType,
         alertTitle: record.alertTitle,
-        screen: 'dashboard'
+        screen: 'dashboard',
       },
       priority: 'high',
-      channelId: 'alerts'
+      channelId: 'alerts',
+      android: {
+        icon: 'notification-icon',
+        imageUrl: 'https://ubjzyfxedngrsewkaccy.supabase.co/storage/v1/object/public/assets/white-icon.png'
+      }
     }));
 
     // Send to Expo Push API

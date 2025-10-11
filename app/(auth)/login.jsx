@@ -27,7 +27,6 @@ import ThemedText from "../../components/ThemedText";
 import ThemedButton from "../../components/ThemedButton";
 import ThemedTextInput from "../../components/ThemedTextInput";
 import Spacer from "../../components/Spacer";
-import TitleText from "../../components/TitleText";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -443,6 +442,11 @@ const Login = () => {
                       <Text style={{ color: "#f2f2f2" }}>Login</Text>
                     )}
                   </ThemedButton>
+
+                  {/* Forgot Password Link */}
+                  <Link href='/(auth)/forgot-password' asChild>
+                    <Text style={styles.forgotLink}>Forgot Password?</Text>
+                  </Link>
                 </>
               ) : (
                 // MPIN Manual Entry (when no quick access available)
@@ -476,21 +480,22 @@ const Login = () => {
                   </ThemedButton>
 
                   <ThemedText style={styles.mpinNote}>
-                    Don't remember your MPIN? Use email/password above
+                    Don't remember your MPIN?{" "}
+                    <Link href='/(auth)/forgot-mpin' asChild>
+                      <Text style={styles.forgotLinkInline}>Reset it here</Text>
+                    </Link>
                   </ThemedText>
                 </View>
               )}
             </>
           )}
 
-          <TitleText type='title4' style={{ marginRight: 111 }}>
+          <Text style={styles.registerText}>
             Don't have an Account?{" "}
             <Link href='/(auth)/register' asChild>
-              <Text style={{ color: "#0060ff", fontWeight: "600" }}>
-                Register instead
-              </Text>
+              <Text style={styles.registerLink}>Register instead</Text>
             </Link>
-          </TitleText>
+          </Text>
 
           <Spacer />
           {error && <Text style={styles.error}>{error}</Text>}
@@ -687,5 +692,25 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     marginTop: 15,
     textAlign: "center",
+  },
+  forgotLink: {
+    color: "#0060ff",
+    fontSize: 14,
+    textAlign: "center",
+    marginTop: 15,
+  },
+  forgotLinkInline: {
+    color: "#0060ff",
+    fontSize: 12,
+    textDecorationLine: "underline",
+  },
+  registerText: {
+    fontSize: 14,
+    color: "#000",
+    textAlign: "center",
+  },
+  registerLink: {
+    color: "#0060ff",
+    fontWeight: "600",
   },
 });

@@ -63,6 +63,7 @@ export default function RootLayout() {
 
     try {
       const token = (await Notifications.getExpoPushTokenAsync()).data;
+
       console.log("Expo push token:", token);
 
       const { data: { session } } = await supabase.auth.getSession();

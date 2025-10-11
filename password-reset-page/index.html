@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RESBAC - Reset Password</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #0060ff 0%, #003A99 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 450px;
+            width: 100%;
+            padding: 40px;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .logo {
+            text-align: center;
+            font-size: 36px;
+            font-weight: bold;
+            color: #0060ff;
+            margin-bottom: 10px;
+        }
+
+        .title {
+            text-align: center;
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            font-size: 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            border-color: #0060ff;
+        }
+
+        .button {
+            width: 100%;
+            padding: 14px;
+            background: #0060ff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-top: 10px;
+        }
+
+        .button:hover:not(:disabled) {
+            background: #0050dd;
+        }
+
+        .button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .error {
+            background: #ffebee;
+            color: #d32f2f;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 20px;
+            border-left: 4px solid #d32f2f;
+        }
+
+        .success {
+            text-align: center;
+        }
+
+        .success-icon {
+            font-size: 72px;
+            margin-bottom: 20px;
+        }
+
+        .success-title {
+            font-size: 28px;
+            font-weight: 600;
+            color: #2e7d32;
+            margin-bottom: 16px;
+        }
+
+        .success-message {
+            font-size: 16px;
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 12px;
+        }
+
+        .help-text {
+            text-align: center;
+            font-size: 12px;
+            color: #999;
+            margin-top: 24px;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            border: 1px solid #90caf9;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            color: #1976d2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="resetForm">
+            <div class="logo">RESBAC</div>
+            <h1 class="title">Reset Your Password</h1>
+            <p class="subtitle">Enter your new password below</p>
+
+            <div class="info-box" id="infoBox">
+                Checking your reset link...
+            </div>
+
+            <div id="errorMessage" class="error hidden"></div>
+
+            <form id="passwordForm" class="hidden">
+                <div class="form-group">
+                    <label for="newPassword">New Password</label>
+                    <input
+                        type="password"
+                        id="newPassword"
+                        placeholder="Minimum 6 characters"
+                        required
+                        minlength="6"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="confirmPassword">Confirm Password</label>
+                    <input
+                        type="password"
+                        id="confirmPassword"
+                        placeholder="Re-enter your password"
+                        required
+                        minlength="6"
+                    >
+                </div>
+
+                <button type="submit" class="button" id="submitBtn">
+                    Reset Password
+                </button>
+            </form>
+
+            <p class="help-text">
+                Having trouble? Contact your barangay administrator for assistance.
+            </p>
+        </div>
+
+        <div id="successScreen" class="success hidden">
+            <div class="success-icon">✅</div>
+            <h1 class="success-title">Password Reset Successful!</h1>
+            <p class="success-message">
+                Your password has been changed successfully.
+            </p>
+            <p class="success-message">
+                You can now close this page and login with your new password in the RESBAC mobile app.
+            </p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const SUPABASE_URL = 'https://ubjzyfxedngrsewkaccy.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVianp5ZnhlZG5ncnNld2thY2N5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ1NjQyMDAsImV4cCI6MjA3MDE0MDIwMH0.L7TMJniq7Qs7vygmCpxQRp5NDMh5x7a3a1wPK_LHyOs';
+
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        const resetForm = document.getElementById('resetForm');
+        const successScreen = document.getElementById('successScreen');
+        const passwordForm = document.getElementById('passwordForm');
+        const errorMessage = document.getElementById('errorMessage');
+        const infoBox = document.getElementById('infoBox');
+        const submitBtn = document.getElementById('submitBtn');
+
+        // Check if user has a valid recovery session
+        async function checkRecoverySession() {
+            try {
+                console.log('Full URL:', window.location.href);
+                console.log('Hash:', window.location.hash);
+
+                // First, check if there's a hash with parameters
+                const hashParams = new URLSearchParams(window.location.hash.substring(1));
+
+                console.log('Parsed params:', {
+                    access_token: hashParams.get('access_token') ? 'present' : 'missing',
+                    refresh_token: hashParams.get('refresh_token') ? 'present' : 'missing',
+                    type: hashParams.get('type'),
+                    error: hashParams.get('error'),
+                    error_code: hashParams.get('error_code')
+                });
+
+                // Check for error parameters (expired link, etc.)
+                const errorParam = hashParams.get('error');
+                const errorCode = hashParams.get('error_code');
+
+                if (errorParam === 'access_denied' && errorCode === 'otp_expired') {
+                    showError('This password reset link has expired. Reset links are valid for 1 hour only. Please request a new password reset from the mobile app.');
+                    return;
+                }
+
+                if (errorParam) {
+                    const errorDesc = hashParams.get('error_description');
+                    showError(errorDesc ? errorDesc.replace(/\+/g, ' ') : 'Invalid reset link. Please request a new password reset.');
+                    return;
+                }
+
+                // Check for access token (valid recovery link)
+                const accessToken = hashParams.get('access_token');
+                const refreshToken = hashParams.get('refresh_token');
+                const type = hashParams.get('type');
+
+                console.log('Token check:', { hasAccessToken: !!accessToken, type });
+
+                if (accessToken && type === 'recovery') {
+                    console.log('Valid recovery token found, setting session...');
+
+                    // Exchange the access token for a session
+                    const { data, error } = await supabase.auth.setSession({
+                        access_token: accessToken,
+                        refresh_token: refreshToken || ''
+                    });
+
+                    console.log('Session result:', { data: !!data, error });
+
+                    if (error) {
+                        console.error('Token exchange error:', error);
+
+                        // Check if it's actually an expiration error
+                        if (error.message && error.message.includes('expired')) {
+                            showError('This password reset link has expired. Reset links are valid for 1 hour only. Please request a new password reset from the mobile app.');
+                        } else {
+                            showError('Invalid or expired reset link. Error: ' + error.message);
+                        }
+                        return;
+                    }
+
+                    // Valid session - show the form
+                    console.log('Session established successfully!');
+                    infoBox.classList.add('hidden');
+                    passwordForm.classList.remove('hidden');
+                    return;
+                }
+
+                // If no hash params with recovery type, check for existing session
+                console.log('No recovery token in URL, checking existing session...');
+                const { data: { session }, error } = await supabase.auth.getSession();
+
+                if (error) {
+                    console.error('Get session error:', error);
+                    throw error;
+                }
+
+                if (!session) {
+                    showError('Invalid or expired reset link. Please request a new password reset from the mobile app.');
+                    return;
+                }
+
+                // Valid session - show the form
+                console.log('Existing session found!');
+                infoBox.classList.add('hidden');
+                passwordForm.classList.remove('hidden');
+
+            } catch (error) {
+                console.error('Session check error:', error);
+                showError('Failed to verify reset link. Error: ' + error.message);
+            }
+        }
+
+        // Handle password reset form submission
+        passwordForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            // Clear previous errors
+            hideError();
+
+            // Validate passwords
+            if (newPassword.length < 6) {
+                showError('Password must be at least 6 characters long.');
+                return;
+            }
+
+            if (newPassword !== confirmPassword) {
+                showError('Passwords do not match. Please try again.');
+                return;
+            }
+
+            // Disable button and show loading
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="loading"></span> Resetting...';
+
+            try {
+                // Update password in Supabase
+                const { error } = await supabase.auth.updateUser({
+                    password: newPassword
+                });
+
+                if (error) throw error;
+
+                // Success! Sign out the user
+                await supabase.auth.signOut();
+
+                // Show success screen
+                resetForm.classList.add('hidden');
+                successScreen.classList.remove('hidden');
+
+            } catch (error) {
+                console.error('Password reset error:', error);
+                showError(error.message || 'Failed to reset password. Please try again.');
+
+                // Re-enable button
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Reset Password';
+            }
+        });
+
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.classList.remove('hidden');
+        }
+
+        function hideError() {
+            errorMessage.classList.add('hidden');
+        }
+
+        // Check session on page load
+        checkRecoverySession();
+    </script>
+</body>
+</html>

@@ -10,10 +10,73 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useRealtime } from "../contexts/RealtimeProvider";
+import { useEffect, useState } from "react";
+import { useSQLiteContext } from "expo-sqlite";
 
 const PickupLocationsCard = () => {
   const router = useRouter();
   const { pickupData } = useRealtime();
+  const db = useSQLiteContext()
+  const [local,setLocal] = useState([])
+
+  const loadUsers = async () => {
+    try {
+      const results = await db.getAllAsync(`select * from pickup`);
+      setLocal(results)
+    } catch (error){
+      console.error("Error in fetching from local offline storage pickup:", error);
+    }
+  }
+  console.log("SQLite DB instance:", db);
+
+  const deleteSqlite = async () =>{
+    await db.runAsync('delete from pickup')
+  }
+
+  useEffect(() => {
+    if (!db || !pickupData) return;
+
+    const insertData = async () => {
+      try {
+        await db.runAsync('delete from pickup')
+
+        for (const item of pickupData) {
+          // Check if the row exists
+          const existing = await db.getAllAsync(
+            `SELECT id FROM pickup WHERE pickupName = ?`,
+            [item.pickupName]
+          );
+
+          if (existing.length > 0) {
+            // Update existing row
+            await db.runAsync(
+              `UPDATE pickup SET created_at = ?, pickupAddress = ?, pickupGeolocation = ?, pickupImage = ?, pickupContact=? WHERE pickupName = ?`,
+              [item.created_at, item.pickupAddress, item.pickupGeolocation, item.pickupImage, item.pickupContact, item.pickupName]
+            );
+          } else {
+            // Insert new row
+            await db.runAsync(
+              `INSERT INTO pickup (created_at, pickupAddress, pickupGeolocation, pickupImage, pickupContact,pickupName) VALUES (?,?,?,?,?,?)`,
+              [item.created_at, item.pickupAddress, item.pickupGeolocation, item.pickupImage, item.pickupContact, item.pickupName]
+            );
+          }
+        }
+
+        const results = await db.getAllAsync(`SELECT * FROM pickup`);
+        console.log("Local DB rows:", results);
+        setLocal(results);
+      } catch (error) {
+        console.error("SQLite insert error:", error);
+      }
+    };
+
+    insertData();
+  }, [db, pickupData]);
+
+  useEffect(()=> {
+    // deleteSqlite()
+    loadUsers()
+  },[])
 
   const handleCall = (phoneNumber) => {
     if (phoneNumber) {
@@ -23,7 +86,9 @@ const PickupLocationsCard = () => {
 
   return (
     <>
-      {pickupData?.map((pickup) => (
+      {pickupData
+      ?.sort((a,b)=> new Date(b.created_at) - new Date(a.created_at))
+      .map((pickup) => (
         <TouchableOpacity
           key={pickup.id}
           // 👇 navigate to PickUpLocation and scroll to the selected pickup
@@ -47,6 +112,105 @@ const PickupLocationsCard = () => {
             style={styles.borderWrapper}
           >
             <View style={styles.card}>
+              {/* Image + status overlay */}
+              <View style={styles.imageWrapper}>
+                <Image
+                  source={{ uri: pickup.pickupImage }}
+                  style={styles.image}
+                  resizeMode='cover'
+                />
+                <View style={styles.statusOverlay}>
+                  <Text style={styles.statusTag}>Available</Text>
+                </View>
+              </View>
+
+              {/* Content */}
+              <View style={styles.contentSection}>
+                <Text
+                  style={styles.header}
+                  numberOfLines={1}
+                  ellipsizeMode='tail'
+                >
+                  {pickup.pickupName}
+                </Text>
+
+                <View style={styles.addressAndButtonsRow}>
+                  {/* Address */}
+                  <View style={styles.addressContainer}>
+                    <Text
+                      numberOfLines={2}
+                      ellipsizeMode='tail'
+                      style={styles.subtext}
+                    >
+                      {pickup.pickupAddress}
+                    </Text>
+                  </View>
+
+                  {/* Buttons */}
+                  <View style={styles.buttonsRow}>
+                    {/* 📞 Call */}
+                    <TouchableOpacity
+                      onPress={() => handleCall(pickup.pickupContact)}
+                      style={styles.iconCircle}
+                    >
+                      <Ionicons
+                        name='call'
+                        size={16}
+                        color={pickup.pickupContact ? "#0060FF" : "#999"}
+                      />
+                    </TouchableOpacity>
+
+                    {/* 🧭 Navigate */}
+                    <TouchableOpacity
+                      onPress={() =>
+                        router.push({
+                          pathname: "/pickUpLocations",
+                          params: {
+                            selectedId: pickup.id,
+                            tab: "pickupLocations",
+                            showMap: Date.now(), // 👈 unique value each time!
+                          },
+                        })
+                      }
+                      style={styles.iconCircle}
+                    >
+                      <Ionicons name='navigate' size={18} color='#0060FF' />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
+            </View>
+          </LinearGradient>
+        </TouchableOpacity>
+      ))}
+      
+      {local
+      ?.sort((a,b)=> new Date(b.created_at) - new Date(a.created_at))
+      .map((pickup) => (
+        <TouchableOpacity
+          key={pickup.id}
+          // 👇 navigate to PickUpLocation and scroll to the selected pickup
+          onPress={() =>
+            router.push({
+              pathname: "/pickUpLocations",
+              params: {
+                selectedId: pickup.id,
+                // optional: activeTab if you want it to open on pickup tab
+                tab: "pickupLocations",
+              },
+            })
+          }
+          activeOpacity={0.9}
+          style={{ marginRight: 16 }}
+        >
+          <LinearGradient
+            colors={["#0060FF", "rgba(0,96,255,0)"]}
+            start={{ x: 0.5, y: 0 }}
+            end={{ x: 0.5, y: 1 }}
+            style={styles.borderWrapper}
+          >
+            <View style={styles.card}>
+              <Text>Local</Text>
               {/* Image + status overlay */}
               <View style={styles.imageWrapper}>
                 <Image

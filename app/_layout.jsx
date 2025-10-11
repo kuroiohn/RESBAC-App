@@ -125,8 +125,24 @@ export default function RootLayout() {
           emerPImage text null,
           emerPRole text null,
           emerPBrgy text null);
+        
+          create table if not exists evac(
+          id integer primary key autoincrement,
+          created_at text null,
+          evacName text null,
+          evacAddress text null,
+          evacGeolocation text null,
+          evacImage text null,
+          evacContact text null);
           
-
+          create table if not exists pickup(
+          id integer primary key autoincrement,
+          created_at text null,
+          pickupName text null,
+          pickupAddress text null,
+          pickupGeolocation text null,
+          pickupImage text null,
+          pickupContact text null);
           `)
 
       const dbPath = `${FileSystem.documentDirectory}SQLite/userDatabase.db`;

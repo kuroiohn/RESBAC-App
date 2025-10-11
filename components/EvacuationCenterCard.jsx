@@ -10,10 +10,73 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { useRealtime } from "../contexts/RealtimeProvider";
+import { useEffect, useState } from "react";
+import { useSQLiteContext } from "expo-sqlite";
 
 const EvacuationCenterCard = () => {
   const router = useRouter();
   const { evacData } = useRealtime();
+  const db = useSQLiteContext()
+  const [local,setLocal] = useState([])
+
+  const loadUsers = async () => {
+    try {
+      const results = await db.getAllAsync(`select * from evac`);
+      setLocal(results)
+    } catch (error){
+      console.error("Error in fetching from local offline storage evac:", error);
+    }
+  }
+  console.log("SQLite DB instance:", db);
+
+  const deleteSqlite = async () =>{
+    await db.runAsync('delete from evac')
+  }
+
+  useEffect(() => {
+    if (!db || !evacData) return;
+
+    const insertData = async () => {
+      try {
+        await db.runAsync('delete from evac')
+
+        for (const item of evacData) {
+          // Check if the row exists
+          const existing = await db.getAllAsync(
+            `SELECT id FROM evac WHERE evacName = ?`,
+            [item.evacName]
+          );
+
+          if (existing.length > 0) {
+            // Update existing row
+            await db.runAsync(
+              `UPDATE evac SET created_at = ?, evacAddress = ?, evacGeolocation = ?, evacImage = ?, evacContact=? WHERE evacName = ?`,
+              [item.created_at, item.evacAddress, item.evacGeolocation, item.evacImage, item.evacContact, item.evacName]
+            );
+          } else {
+            // Insert new row
+            await db.runAsync(
+              `INSERT INTO evac (created_at, evacAddress, evacGeolocation, evacImage, evacContact, evacName) VALUES (?,?,?,?,?,?)`,
+              [item.created_at, item.evacAddress, item.evacGeolocation, item.evacImage, item.evacContact, item.evacName]
+            );
+          }
+        }
+
+        const results = await db.getAllAsync(`SELECT * FROM evac`);
+        console.log("Local DB rows:", results);
+        setLocal(results);
+      } catch (error) {
+        console.error("SQLite insert error:", error);
+      }
+    };
+
+    insertData();
+  }, [db, evacData]);
+
+  useEffect(()=> {
+    // deleteSqlite()
+    loadUsers()
+  },[])
 
   const handleCall = (phoneNumber) => {
     if (phoneNumber) {
@@ -32,7 +95,9 @@ const EvacuationCenterCard = () => {
 
   return (
     <>
-      {evacData?.map((evac) => (
+      {evacData
+      ?.sort((a,b)=> new Date(b.created_at) - new Date(a.created_at))
+      .map((evac) => (
         <TouchableOpacity
           key={evac.id}
           onPress={() =>
@@ -55,6 +120,107 @@ const EvacuationCenterCard = () => {
             style={styles.borderWrapper}
           >
             <View style={styles.card}>
+              {/* 🖼 Image */}
+              <View style={styles.imageWrapper}>
+                <Image
+                  source={{ uri: evac.evacImage }}
+                  style={styles.image}
+                  resizeMode='cover'
+                />
+
+                {/* Status Tag */}
+                <View style={styles.statusOverlay}>
+                  <Text style={styles.statusTag}>Open</Text>
+                </View>
+              </View>
+
+              {/* 📄 Content */}
+              <View style={styles.contentSection}>
+                <Text
+                  style={styles.header}
+                  numberOfLines={1}
+                  ellipsizeMode='tail'
+                >
+                  {evac.evacName}
+                </Text>
+
+                <View style={styles.addressAndButtonsRow}>
+                  {/* Address */}
+                  <View style={styles.addressContainer}>
+                    <Text
+                      numberOfLines={2}
+                      ellipsizeMode='tail'
+                      style={styles.subtext}
+                    >
+                      {evac.evacAddress}
+                    </Text>
+                  </View>
+
+                  {/* Buttons */}
+                  <View style={styles.buttonsRow}>
+                    {/* 📞 */}
+                    <TouchableOpacity
+                      onPress={() => handleCall(evac.evacContact)}
+                      style={styles.iconCircle}
+                    >
+                      <Ionicons
+                        name='call'
+                        size={16}
+                        color={evac.evacContact ? "#0060FF" : "#999"}
+                      />
+                    </TouchableOpacity>
+
+                    {/* 🧭 */}
+                    <TouchableOpacity
+                      onPress={() =>
+                        router.push({
+                          pathname: "/pickUpLocations",
+                          params: {
+                            selectedId: evac.id,
+                            tab: "evacuationCenter",
+                            showMap: Date.now(), // 👈 make this unique every time
+                          },
+                        })
+                      }
+                      style={styles.iconCircle}
+                    >
+                      <Ionicons name='navigate' size={18} color='#0060FF' />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
+            </View>
+          </LinearGradient>
+        </TouchableOpacity>
+      ))}
+      
+      
+      {local
+      ?.sort((a,b)=> new Date(b.created_at) - new Date(a.created_at))
+      .map((evac) => (
+        <TouchableOpacity
+          key={evac.id}
+          onPress={() =>
+            router.push({
+              pathname: "/pickUpLocations",
+              params: {
+                selectedId: evac.id, // ✅ pass evac ID
+                tab: "evacuationCenter",
+                scrollTo: evac.evacName,
+              },
+            })
+          }
+          activeOpacity={0.9}
+          style={{ marginRight: 16 }}
+        >
+          <LinearGradient
+            colors={["#0060FF", "rgba(0,96,255,0)"]}
+            start={{ x: 0.5, y: 0 }}
+            end={{ x: 0.5, y: 1 }}
+            style={styles.borderWrapper}
+          >
+            <View style={styles.card}>
+              <Text>Local</Text>
               {/* 🖼 Image */}
               <View style={styles.imageWrapper}>
                 <Image

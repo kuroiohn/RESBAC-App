@@ -10,21 +10,12 @@ import { useEffect } from "react";
 import * as Notifications from "expo-notifications";
 import Constants from "expo-constants";
 import supabase from "../contexts/supabaseClient";
-// import { db } from "../database/db";
+import {SQLiteProvider} from 'expo-sqlite'
+import * as FileSystem from 'expo-file-system/legacy'
 
 const queryClient = new QueryClient();
 
 export default function RootLayout() {
-  // db.execAsync(
-  //   `CREATE TABLE IF NOT EXISTS hotlines(
-  //   id integer primary key autoincrement,
-  //   created_at text,
-  //   emerHName text,
-  //   emerHNumber text, 
-  //   emerHDescription text
-  //   )`
-  // )
-
   const theme = Colors.light;
   const projectId = Constants.expoConfig?.extra?.eas?.projectId ||
   Constants.easConfig?.projectId; // fallback for some builds
@@ -75,8 +66,8 @@ export default function RootLayout() {
     if (finalStatus !== "granted") return;
 
     try {
-      const token = (await Notifications.getExpoPushTokenAsync({projectId})).data;
-      console.log(`Expo push token with : ${projectId}`, token);
+      const token = (await Notifications.getExpoPushTokenAsync()).data;
+      console.log("Expo push token:", token);
 
       const { data: { session } } = await supabase.auth.getSession();
       const deviceInfo = { platform: Platform.OS };
@@ -111,29 +102,70 @@ export default function RootLayout() {
   }, []);
 
   return (
+    <SQLiteProvider
+    databaseName="userDatabase.db"
+    onInit={async(db) => {
+      try{            
+        await db.execAsync(`PRAGMA journal_mode=WAL;`);
+
+        await db.execAsync(`
+        create table if not exists hotlines(
+          id integer primary key autoincrement,
+          created_at text null,
+          emerHName text null,
+          emerHNumber text null,
+          emerHDescription text null);
+          
+        create table if not exists rescuers(
+          id integer primary key autoincrement,
+          created_at text null,
+          emerPName text null,
+          emerPNumber text null,
+          emerPMessLink text null,
+          emerPImage text null,
+          emerPRole text null,
+          emerPBrgy text null);
+          
+
+          `)
+
+      const dbPath = `${FileSystem.documentDirectory}SQLite/userDatabase.db`;
+      const fileInfo = await FileSystem.getInfoAsync(dbPath);
+      console.log(`DB exists in ${dbPath}?`, fileInfo.exists);
+
+      console.log("Creating sqlite...");
+
+      } catch(error){
+        console.error("Error in initializing db: ", error);
+      }
+      
+    }}
+    options={{useNewConnection: false}}
+  >
     <QueryClientProvider client={queryClient}>
-        <UserProvider>
-      <RealtimeProvider>
-          <StatusBar style='dark' />
-          <Stack
-            screenOptions={{
-              headerStyle: { backgroundColor: theme.navBackground },
-              headerTintColor: theme.title,
-            }}
-          >
-            <Stack.Screen
-              name='index'
-              options={{ headerShown: false, title: "Onboarding" }}
-            />
-            <Stack.Screen name='(auth)' options={{ headerShown: false }} />
-            <Stack.Screen name='(dashboard)' options={{ headerShown: false }} />
-            <Stack.Screen
-              name='emergencyGuideGuest'
-              options={{ headerShown: false }}
-            />
-          </Stack>
-      </RealtimeProvider>
+      <UserProvider>
+          <RealtimeProvider>
+            <StatusBar style='dark' />
+            <Stack
+              screenOptions={{
+                headerStyle: { backgroundColor: theme.navBackground },
+                headerTintColor: theme.title,
+              }}
+            >
+              <Stack.Screen
+                name='index'
+                options={{ headerShown: false, title: "Onboarding" }}
+              />
+              <Stack.Screen name='(auth)' options={{ headerShown: false }} />
+              <Stack.Screen name='(dashboard)' options={{ headerShown: false }} />
+              <Stack.Screen
+                name='emergencyGuideGuest'
+                options={{ headerShown: false }}
+              />
+            </Stack>
+          </RealtimeProvider>
         </UserProvider>
-    </QueryClientProvider>
+      </QueryClientProvider>
+    </SQLiteProvider>
   );
 }

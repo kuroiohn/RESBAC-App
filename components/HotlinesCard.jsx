@@ -10,9 +10,72 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Phone } from "lucide-react-native";
 import { useRealtime } from "../contexts/RealtimeProvider";
 import { Ionicons } from "@expo/vector-icons";
+import { useEffect, useState } from "react";
+import { useSQLiteContext } from "expo-sqlite";
 
 export default function HotlinesCard() {
   const { emerHData } = useRealtime();
+  const db = useSQLiteContext()
+  const [local,setLocal] = useState([])
+
+  const loadUsers = async () => {
+    try {
+      const results = await db.getAllAsync(`select * from hotlines`);
+      setLocal(results)
+    } catch (error){
+      console.error("Error in fetching from local offline storage:", error);
+    }
+  }
+  console.log("SQLite DB instance:", db);
+
+  const deleteSqlite = async () =>{
+    await db.runAsync('delete from hotlines')
+  }
+
+  useEffect(() => {
+    if (!db || !emerHData) return;
+
+    const insertData = async () => {
+      try {
+        await db.runAsync('delete from hotlines')
+
+        for (const item of emerHData) {
+          // Check if the row exists
+          const existing = await db.getAllAsync(
+            `SELECT id FROM hotlines WHERE emerHName = ?`,
+            [item.emerHName]
+          );
+
+          if (existing.length > 0) {
+            // Update existing row
+            await db.runAsync(
+              `UPDATE hotlines SET created_at = ?, emerHNumber = ?, emerHDescription = ? WHERE emerHName = ?`,
+              [item.created_at, item.emerHNumber, item.emerHDescription, item.emerHName]
+            );
+          } else {
+            // Insert new row
+            await db.runAsync(
+              `INSERT INTO hotlines (emerHName, created_at, emerHNumber, emerHDescription) VALUES (?,?,?,?)`,
+              [item.emerHName, item.created_at, item.emerHNumber, item.emerHDescription]
+            );
+          }
+        }
+
+        const results = await db.getAllAsync(`SELECT * FROM hotlines`);
+        console.log("Local DB rows:", results);
+        setLocal(results);
+      } catch (error) {
+        console.error("SQLite insert error:", error);
+      }
+    };
+
+    insertData();
+  }, [db, emerHData]);
+
+  useEffect(()=> {
+    // deleteSqlite()
+    loadUsers()
+  },[])
 
   const handleContactBtn = async (number) => {
     if (number) {
@@ -30,7 +93,9 @@ export default function HotlinesCard() {
 
   return (
     <>
-      {emerHData?.map((emerH) => (
+      {emerHData
+      ?.sort((a,b) => new Date(a.created_at) - new Date(b.created_at))
+      .map((emerH) => (
         <View key={emerH.id} style={styles.borderWrapper}>
           <LinearGradient
             colors={["#0060FF", "rgba(0, 96, 255, 0)"]}
@@ -42,6 +107,58 @@ export default function HotlinesCard() {
               {/* Top Row: Image + Info */}
               <View style={styles.topRow}>
 
+                <View style={styles.infoSection}>
+                  <Text
+                    style={styles.name}
+                    numberOfLines={1}
+                    ellipsizeMode='tail'
+                  >
+                    {emerH.emerHName}
+                  </Text>
+                  <Text style={styles.position}>
+                    {emerH.emerHDescription || "No role specified"}
+                  </Text>
+                </View>
+              </View>
+
+              {/* Bottom: Buttons (Same Row) */}
+              <View style={styles.buttonsRow}>
+                {/* 📞 Call Button with number */}
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={() => handleContactBtn(emerH.emerHNumber)}
+                  style={[styles.callButton, { flex: 1 }]}
+                >
+                  <Ionicons
+                    name='call'
+                    size={16}
+                    color='#fff'
+                    style={{ marginRight: 6 }}
+                  />
+
+                  <Text style={styles.callText}>Call</Text>
+                </TouchableOpacity>
+
+              </View>
+            </View>
+          </LinearGradient>
+        </View>
+      ))}
+
+      {local
+      ?.sort((a,b) => new Date(a.created_at) - new Date(b.created_at))
+      .map((emerH) => (
+        <View key={emerH.id} style={styles.borderWrapper}>
+          <LinearGradient
+            colors={["#0060FF", "rgba(0, 96, 255, 0)"]}
+            start={{ x: 0.5, y: 0 }}
+            end={{ x: 0.5, y: 1 }}
+            style={styles.gradient}
+          >
+            <View style={styles.card}>
+                <Text>Local {emerH.id}</Text>
+              {/* Top Row: Image + Info */}
+              <View style={styles.topRow}>
                 <View style={styles.infoSection}>
                   <Text
                     style={styles.name}

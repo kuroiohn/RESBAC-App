@@ -28,10 +28,6 @@
       "foregroundImage": "./assets/icon.png",
       "backgroundColor": "#ffffff"
     },
-    "notification": {
-      "icon": "./assets/notif-icon.png",
-      "color": "#ffffff"
-    },
     "edgeToEdgeEnabled": true,
     "package": "com.lukewarmraven.resbac",
     "googleServicesFile": "./google-services.json",
@@ -60,7 +56,12 @@
   "plugins": [
     "expo-router",
     "expo-font",
-    "expo-sqlite"
+    "expo-sqlite",
+    ["expo-notifications",
+    {
+      "icon": "./assets/notif-icon.png",
+      "color": "#ffffff"
+    }]
   ],
   "extra": {
     "router": {},

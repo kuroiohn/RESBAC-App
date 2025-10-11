@@ -3,10 +3,22 @@ import { Stack } from "expo-router";
 import { Colors } from "../../constants/Colors";
 import { useEffect } from "react";
 import supabase from "../../contexts/supabaseClient";
+import { useSQLiteContext } from "expo-sqlite";
 
 export default function AuthLayout() {
   const colorScheme = useColorScheme();
   const theme = Colors[colorScheme] ?? Colors.light;
+  const db = useSQLiteContext()
+
+  useEffect(() => {
+    const testDB = async() => {
+      const tables = await db.execAsync(
+        "SELECT name FROM sqlite_master WHERE type='table';"
+      );
+      console.log("Existing tables:", tables);
+    }
+    testDB()
+  },[db])
 
   return (
     <Stack

@@ -2,17 +2,19 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableWithoutFeedback,
-  Keyboard,
+  TouchableOpacity,
+  Pressable,
   Alert,
   ActivityIndicator,
-  Pressable,
   Image,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { useState } from "react";
 import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
-import { MaterialIcons } from "@expo/vector-icons";
+import { MaterialIcons, Feather } from "@expo/vector-icons";
+import { StatusBar } from "expo-status-bar";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import supabase from "../../contexts/supabaseClient";
 import ThemedTextInput from "../../components/ThemedTextInput";
@@ -28,7 +30,7 @@ export default function ForgotMPIN() {
   const [confirmMpin, setConfirmMpin] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [step, setStep] = useState(1); // 1: Enter credentials, 2: Set new MPIN
+  const [step, setStep] = useState(1); // 1: Enter credentials, 2: Set new MPIN, 3: Confirm MPIN
   const router = useRouter();
 
   const handleVerifyCredentials = async () => {
@@ -43,7 +45,7 @@ export default function ForgotMPIN() {
 
     try {
       // Verify credentials with Supabase
-      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+      const { error: signInError } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password: password,
       });
@@ -60,17 +62,28 @@ export default function ForgotMPIN() {
     }
   };
 
-  const handleResetMPIN = async () => {
+  const handleNewMpinSubmit = () => {
     setError(null);
 
-    // Validate MPIN
-    if (!newMpin || newMpin.length !== 4) {
+    if (newMpin.length !== 4) {
       setError("MPIN must be exactly 4 digits");
       return;
     }
 
     if (!/^\d{4}$/.test(newMpin)) {
       setError("MPIN must contain only numbers");
+      return;
+    }
+
+    setStep(3);
+  };
+
+  const handleResetMPIN = async () => {
+    setError(null);
+
+    // Validate MPIN
+    if (confirmMpin.length !== 4) {
+      setError("MPIN must be exactly 4 digits");
       return;
     }
 
@@ -130,8 +143,91 @@ export default function ForgotMPIN() {
     }
   };
 
+  const handleKeyPress = (val) => {
+    if (step === 2 && newMpin.length < 4) {
+      setNewMpin((prev) => prev + val);
+      if (error) setError(null);
+    } else if (step === 3 && confirmMpin.length < 4) {
+      setConfirmMpin((prev) => prev + val);
+      if (error) setError(null);
+    }
+  };
+
+  const handleDelete = () => {
+    if (step === 2) {
+      setNewMpin((prev) => prev.slice(0, -1));
+    } else if (step === 3) {
+      setConfirmMpin((prev) => prev.slice(0, -1));
+    }
+  };
+
+  const getCurrentMpin = () => {
+    if (step === 2) return newMpin;
+    if (step === 3) return confirmMpin;
+    return "";
+  };
+
+  const renderMpinBoxes = (value) => (
+    <View style={styles.mpinContainer}>
+      {Array.from({ length: 4 }, (_, i) => (
+        <View
+          key={i}
+          style={[
+            styles.mpinBox,
+            value.length > i && styles.mpinBoxFilled,
+          ]}
+        >
+          <Text style={styles.mpinText}>
+            {value.length > i ? value[i] : ""}
+          </Text>
+        </View>
+      ))}
+    </View>
+  );
+
+  const renderKeypad = () => (
+    <View style={styles.keypad}>
+      {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
+        <TouchableOpacity
+          key={num}
+          style={styles.key}
+          onPress={() => handleKeyPress(num.toString())}
+          disabled={isLoading}
+        >
+          <Text style={styles.keyText}>{num}</Text>
+        </TouchableOpacity>
+      ))}
+
+      {/* Empty space */}
+      <View style={styles.key} />
+
+      {/* Zero */}
+      <TouchableOpacity
+        style={styles.key}
+        onPress={() => handleKeyPress("0")}
+        disabled={isLoading}
+      >
+        <Text style={styles.keyText}>0</Text>
+      </TouchableOpacity>
+
+      {/* Delete */}
+      <TouchableOpacity
+        style={[styles.key, styles.specialKey]}
+        onPress={handleDelete}
+        disabled={isLoading}
+      >
+        <Feather name="delete" size={20} color="#0060ff" />
+      </TouchableOpacity>
+    </View>
+  );
+
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={0}
+    >
+      <StatusBar style="light" />
       <View style={styles.container}>
         {/* Top Section */}
         <LinearGradient
@@ -150,7 +246,9 @@ export default function ForgotMPIN() {
           <ThemedText style={styles.subtitle}>
             {step === 1
               ? "Verify your identity to reset MPIN"
-              : "Set your new 4-digit MPIN"}
+              : step === 2
+              ? "Set your new 4-digit MPIN"
+              : "Confirm your new MPIN"}
           </ThemedText>
 
           {/* Back Button */}
@@ -161,7 +259,7 @@ export default function ForgotMPIN() {
 
         {/* Bottom Section */}
         <View style={styles.bottomSection}>
-          <Spacer height={40} />
+          <Spacer height={10} />
 
           {step === 1 ? (
             // Step 1: Verify Credentials
@@ -169,7 +267,19 @@ export default function ForgotMPIN() {
               <ThemedText style={styles.stepTitle}>
                 Step 1: Verify Your Identity
               </ThemedText>
-              <Spacer height={20} />
+
+              {/* Progress Indicator */}
+              <View style={styles.progressContainer}>
+                <View
+                  style={[styles.progressDot, styles.progressDotComplete]}
+                />
+                <View style={styles.progressLine} />
+                <View style={styles.progressDot} />
+                <View style={styles.progressLine} />
+                <View style={styles.progressDot} />
+              </View>
+
+              <Spacer height={15} />
 
               <ThemedTextInput
                 style={styles.input}
@@ -223,96 +333,106 @@ export default function ForgotMPIN() {
                   </View>
                 )}
               </ThemedButton>
+
+              {error && (
+                <>
+                  <Spacer height={20} />
+                  <Text style={styles.error}>{error}</Text>
+                </>
+              )}
+
+              <Spacer height={30} />
+
+              <View style={styles.infoBox}>
+                <MaterialIcons name="info-outline" size={20} color="#0060ff" />
+                <Text style={styles.infoText}>
+                  You'll need your email and password to reset your MPIN.
+                </Text>
+              </View>
             </>
           ) : (
-            // Step 2: Set New MPIN
+            // Step 2 & 3: Set New MPIN with Keypad
             <>
               <ThemedText style={styles.stepTitle}>
-                Step 2: Set New MPIN
+                {step === 2 ? "Step 2: Set New MPIN" : "Step 3: Confirm MPIN"}
               </ThemedText>
+
+              {/* Progress Indicator */}
+              <View style={styles.progressContainer}>
+                <View
+                  style={[styles.progressDot, styles.progressDotComplete]}
+                />
+                <View style={styles.progressLine} />
+                <View
+                  style={[
+                    styles.progressDot,
+                    step >= 2 && styles.progressDotComplete,
+                  ]}
+                />
+                <View style={styles.progressLine} />
+                <View
+                  style={[
+                    styles.progressDot,
+                    step >= 3 && styles.progressDotComplete,
+                  ]}
+                />
+              </View>
+
               <Spacer height={20} />
 
-              <ThemedTextInput
-                style={styles.input}
-                placeholder="New 4-digit MPIN"
-                keyboardType="numeric"
-                maxLength={4}
-                secureTextEntry
-                onChangeText={(text) => {
-                  setNewMpin(text);
-                  if (error) setError(null);
-                }}
-                value={newMpin}
-                editable={!isLoading}
-              />
+              {/* MPIN Input Boxes */}
+              {renderMpinBoxes(getCurrentMpin())}
+
+              {error && (
+                <>
+                  <Spacer height={10} />
+                  <Text style={styles.error}>{error}</Text>
+                </>
+              )}
+
+              <Spacer height={20} />
+
+              {/* Keypad */}
+              {renderKeypad()}
 
               <Spacer height={15} />
 
-              <ThemedTextInput
-                style={styles.input}
-                placeholder="Confirm MPIN"
-                keyboardType="numeric"
-                maxLength={4}
-                secureTextEntry
-                onChangeText={(text) => {
-                  setConfirmMpin(text);
-                  if (error) setError(null);
-                }}
-                value={confirmMpin}
-                editable={!isLoading}
-              />
-
-              <Spacer height={20} />
-
-              <ThemedButton
-                onPress={handleResetMPIN}
-                disabled={
-                  isLoading ||
-                  !newMpin.trim() ||
-                  !confirmMpin.trim() ||
-                  newMpin.length !== 4
-                }
-                style={
-                  isLoading ||
-                  !newMpin.trim() ||
-                  !confirmMpin.trim() ||
-                  newMpin.length !== 4
-                    ? styles.disabledButton
-                    : null
-                }
-              >
-                {isLoading ? (
-                  <ActivityIndicator color="#f2f2f2" size="small" />
-                ) : (
+              {/* Submit Button */}
+              {step === 2 && newMpin.length === 4 && (
+                <ThemedButton
+                  onPress={handleNewMpinSubmit}
+                  disabled={isLoading}
+                  style={isLoading ? styles.disabledButton : null}
+                >
                   <View style={styles.buttonContent}>
-                    <MaterialIcons name="check-circle" size={20} color="#f2f2f2" />
-                    <Text style={styles.buttonText}>Reset MPIN</Text>
+                    <MaterialIcons name="arrow-forward" size={20} color="#f2f2f2" />
+                    <Text style={styles.buttonText}>Continue</Text>
                   </View>
-                )}
-              </ThemedButton>
+                </ThemedButton>
+              )}
+
+              {step === 3 && confirmMpin.length === 4 && (
+                <ThemedButton
+                  onPress={handleResetMPIN}
+                  disabled={isLoading}
+                  style={isLoading ? styles.disabledButton : null}
+                >
+                  {isLoading ? (
+                    <ActivityIndicator color="#f2f2f2" size="small" />
+                  ) : (
+                    <View style={styles.buttonContent}>
+                      <MaterialIcons name="check-circle" size={20} color="#f2f2f2" />
+                      <Text style={styles.buttonText}>Reset MPIN</Text>
+                    </View>
+                  )}
+                </ThemedButton>
+              )}
+
             </>
           )}
-
-          {error && (
-            <>
-              <Spacer height={20} />
-              <Text style={styles.error}>{error}</Text>
-            </>
-          )}
-
-          <Spacer height={30} />
-
-          <View style={styles.infoBox}>
-            <MaterialIcons name="info-outline" size={20} color="#0060ff" />
-            <Text style={styles.infoText}>
-              {step === 1
-                ? "You'll need your email and password to reset your MPIN."
-                : "Choose a 4-digit MPIN that you can remember easily but others can't guess."}
-            </Text>
-          </View>
         </View>
       </View>
-    </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -321,10 +441,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   topSection: {
-    flex: 1,
+    flex: 0.35,
     justifyContent: "center",
     alignItems: "center",
-    paddingVertical: 40,
+    paddingTop: Platform.OS === "android" ? 60 : 40,
+    paddingBottom: 20,
   },
   mapOverlay: {
     ...StyleSheet.absoluteFillObject,
@@ -346,7 +467,7 @@ const styles = StyleSheet.create({
   },
   backButton: {
     position: "absolute",
-    top: 70,
+    top: Platform.OS === "android" ? 50 : 70,
     left: 10,
     padding: 10,
   },
@@ -357,7 +478,7 @@ const styles = StyleSheet.create({
   bottomSection: {
     flex: 1,
     backgroundColor: "#ffffff",
-    padding: 20,
+    padding: 10,
     alignItems: "center",
   },
   stepTitle: {
@@ -365,6 +486,76 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#333",
     textAlign: "center",
+  },
+  progressContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    marginVertical: 10,
+  },
+  progressDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: "#ddd",
+  },
+  progressDotComplete: {
+    backgroundColor: "#0060ff",
+  },
+  progressLine: {
+    width: 30,
+    height: 2,
+    backgroundColor: "#ddd",
+    marginHorizontal: 5,
+  },
+  mpinContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 15,
+    marginVertical: 8,
+  },
+  mpinBox: {
+    width: 50,
+    height: 50,
+    borderWidth: 2,
+    borderColor: "#ddd",
+    borderRadius: 8,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#f9f9f9",
+  },
+  mpinBoxFilled: {
+    borderColor: "#0060ff",
+    backgroundColor: "#e3f2fd",
+  },
+  mpinText: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#333",
+  },
+  keypad: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "center",
+    gap: 15,
+    paddingHorizontal: 20,
+  },
+  key: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: "#f0f0f0",
+    justifyContent: "center",
+    alignItems: "center",
+    margin: 5,
+  },
+  specialKey: {
+    backgroundColor: "#f0f0f0",
+  },
+  keyText: {
+    fontSize: 20,
+    color: "#333",
+    fontWeight: "600",
   },
   input: {
     width: "90%",

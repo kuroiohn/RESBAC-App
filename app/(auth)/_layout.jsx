@@ -42,6 +42,8 @@ export default function AuthLayout() {
       <Stack.Screen name='regisComplete' options={{ headerShown: false }} />
       <Stack.Screen name='uploadID' options={{ headerShown: false }} />
       <Stack.Screen name='vulnerable' options={{ headerShown: false }} />
+      <Stack.Screen name='forgot-password' options={{ headerShown: false }} />
+      <Stack.Screen name='forgot-mpin' options={{ headerShown: false }} />
     </Stack>
   );
 }

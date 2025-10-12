@@ -52,7 +52,6 @@
     {
       "icon": "./assets/notif-icon.png",
       "color": "#0060ff",
-      "sounds": ["./assets/notification.wav"],
       "androidMode": "default",
       "androidCollapsedTitle": "RESBAC Alert"
     }]

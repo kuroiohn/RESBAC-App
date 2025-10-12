@@ -512,7 +512,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     gap: 15,
-    marginVertical: 8,
+    marginVertical: 1,
   },
   mpinBox: {
     width: 50,
@@ -537,7 +537,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "center",
-    gap: 15,
+    gap: 8,
     paddingHorizontal: 20,
   },
   key: {

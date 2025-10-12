@@ -6,11 +6,15 @@ import {
   ActivityIndicator,
   Pressable,
   Image,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
 } from "react-native";
 import { useState } from "react";
 import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { MaterialIcons } from "@expo/vector-icons";
+import { StatusBar } from "expo-status-bar";
 import supabase from "../../contexts/supabaseClient";
 import ThemedTextInput from "../../components/ThemedTextInput";
 import ThemedButton from "../../components/ThemedButton";
@@ -22,6 +26,7 @@ export default function ForgotPassword() {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [lastRequestTime, setLastRequestTime] = useState(null);
   const router = useRouter();
 
   const handleSendResetEmail = async () => {
@@ -39,6 +44,14 @@ export default function ForgotPassword() {
       return;
     }
 
+    // Check rate limit (60 seconds between requests)
+    const now = Date.now();
+    if (lastRequestTime && (now - lastRequestTime) < 60000) {
+      const waitSeconds = Math.ceil((60000 - (now - lastRequestTime)) / 1000);
+      setError(`Please wait ${waitSeconds} seconds before requesting another reset email.`);
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -52,9 +65,11 @@ export default function ForgotPassword() {
 
       if (error) throw error;
 
+      setLastRequestTime(now);
+
       Alert.alert(
         "Check Your Email",
-        `We've sent password reset instructions to ${email.trim()}.\n\nPlease check your email and click the link to reset your password.`,
+        `We've sent password reset instructions to ${email.trim()}.\n\nIMPORTANT: The reset link is valid for 1 hour. Please check your email (including spam folder) and click the link within 1 hour to reset your password.\n\nNote: Email delivery may take a few minutes.`,
         [
           {
             text: "OK",
@@ -64,16 +79,36 @@ export default function ForgotPassword() {
       );
     } catch (error) {
       console.error("Password reset error:", error);
-      setError(
-        error.message || "Failed to send reset email. Please try again."
-      );
+
+      // Handle specific error cases
+      if (error.message?.includes('seconds')) {
+        setError("Please wait 60 seconds before requesting another reset email.");
+      } else if (error.message?.includes('rate limit')) {
+        setError("Too many requests. Please try again in a few minutes.");
+      } else if (error.message?.includes('User not found')) {
+        Alert.alert(
+          "Check Your Email",
+          `If an account exists for ${email.trim()}, you will receive password reset instructions.`,
+          [{ text: "OK", onPress: () => router.back() }]
+        );
+      } else {
+        setError(
+          error.message || "Failed to send reset email. Please try again."
+        );
+      }
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={0}
+    >
+      <StatusBar style="light" />
+      <View style={styles.container}>
         {/* Top Section */}
         <LinearGradient
           colors={["#0060ff", "#003A99"]}
@@ -99,7 +134,11 @@ export default function ForgotPassword() {
         </LinearGradient>
 
         {/* Bottom Section */}
-        <View style={styles.bottomSection}>
+        <ScrollView
+          style={styles.bottomSection}
+          contentContainerStyle={styles.bottomSectionContent}
+          keyboardShouldPersistTaps="handled"
+        >
           <Spacer height={40} />
 
           <ThemedTextInput
@@ -151,22 +190,9 @@ export default function ForgotPassword() {
           </View>
 
           <Spacer height={20} />
-
-          <View style={styles.alternativeBox}>
-            <Text style={styles.alternativeTitle}>Remember your password?</Text>
-            <Text style={styles.alternativeText}>
-              If you forgot your MPIN but remember your password, use{" "}
-              <Text
-                style={styles.link}
-                onPress={() => router.replace("/(auth)/forgot-mpin")}
-              >
-                Forgot MPIN
-              </Text>{" "}
-              instead.
-            </Text>
-          </View>
-        </View>
+        </ScrollView>
       </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -175,10 +201,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   topSection: {
-    flex: 1,
+    flex: 0.45,
     justifyContent: "center",
     alignItems: "center",
-    paddingVertical: 40,
+    paddingTop: Platform.OS === "android" ? 60 : 40,
+    paddingBottom: 40,
   },
   mapOverlay: {
     ...StyleSheet.absoluteFillObject,
@@ -200,7 +227,7 @@ const styles = StyleSheet.create({
   },
   backButton: {
     position: "absolute",
-    top: 70,
+    top: Platform.OS === "android" ? 50 : 70,
     left: 10,
     padding: 10,
   },
@@ -211,6 +238,8 @@ const styles = StyleSheet.create({
   bottomSection: {
     flex: 1,
     backgroundColor: "#ffffff",
+  },
+  bottomSectionContent: {
     padding: 20,
     alignItems: "center",
   },
@@ -254,27 +283,5 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#1976d2",
     lineHeight: 18,
-  },
-  alternativeBox: {
-    backgroundColor: "#f5f5f5",
-    padding: 15,
-    borderRadius: 8,
-    width: "90%",
-  },
-  alternativeTitle: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#333",
-    marginBottom: 8,
-  },
-  alternativeText: {
-    fontSize: 12,
-    color: "#666",
-    lineHeight: 18,
-  },
-  link: {
-    color: "#0060ff",
-    fontWeight: "600",
-    textDecorationLine: "underline",
   },
 });

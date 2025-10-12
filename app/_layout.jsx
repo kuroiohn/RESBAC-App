@@ -32,6 +32,27 @@ export default function RootLayout() {
     };
     setNavBar();
 
+    // Configure Android notification channel
+    const configureNotificationChannel = async () => {
+      if (Platform.OS === 'android') {
+        try {
+          await Notifications.setNotificationChannelAsync('alerts', {
+            name: 'Emergency Alerts',
+            importance: Notifications.AndroidImportance.MAX,
+            vibrationPattern: [0, 250, 250, 250],
+            sound: 'default',
+            lightColor: '#0060ff',
+            lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
+            bypassDnd: true,
+          });
+          console.log('Android notification channel configured');
+        } catch (error) {
+          console.error('Error configuring notification channel:', error);
+        }
+      }
+    };
+    configureNotificationChannel();
+
     // register for push notifications and save token to Supabase
     const registerForPushNotifications = async () => {
     // 1️⃣ Check existing permission

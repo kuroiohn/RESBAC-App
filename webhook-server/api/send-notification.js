@@ -55,10 +55,13 @@ export default async function handler(req, res) {
       priority: 'high',
       channelId: 'alerts',
       android: {
-        icon: 'notification-icon',
-        color: '#ffffff',
-        imageUrl: 'https://ubjzyfxedngrsewkaccy.supabase.co/storage/v1/object/public/assets/blue-icon.png'
-      }
+        color: '#0060ff',
+        priority: 'max',
+        sound: 'default',
+        vibrate: true
+      },
+      // Image to display in the notification (FCM format)
+      image: 'https://ubjzyfxedngrsewkaccy.supabase.co/storage/v1/object/public/assets/blue-icon.png'
     }));
 
     // Send to Expo Push API

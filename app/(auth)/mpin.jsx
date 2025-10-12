@@ -297,6 +297,15 @@ const MPin = () => {
             >
               ← Use Email Login Instead
             </ThemedText>
+
+            <Spacer height={15} />
+
+            <ThemedText
+              style={styles.forgotMpin}
+              onPress={() => router.push("/(auth)/forgot-mpin")}
+            >
+              Forgot MPIN?
+            </ThemedText>
           </>
         ) : (
           <View style={{ alignItems: "center", marginTop: 50 }}>
@@ -370,6 +379,11 @@ const styles = StyleSheet.create({
   },
 
   backToLogin: {
+    color: Colors.primary,
+    fontSize: 16,
+    textDecorationLine: "underline",
+  },
+  forgotMpin: {
     color: Colors.primary,
     fontSize: 16,
     textDecorationLine: "underline",

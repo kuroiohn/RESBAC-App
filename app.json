@@ -14,15 +14,6 @@
     "resizeMode": "contain",
     "backgroundColor": "#ffffff"
   },
-  "ios": {
-    "supportsTablet": true,
-    "infoPlist": {
-      "LSApplicationQueriesSchemes": [
-        "tel",
-        "fb-messenger"
-      ]
-    }
-  },
   "android": {
     "adaptiveIcon": {
       "foregroundImage": "./assets/icon.png",
@@ -60,7 +51,10 @@
     ["expo-notifications",
     {
       "icon": "./assets/notif-icon.png",
-      "color": "#ffffff"
+      "color": "#0060ff",
+      "sounds": ["./assets/notification.wav"],
+      "androidMode": "default",
+      "androidCollapsedTitle": "RESBAC Alert"
     }]
   ],
   "extra": {

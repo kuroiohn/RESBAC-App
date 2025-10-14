@@ -6,7 +6,8 @@
   <component name="ChangeListManager">
     <list default="true" id="15c3f356-9517-4468-976c-ba15dbb1e46b" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app.json" beforeDir="false" afterPath="$PROJECT_DIR$/app.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(auth)/login.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(auth)/login.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(auth)/register.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(auth)/register.jsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/(auth)/vulnerable.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(auth)/vulnerable.jsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
@@ -53,6 +54,7 @@
     &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
     &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
     &quot;settings.editor.selected.configurable&quot;: &quot;ml.llm.LLMThirdPartyAiProvidersConfigurable&quot;,
+    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;,
     &quot;ts.external.directory.path&quot;: &quot;C:\\Users\\Mark Aldwin Uriarte\\RESBAC-App\\node_modules\\typescript\\lib&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
@@ -65,7 +67,7 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-js-predefined-d6986cc7102b-09060db00ec0-JavaScript-WS-251.27812.50" />
+        <option value="bundled-js-predefined-d6986cc7102b-09060db00ec0-JavaScript-WS-251.28293.44" />
       </set>
     </attachedChunks>
   </component>
@@ -81,10 +83,25 @@
       <workItem from="1753983674332" duration="19970000" />
       <workItem from="1757041889857" duration="8242000" />
       <workItem from="1758280985687" duration="2186000" />
+      <workItem from="1760365874929" duration="557000" />
+      <workItem from="1760366455815" duration="1177000" />
+      <workItem from="1760417875330" duration="4014000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/app/(auth)/register.jsx</url>
+          <line>1</line>
+          <properties lambdaOrdinal="-1" />
+          <option name="timeStamp" value="2" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>

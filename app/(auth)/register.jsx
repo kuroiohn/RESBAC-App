@@ -311,6 +311,9 @@ const Register = () => {
               }}
               editable={isAgreed}
             />
+            {formErrors.firstName && (
+                <Text style={styles.fieldError}>{formErrors.firstName}</Text>
+            )}
             <ThemedTextInput
               style={{ width: "95%", marginBottom: 10 }}
               placeholder='Middle Name'
@@ -331,8 +334,8 @@ const Register = () => {
               }}
               editable={isAgreed}
             />
-            {formErrors.name && (
-              <Text style={styles.fieldError}>{formErrors.name}</Text>
+            {formErrors.surname && (
+                <Text style={styles.fieldError}>{formErrors.surname}</Text>
             )}
             {/* <TitleText type="title4" style={styles.inputHint}>
                                 (First Name, Middle Name, Last Name)

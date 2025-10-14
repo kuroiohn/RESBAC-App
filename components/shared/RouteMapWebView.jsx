@@ -50,6 +50,7 @@ export default function RouteMapWebView({ src, dest, safePopupTitle }) {
             L.Routing.control({
               waypoints: [L.latLng(source[0], source[1]), L.latLng(destination[0], destination[1])],
               lineOptions: { styles: [{ color: 'red', weight: 4 }] },
+              altLineOptions: {styles: [{color: 'red', opacity: 0.5, dashArray: '4,6'}]},
               addWaypoints: false,
               draggableWaypoints: false,
               fitSelectedRoutes: true,

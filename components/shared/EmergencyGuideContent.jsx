@@ -29,27 +29,29 @@ import { useUser } from "../../hooks/useUser";
 import supabase from "../../contexts/supabaseClient";
 import HotlinesCard from "../HotlinesCard";
 
+import RouteMapWebView from "../../components/shared/RouteMapWebView";
+
 const EmergencyGuideContent = () => {
   const [loading, setLoading] = useState(true);
   const [session, setSession] = useState(null);
-  const {user} = useUser()
-  const {role} = useLocalSearchParams()
-  
+  const { user } = useUser();
+  const { role } = useLocalSearchParams();
+
   useEffect(() => {
     const getSession = async () => {
-      const {data} = await supabase.auth.getSession()
-          console.log("Initial session:", data.session); 
-          console.log("Initial user:", user); 
-      setSession(data.session)
-    }
-    getSession()
+      const { data } = await supabase.auth.getSession();
+      console.log("Initial session:", data.session);
+      console.log("Initial user:", user);
+      setSession(data.session);
+    };
+    getSession();
 
     const mountSignOut = async () => {
-      await supabase.auth.signOut()
+      await supabase.auth.signOut();
       console.log("Logged out");
-    }
+    };
 
-    if (role === "guest") mountSignOut()
+    if (role === "guest") mountSignOut();
 
     // also listen for login/logout changes
     const { data: authListener } = supabase.auth.onAuthStateChange(
@@ -64,9 +66,9 @@ const EmergencyGuideContent = () => {
     }, 500);
 
     return () => {
-      clearTimeout(timer)
+      clearTimeout(timer);
       authListener.subscription.unsubscribe();
-    }
+    };
   }, []);
 
   if (loading) {
@@ -76,6 +78,11 @@ const EmergencyGuideContent = () => {
   return (
     <ScrollView contentContainerStyle={styles.pageContainer}>
       <ThemedView style={styles.container}>
+        <RouteMapWebView
+          src={[14.65, 121.1]} // default guest location
+          dest={[14.66, 121.12]} // evac center location
+          safePopupTitle='Evacuation Center'
+        />
         {/* What to Pack */}
         <ThemedText style={styles.textBlue}>
           What to pack in a Go-Bag?
@@ -120,15 +127,13 @@ const EmergencyGuideContent = () => {
         </View>
 
         {/* Alerts + Guide only in initial state */}
-        {
-          (!session) && 
-          (
-            <>
-              <ThemedText style={styles.textLeft}>Alerts</ThemedText>
-              <AlertCard />
-            </>
+        {!session && (
+          <>
+            <ThemedText style={styles.textLeft}>Alerts</ThemedText>
+            <AlertCard />
+          </>
         )}
-      
+
         <ThemedText style={[styles.textLeft]}>Hotlines</ThemedText>
         {/* Rescuer Card at the bottom */}
         <ScrollView
@@ -138,7 +143,7 @@ const EmergencyGuideContent = () => {
         >
           <HotlinesCard />
         </ScrollView>
-        
+
         <ThemedText style={[styles.textLeft]}>Rescuers</ThemedText>
         {/* Rescuer Card at the bottom */}
         <ScrollView

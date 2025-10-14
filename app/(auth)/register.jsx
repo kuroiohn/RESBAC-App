@@ -135,10 +135,20 @@ const Register = () => {
     }
 
     // Contact Number validation
-    if (!contactNumber || contactNumber.trim() === "") {
+    {
+      /* if (!contactNumber || contactNumber.trim() === "") {
       errors.contactNumber = "Contact Number is required";
     } else if (!/^\d{10,11}$/.test(contactNumber.replace(/[^0-9]/g, ""))) {
       errors.contactNumber = "Contact Number is invalid";
+    }
+    */
+    }
+
+    // Contact Number validation
+    if (!contactNumber || contactNumber.trim() === "") {
+      errors.contactNumber = "Contact Number is required";
+    } else if (!/^\d{11}$/.test(contactNumber.replace(/[^0-9]/g, ""))) {
+      errors.contactNumber = "Contact Number must be exactly 11 digits";
     }
 
     // Barangay Validation
@@ -311,6 +321,9 @@ const Register = () => {
               }}
               editable={isAgreed}
             />
+            {formErrors.firstName && (
+              <Text style={styles.fieldError}>{formErrors.firstName}</Text>
+            )}
             <ThemedTextInput
               style={{ width: "95%", marginBottom: 10 }}
               placeholder='Middle Name'
@@ -331,8 +344,8 @@ const Register = () => {
               }}
               editable={isAgreed}
             />
-            {formErrors.name && (
-              <Text style={styles.fieldError}>{formErrors.name}</Text>
+            {formErrors.surname && (
+              <Text style={styles.fieldError}>{formErrors.surname}</Text>
             )}
             {/* <TitleText type="title4" style={styles.inputHint}>
                                 (First Name, Middle Name, Last Name)
@@ -405,11 +418,16 @@ const Register = () => {
               placeholder='Contact Number'
               value={contactNumber}
               onChangeText={(text) => {
-                setContactNumber(text);
-                clearFieldError("contactNumber");
+                // Only allow up to 11 digits
+                const cleaned = text.replace(/[^0-9]/g, "");
+                if (cleaned.length <= 11) {
+                  setContactNumber(cleaned);
+                  clearFieldError("contactNumber");
+                }
               }}
               keyboardType='phone-pad'
               editable={isAgreed}
+              maxLength={11} // restrict input to 11 characters
             />
             {formErrors.contactNumber && (
               <Text style={styles.fieldError}>{formErrors.contactNumber}</Text>

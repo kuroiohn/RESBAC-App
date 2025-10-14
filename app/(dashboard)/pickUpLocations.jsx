@@ -20,6 +20,7 @@ import { useRealtime } from "../../contexts/RealtimeProvider";
 import { useUser } from "../../hooks/useUser";
 import { useLocalSearchParams } from "expo-router";
 import supabase from "../../contexts/supabaseClient";
+import RouteMapWebView from "../../components/shared/RouteMapWebView";
 
 const { width, height } = Dimensions.get("window");
 
@@ -28,27 +29,26 @@ const PickUpLocation = () => {
   const [activeTab, setActiveTab] = useState("evacuationCenter");
   const [activeIndex, setActiveIndex] = useState(0);
   const [mapVisible, setMapVisible] = useState(false);
-  const [userCoords,setUserCoords] = useState("")
+  const [userCoords, setUserCoords] = useState("");
   const flatListRef = useRef(null);
   const { evacData, pickupData } = useRealtime();
   const navigation = useNavigation();
-  const {user} = useUser()
+  const { user } = useUser();
 
   useEffect(() => {
     const fetchUserCoords = async () => {
-      const {data, error: userError} = await supabase
-      .from('address')
-      .select('geolocationCoords')
-      .eq('userID', user.id)
+      const { data, error: userError } = await supabase
+        .from("address")
+        .select("geolocationCoords")
+        .eq("userID", user.id);
 
-      if(userError){
+      if (userError) {
         console.error("Error in user fetch: ", userError);
-        
       }
-      setUserCoords(data[0])
-    }
-    fetchUserCoords()
-  },[])
+      setUserCoords(data[0]);
+    };
+    fetchUserCoords();
+  }, []);
 
   useLayoutEffect(() => {
     navigation.setOptions({ headerShown: false });
@@ -99,9 +99,10 @@ const PickUpLocation = () => {
       : currentLocation.pickupContact) || "";
 
   // 📌 Static Tumana, Marikina coords
-  const coords = activeTab === "evacuationCenter" ? 
-  currentLocation.evacGeolocation?.split(",").map(Number) :
-  currentLocation.pickupGeolocation?.split(",").map(Number) 
+  const coords =
+    activeTab === "evacuationCenter"
+      ? currentLocation.evacGeolocation?.split(",").map(Number)
+      : currentLocation.pickupGeolocation?.split(",").map(Number);
 
   const handleCall = () => {
     if (phoneNumber) {
@@ -171,90 +172,7 @@ const PickUpLocation = () => {
   const src = userCoords?.geolocationCoords
     ? userCoords.geolocationCoords.split(",").map(Number)
     : [0, 0];
-  const dest = coords && coords.length === 2
-    ? coords
-    : [0, 0]; // evacuation or pickup coords
-
-  const leafletHtml = coords
-    ? `
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-        <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-
-        <!-- Leaflet Routing Machine -->
-        <link
-          rel="stylesheet"
-          href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css"
-        />
-        <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
-
-        <style>
-          html, body, #map {
-            height: 100%;
-            margin: 0;
-            padding: 0;
-          }
-          .leaflet-routing-container {
-            display: none
-          }
-        </style>
-      </head>
-      <body>
-        <div id="map"></div>
-        <script>
-          const source = [${src[0]}, ${src[1]}];
-          const destination = [${dest[0]}, ${dest[1]}];
-          var map = L.map('map').setView(destination, 17); //  zoomed in
-
-          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap'
-          }).addTo(map);
-
-          L.marker(destination)
-            .addTo(map)
-            .bindTooltip('${safePopupTitle}', {
-              permanent: true,
-              direction: 'top',
-              offset: [-15, 0],
-              className: 'marker-label'
-            })
-            .openTooltip();
-
-          // home marker with permanent label
-          L.marker(source)
-            .addTo(map)
-            .bindTooltip('Home', {
-              permanent: true,
-              direction: 'top',
-              offset: [-15, 0],
-              className: 'marker-label'
-            })
-            .openTooltip();
-
-          L.Routing.control({
-            waypoints: [
-              L.latLng(source[0], source[1]),
-              L.latLng(destination[0], destination[1])
-            ],
-            lineOptions: {
-              styles: [{ color: 'red', weight: 4 }]
-            },
-            altLineOptions: {
-              styles: [{ color: 'red', opacity: 0.5, weight: 3}]
-            },
-            addWaypoints: false,
-            draggableWaypoints: false,
-            fitSelectedRoutes: true,
-            showAlternatives: true
-          }).addTo(map);
-        </script>
-      </body>
-    </html>
-  `
-    : "";
+  const dest = coords && coords.length === 2 ? coords : [0, 0]; // evacuation or pickup coords
 
   return (
     <View style={{ flex: 1, backgroundColor: "#fff" }}>
@@ -388,7 +306,11 @@ const PickUpLocation = () => {
           >
             <Ionicons name='close' size={24} color='#000' />
           </Pressable>
-          <WebView originWhitelist={["*"]} source={{ html: leafletHtml }} />
+          <RouteMapWebView
+            src={src}
+            dest={dest}
+            safePopupTitle={safePopupTitle}
+          />
         </View>
       </Modal>
     </View>

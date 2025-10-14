@@ -245,6 +245,7 @@ const Vulnerable = () => {
   const handleNext = async () => {
     console.log("Collecting vulnerability data...");
 
+
     // Get sex from userData (should be available from register screen)
     const userSex = existingUserData.sex;
     const userDob = existingUserData.dob;
@@ -285,6 +286,20 @@ const Vulnerable = () => {
       },
       step: "vulnerability",
     };
+
+    // 🛑 GUARDIAN VALIDATION
+    if (!guardianName.trim() || !guardianContact.trim() || !guardianRelation.trim() || !guardianAddress.trim()) {
+      Alert.alert(
+          "Missing Information",
+          "Please complete all guardian details before proceeding."
+      );
+      return; // Stop execution if validation fails
+    }
+
+    if (!/^\d{11}$/.test(guardianContact)) {
+      Alert.alert("Invalid Contact", "Please enter a valid phone number (11 digits).");
+      return;
+    }
 
     // console.log("Complete user data with vulnerability:", completeUserData);
     
@@ -602,16 +617,16 @@ const Vulnerable = () => {
                 </View>
 
                 {/*start of the form*/}
-                {/*Set guardian information*/}
+                {/*Set guardian information
                 <RadioGroup
                   label='Do you currently live with a guardian?'
                   options={guardianOptions}
                   selectedValue={hasGuardian}
                   onValueChange={setHasGuardian}
-                />
+                /> */}
 
                 {/*Condition for asking the guardian information if the answer is yes*/}
-                {hasGuardian === "yes" && (
+                {/* {hasGuardian === "yes" && ( */}
                   <>
                     <ThemedTextInput
                       style={{ width: "95%", marginBottom: 10 }}
@@ -639,7 +654,7 @@ const Vulnerable = () => {
                       onChangeText={setGuardianAddress}
                     />
                   </>
-                )}
+                {/* )} */}
 
                 {/* Household count dropdown */}
                 <View style={styles.dropdownContainer}>
@@ -813,6 +828,38 @@ const Vulnerable = () => {
                   style={styles.halfWidthCheckbox}
                 />
                 <CheckboxComponent
+                    label="Muscle weakness"
+                    isChecked={physicalDisability.includes("Muscle weakness")}
+                    onValueChange={() =>
+                        togglePhysicalDisability("Muscle weakness")
+                    }
+                    style={styles.halfWidthCheckbox}
+                />
+                <CheckboxComponent
+                    label="Scoliosis"
+                    isChecked={physicalDisability.includes("Scoliosis")}
+                    onValueChange={() =>
+                        togglePhysicalDisability("Scoliosis")
+                    }
+                    style={styles.halfWidthCheckbox}
+                />
+                <CheckboxComponent
+                    label="Post-surgical Mobility Limitations"
+                    isChecked={physicalDisability.includes("Post-surgical Mobility Limitations")}
+                    onValueChange={() =>
+                        togglePhysicalDisability("Post-surgical Mobility Limitations")
+                    }
+                    style={styles.halfWidthCheckbox}
+                />
+                <CheckboxComponent
+                    label="Chronic pain conditions"
+                    isChecked={physicalDisability.includes("Chronic pain conditions")}
+                    onValueChange={() =>
+                        togglePhysicalDisability("Chronic pain conditions")
+                    }
+                    style={styles.halfWidthCheckbox}
+                />
+                <CheckboxComponent
                   label={"Others"}
                   isChecked={physicalTrigger}
                   onValueChange={() => setPhysicalTrigger((prev) => !prev)}
@@ -904,12 +951,28 @@ const Vulnerable = () => {
                   style={styles.halfWidthCheckbox}
                 />
                 <CheckboxComponent
-                  label='Schizophrenia'
-                  isChecked={psychologicalDisability.includes("Schizophrenia")}
+                  label='Dementia'
+                  isChecked={psychologicalDisability.includes("Dementia")}
                   onValueChange={() =>
-                    togglePsychologicalDisability("Schizophrenia")
+                    togglePsychologicalDisability("Dementia")
                   }
                   style={styles.halfWidthCheckbox}
+                />
+                <CheckboxComponent
+                    label='Schizophrenia'
+                    isChecked={psychologicalDisability.includes("Schizophrenia")}
+                    onValueChange={() =>
+                        togglePsychologicalDisability("Schizophrenia")
+                    }
+                    style={styles.halfWidthCheckbox}
+                />
+                <CheckboxComponent
+                    label='Psychotic Disorders'
+                    isChecked={psychologicalDisability.includes("Psychotic Disorders")}
+                    onValueChange={() =>
+                        togglePsychologicalDisability("Psychotic Disorders")
+                    }
+                    style={styles.halfWidthCheckbox}
                 />
                 <CheckboxComponent
                   label='Others'
@@ -993,6 +1056,16 @@ const Vulnerable = () => {
                   style={styles.halfWidthCheckbox}
                 />
                 <CheckboxComponent
+                    label='Severe Sensory Sensitivity'
+                    isChecked={sensoryDisability.includes(
+                        "Severe Sensory Sensitivity"
+                    )}
+                    onValueChange={() =>
+                        toggleSensoryDisability("Severe Sensory Sensitivity")
+                    }
+                    style={styles.halfWidthCheckbox}
+                />
+                <CheckboxComponent
                   label='Others (Please Specify)'
                   isChecked={sensoryTrigger}
                   onValueChange={() => setSensoryTrigger((prev) => !prev)}
@@ -1042,37 +1115,110 @@ const Vulnerable = () => {
               <TitleText type='title3' style={styles.categoryHeader}>
                 Check all that may apply
               </TitleText>
-              <CheckboxComponent
-                label='Chronic Illness (e.g., diabetes, asthma, heart disease, etc.)'
-                isChecked={healthCondition.includes("chronicIllness")}
-                onValueChange={() => toggleHealthCondition("chronicIllness")}
-                style={{ width: "100%", marginBottom: 5 }}
-              />
-              <CheckboxComponent
-                label='Dependent on a medical device'
-                isChecked={healthCondition.includes("medicalDevice")}
-                onValueChange={() => toggleHealthCondition("medicalDevice")}
-                style={{ width: "100%" }}
-              />
-              <ThemedText style={styles.inputHint}>
-                (e.g., oxygen tank)
-              </ThemedText>
-              <CheckboxComponent
-                label='Dependent on regular medications'
-                isChecked={healthCondition.includes("regularMedications")}
-                onValueChange={() =>
-                  toggleHealthCondition("regularMedications")
-                }
-              />
-              <ThemedText style={styles.inputHint}>
-                (e.g., insulin, etc.)
-              </ThemedText>
-              <CheckboxComponent
-                label='Others'
-                isChecked={medDepTrigger}
-                onValueChange={() => setMedDepTrigger((prev) => !prev)}
-                style={{ width: "100%" }}
-              />
+              <View style={styles.checkboxColumns}>
+                  <CheckboxComponent
+                    label='Dependent on a medical device'
+                    isChecked={healthCondition.includes("medicalDevice")}
+                    onValueChange={() => toggleHealthCondition("medicalDevice")}
+                  />
+                  <ThemedText style={styles.inputHint}>
+                    (e.g., oxygen tank)
+                  </ThemedText>
+                  <CheckboxComponent
+                    label='Dependent on regular medications'
+                    isChecked={healthCondition.includes("regularMedications")}
+                    onValueChange={() =>
+                      toggleHealthCondition("regularMedications")
+                    }
+                  />
+                  <ThemedText style={styles.inputHint}>
+                    (e.g., insulin, etc.)
+                  </ThemedText>
+                  <CheckboxComponent
+                      label="Severe Liver Disease"
+                      isChecked={healthCondition.includes("Severe Liver Disease")}
+                      onValueChange={() =>
+                          toggleHealthCondition("Severe Liver Disease")
+                      }
+                  />
+                  <ThemedText style={styles.inputHint}>
+                    (e.g., Cirrhosis, etc.)
+                  </ThemedText>
+                <CheckboxComponent
+                    label="Serious Heart Condition"
+                    isChecked={healthCondition.includes("Serious Heart Condition")}
+                    onValueChange={() =>
+                        toggleHealthCondition("Serious Heart Condition")
+                    }
+                />
+                <ThemedText style={styles.inputHint}>
+                  (e.g., Heart Failure, etc.)
+                </ThemedText>
+                <CheckboxComponent
+                    label="Serious Lung Condition"
+                    isChecked={healthCondition.includes("Serious Lung Condition")}
+                    onValueChange={() =>
+                        toggleHealthCondition("Serious Lung Condition")
+                    }
+                />
+                <ThemedText style={styles.inputHint}>
+                  (e.g., COPD, Asthma, Pneumonia, etc.)
+                </ThemedText>
+                  <CheckboxComponent
+                      label="Post Surgery Wounds"
+                      isChecked={healthCondition.includes("Post Surgery Wounds")}
+                      onValueChange={() =>
+                          toggleHealthCondition("Post Surgery Wounds")
+                      }
+                      style={styles.halfWidthCheckbox}
+                  />
+                  <CheckboxComponent
+                      label="Dependent on Caregiver"
+                      isChecked={healthCondition.includes("Dependent on Caregiver")}
+                      onValueChange={() =>
+                          toggleHealthCondition("Dependent on Caregiver")
+                      }
+                      style={styles.halfWidthCheckbox}
+                  />
+                  <CheckboxComponent
+                      label="Hypertension"
+                      isChecked={healthCondition.includes("Hypertension")}
+                      onValueChange={() =>
+                          toggleHealthCondition("Hypertension")
+                      }
+                      style={styles.halfWidthCheckbox}
+                  />
+                  <CheckboxComponent
+                      label="Chronic Kidney Disease"
+                      isChecked={healthCondition.includes("Chronic Kidney Disease")}
+                      onValueChange={() =>
+                          toggleHealthCondition("Chronic Kidney Disease")
+                      }
+                      style={styles.halfWidthCheckbox}
+                  />
+                  <CheckboxComponent
+                      label="Stroke"
+                      isChecked={healthCondition.includes("Stroke")}
+                      onValueChange={() =>
+                          toggleHealthCondition("Stroke")
+                      }
+                      style={styles.halfWidthCheckbox}
+                  />
+                  <CheckboxComponent
+                      label="Immunocompromised"
+                      isChecked={healthCondition.includes("Immunocompromised")}
+                      onValueChange={() =>
+                          toggleHealthCondition("Immunocompromised")
+                      }
+                      style={styles.halfWidthCheckbox}
+                  />
+                  <CheckboxComponent
+                    label='Others'
+                    isChecked={medDepTrigger}
+                    onValueChange={() => setMedDepTrigger((prev) => !prev)}
+                    style={styles.halfWidthCheckbox}
+                  />
+                </View>
               {medDepTrigger && (
                 <ThemedTextInput
                   style={{ width: "100%", marginBottom: 10 }}

@@ -8,8 +8,9 @@ import {
   Modal,
   View,
   TextInput,
+  ActivityIndicator,
 } from "react-native";
-import { useState, useRef, useEffect, use } from "react";
+import { useState, useRef, useEffect } from "react";
 
 import Spacer from "../../components/Spacer";
 import ThemedText from "../../components/ThemedText";
@@ -43,6 +44,8 @@ const Home = () => {
 
   const [userMessage, setUserMessage] = useState("");
   const [message, setMessage] = useState("");
+
+  const [loading, setLoading] = useState(true);
 
   const handleSendMessage = async () => {
     if (!message.trim()) return;
@@ -80,20 +83,22 @@ const Home = () => {
     const userid = user.id;
     // reads from supabase
     const fetchData = async () => {
-      // Get the current logged-in user
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
-      if (userError || !user) {
-        console.error("Error fetching auth user:", userError);
-        throw new Error("No active session / user");
-      }
+      setLoading(true);
+      try {
+        // Get the current logged-in user
+        const {
+          data: { user },
+          error: userError,
+        } = await supabase.auth.getUser();
+        if (userError || !user) {
+          console.error("Error fetching auth user:", userError);
+          throw new Error("No active session / user");
+        }
 
-      const { data, error } = await supabase
-        .from("user")
-        .select(
-          `pressedCallBtn,
+        const { data, error } = await supabase
+          .from("user")
+          .select(
+            `pressedCallBtn,
           requestStatus (
             status,
             message,
@@ -101,28 +106,31 @@ const Home = () => {
             readStatus,
             sent_at
           )`
-        )
-        .eq("userID", user.id)
-        .maybeSingle();
+          )
+          .eq("userID", user.id)
+          .maybeSingle();
 
-      if (error) {
-        console.error("Fetch error in supabase usertable: ", error);
+        if (error) {
+          console.error("Fetch error in supabase usertable: ", error);
+        }
+        // console.log("Successful fetch", data.pressedCallBtn);
+        if (data) {
+          setCallRequested(data.pressedCallBtn ? true : false);
+          setCallstep(data.pressedCallBtn ? 2 : 0);
+          setReqStatus({
+            status: data.requestStatus.status,
+            message: data.requestStatus.message,
+            updated_at: data.requestStatus.updated_at,
+            readStatus: data.requestStatus.readStatus,
+          });
+        } else {
+          console.warn("No row found in user ", user.id);
+        }
+      } catch (e) {
+        console.error("Error loading data:", e);
+      } finally {
+        setLoading(false);
       }
-      // console.log("Successful fetch", data.pressedCallBtn);
-      if (data) {
-        setCallRequested(data.pressedCallBtn ? true : false);
-        setCallstep(data.pressedCallBtn ? 2 : 0);
-        setReqStatus({
-          status: data.requestStatus.status,
-          message: data.requestStatus.message,
-          updated_at: data.requestStatus.updated_at,
-          readStatus: data.requestStatus.readStatus,
-        });
-      } else {
-        console.warn("No row found in user ", user.id);
-      }
-
-      return data;
     };
 
     fetchData();
@@ -424,6 +432,15 @@ const Home = () => {
                         minute: "numeric",
                       })}
                     </Text>
+                  )}
+                  {/* Loading Overlay */}
+                  {loading && (
+                    <View style={styles.loadingOverlay}>
+                      <ActivityIndicator size='large' color='#0060ff' />
+                      <Text style={styles.loadingText}>
+                        Loading rescue updates...
+                      </Text>
+                    </View>
                   )}
                 </View>
               </ScrollView>

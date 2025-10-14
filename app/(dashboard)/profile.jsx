@@ -1625,15 +1625,66 @@ const Profile = () => {
             name='edit'
             size={18}
             color='#0060ff'
-            style={{ marginRight: 4 }}
+            style={{ marginRight: 4, marginBottom: -15 }}
           />
-          <Text style={styles.ellipsisText}>Edit</Text>
+          <Text style={[styles.ellipsisText, { marginBottom: -7 }]}>
+            Update
+          </Text>
         </TouchableOpacity>
       </View>
 
       <View style={styles.divider} />
 
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          marginBottom: 8,
+          marginTop: 10,
+          backgroundColor: "#e6f0ff",
+          borderRadius: 8,
+          padding: 10,
+          maxWidth: "100%", // ensures it doesn't overflow
+        }}
+      >
+        <Feather
+          name='alert-circle'
+          size={22}
+          color='#007bff'
+          style={{ marginRight: 8 }}
+        />
+        <Text
+          style={{
+            fontSize: 15,
+            color: "#007bff",
+            fontWeight: "600",
+            flex: 1,
+            flexWrap: "wrap",
+            flexShrink: 1,
+          }}
+          numberOfLines={3}
+          ellipsizeMode='tail'
+        >
+          Update your vulnerability information to help us prioritize your
+          safety!
+        </Text>
+      </View>
+
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      ></View>
+
       <View style={styles.row}>
+        <Feather
+          name='user'
+          size={18}
+          color='#007bff'
+          style={{ marginRight: 6 }}
+        />
         {renderField(
           "vulnerability",
           "elderly",
@@ -1646,47 +1697,65 @@ const Profile = () => {
       <View style={styles.row}>
         {userVul.pregnantInfant[0] === "yes" && (
           <>
-            {
-              <View style={styles.rowItem}>
-                {renderField(
-                  "vulnerability",
-                  "pregnantInfant",
-                  "Pregnant",
-                  userVul.pregnantInfant[0] === "yes" ? "Yes" : "No" || "",
-                  true
-                )}
-              </View>
-            }
-            {
-              <View style={styles.rowItem}>
-                {renderField(
-                  "vulnerability",
-                  "pregnant",
-                  "Trimester",
-                  userPregnant?.trimester,
-                  true
-                )}
-              </View>
-            }
-            {
-              <View style={styles.rowItem}>
-                {renderField(
-                  "vulnerability",
-                  "pregnant",
-                  "Due Date",
-                  new Date(userPregnant?.dueDate).toLocaleDateString("en-US", {
-                    month: "short",
-                    year: "numeric",
-                  }),
-                  true
-                )}
-              </View>
-            }
+            <View style={styles.rowItem}>
+              <MaterialIcons
+                name='pregnant-woman'
+                size={18}
+                color='#b94e7a'
+                style={{ marginRight: 6 }}
+              />
+              {renderField(
+                "vulnerability",
+                "pregnantInfant",
+                "Pregnant",
+                userVul.pregnantInfant[0] === "yes" ? "Yes" : "No" || "",
+                true
+              )}
+            </View>
+            <View style={styles.rowItem}>
+              <Feather
+                name='calendar'
+                size={18}
+                color='#007bff'
+                style={{ marginRight: 6 }}
+              />
+              {renderField(
+                "vulnerability",
+                "pregnant",
+                "Trimester",
+                userPregnant?.trimester,
+                true
+              )}
+            </View>
+            <View style={styles.rowItem}>
+              <Feather
+                name='calendar'
+                size={18}
+                color='#007bff'
+                style={{ marginRight: 6 }}
+              />
+              {renderField(
+                "vulnerability",
+                "pregnant",
+                "Due Date",
+                new Date(userPregnant?.dueDate).toLocaleDateString("en-US", {
+                  month: "short",
+                  year: "numeric",
+                }),
+                true
+              )}
+            </View>
           </>
         )}
       </View>
       {userVul.pregnantInfant[1] === "yes" && (
         <View style={styles.row}>
+          <MaterialIcons
+            name='child-care'
+            size={18}
+            color='#3a6cb7'
+            style={{ marginRight: 6 }}
+          />
           {renderField(
             "vulnerability",
             "pregnantInfant",
@@ -1697,6 +1766,12 @@ const Profile = () => {
         </View>
       )}
       <View style={styles.row}>
+        <Feather
+          name='activity'
+          size={18}
+          color='#2a7a3b'
+          style={{ marginRight: 6 }}
+        />
         {renderField(
           "vulnerability",
           "physicalPWD",
@@ -1709,6 +1784,12 @@ const Profile = () => {
       </View>
 
       <View style={styles.row}>
+        <MaterialIcons
+          name='psychology'
+          size={18}
+          color='#b98c2a'
+          style={{ marginRight: 6 }}
+        />
         {renderField(
           "vulnerability",
           "psychPWD",
@@ -1719,7 +1800,14 @@ const Profile = () => {
           true
         )}
       </View>
+
       <View style={styles.row}>
+        <Feather
+          name='eye'
+          size={18}
+          color='#6c4eb9'
+          style={{ marginRight: 6 }}
+        />
         {renderField(
           "vulnerability",
           "sensoryPWD",
@@ -1732,6 +1820,12 @@ const Profile = () => {
       </View>
 
       <View style={styles.row}>
+        <MaterialIcons
+          name='medical-services'
+          size={18}
+          color='#2ab9a3'
+          style={{ marginRight: 6 }}
+        />
         {renderField(
           "vulnerability",
           "medDep",
@@ -1742,7 +1836,14 @@ const Profile = () => {
           true
         )}
       </View>
+
       <View style={styles.row}>
+        <Feather
+          name='map-pin'
+          size={18}
+          color='#007bff'
+          style={{ marginRight: 6 }}
+        />
         {renderField(
           "vulnerability",
           "locationRiskLevel",
@@ -1969,6 +2070,7 @@ const styles = StyleSheet.create({
   ellipsisText: {
     fontSize: 13,
     color: "#007bff",
+    marginBottom: 0,
   },
 
   editActions: {

@@ -96,7 +96,9 @@ export default function ForgotMPIN() {
 
     try {
       // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
       if (!user) {
         throw new Error("User session not found");
@@ -172,10 +174,7 @@ export default function ForgotMPIN() {
       {Array.from({ length: 4 }, (_, i) => (
         <View
           key={i}
-          style={[
-            styles.mpinBox,
-            value.length > i && styles.mpinBoxFilled,
-          ]}
+          style={[styles.mpinBox, value.length > i && styles.mpinBoxFilled]}
         >
           <Text style={styles.mpinText}>
             {value.length > i ? value[i] : ""}
@@ -216,7 +215,7 @@ export default function ForgotMPIN() {
         onPress={handleDelete}
         disabled={isLoading}
       >
-        <Feather name="delete" size={20} color="#0060ff" />
+        <Feather name='delete' size={20} color='#0060ff' />
       </TouchableOpacity>
     </View>
   );
@@ -227,7 +226,7 @@ export default function ForgotMPIN() {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       keyboardVerticalOffset={0}
     >
-      <StatusBar style="light" />
+      <StatusBar style='light' />
       <View style={styles.container}>
         {/* Top Section */}
         <LinearGradient
@@ -237,10 +236,10 @@ export default function ForgotMPIN() {
           <Image
             source={require("../../assets/mapOverlay.png")}
             style={styles.mapOverlay}
-            resizeMode="cover"
+            resizeMode='cover'
           />
 
-          <MaterialIcons name="dialpad" size={80} color="#fff" />
+          <MaterialIcons name='dialpad' size={80} color='#fff' />
 
           <ThemedText style={styles.title}>Forgot MPIN?</ThemedText>
           <ThemedText style={styles.subtitle}>
@@ -283,9 +282,9 @@ export default function ForgotMPIN() {
 
               <ThemedTextInput
                 style={styles.input}
-                placeholder="Email Address"
-                keyboardType="email-address"
-                autoCapitalize="none"
+                placeholder='Email Address'
+                keyboardType='email-address'
+                autoCapitalize='none'
                 autoCorrect={false}
                 onChangeText={(text) => {
                   setEmail(text);
@@ -299,7 +298,7 @@ export default function ForgotMPIN() {
 
               <ThemedTextInput
                 style={styles.input}
-                placeholder="Password"
+                placeholder='Password'
                 secureTextEntry
                 onChangeText={(text) => {
                   setPassword(text);
@@ -321,13 +320,13 @@ export default function ForgotMPIN() {
                 }
               >
                 {isLoading ? (
-                  <ActivityIndicator color="#f2f2f2" size="small" />
+                  <ActivityIndicator color='#f2f2f2' size='small' />
                 ) : (
                   <View style={styles.buttonContent}>
                     <MaterialIcons
-                      name="verified-user"
+                      name='verified-user'
                       size={20}
-                      color="#f2f2f2"
+                      color='#f2f2f2'
                     />
                     <Text style={styles.buttonText}>Verify & Continue</Text>
                   </View>
@@ -344,7 +343,7 @@ export default function ForgotMPIN() {
               <Spacer height={30} />
 
               <View style={styles.infoBox}>
-                <MaterialIcons name="info-outline" size={20} color="#0060ff" />
+                <MaterialIcons name='info-outline' size={20} color='#0060ff' />
                 <Text style={styles.infoText}>
                   You'll need your email and password to reset your MPIN.
                 </Text>
@@ -405,7 +404,11 @@ export default function ForgotMPIN() {
                   style={isLoading ? styles.disabledButton : null}
                 >
                   <View style={styles.buttonContent}>
-                    <MaterialIcons name="arrow-forward" size={20} color="#f2f2f2" />
+                    <MaterialIcons
+                      name='arrow-forward'
+                      size={20}
+                      color='#f2f2f2'
+                    />
                     <Text style={styles.buttonText}>Continue</Text>
                   </View>
                 </ThemedButton>
@@ -418,16 +421,19 @@ export default function ForgotMPIN() {
                   style={isLoading ? styles.disabledButton : null}
                 >
                   {isLoading ? (
-                    <ActivityIndicator color="#f2f2f2" size="small" />
+                    <ActivityIndicator color='#f2f2f2' size='small' />
                   ) : (
                     <View style={styles.buttonContent}>
-                      <MaterialIcons name="check-circle" size={20} color="#f2f2f2" />
+                      <MaterialIcons
+                        name='check-circle'
+                        size={20}
+                        color='#f2f2f2'
+                      />
                       <Text style={styles.buttonText}>Reset MPIN</Text>
                     </View>
                   )}
                 </ThemedButton>
               )}
-
             </>
           )}
         </View>
@@ -538,7 +544,7 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     justifyContent: "center",
     gap: 8,
-    paddingHorizontal: 20,
+    paddingHorizontal: 50,
   },
   key: {
     width: 60,

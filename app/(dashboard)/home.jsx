@@ -115,8 +115,8 @@ const Home = () => {
         }
         // console.log("Successful fetch", data.pressedCallBtn);
         if (data) {
-          setCallRequested(data.pressedCallBtn ? true : false);
-          setCallstep(data.pressedCallBtn ? 2 : 0);
+          setCallRequested(data.pressedCallBtn !== null ? true : false);
+          setCallstep(data.pressedCallBtn !== null ? 2 : 0);
           setReqStatus({
             status: data.requestStatus.status,
             message: data.requestStatus.message,
@@ -149,7 +149,7 @@ const Home = () => {
           console.log("Change received!", payload);
 
           if (payload.new?.pressedCallBtn !== undefined) {
-            setCallRequested(payload.new.pressedCallBtn ? true : false);
+            setCallRequested(payload.new.pressedCallBtn !== null ? true : false);
             console.log("Realtime pressedCall: ", callRequested);
             setCallstep(payload.new.pressedCallBtn ? 2 : 1);
           }
@@ -238,40 +238,6 @@ const Home = () => {
 
   const handleCallPress = async () => {
     setShowCallPicker(true);
-    // if (callstep === 0) {
-    //   // Step 0 → Open modal
-    //   setShowCallPicker(true);
-    // } else if (callstep === 1 && selectedContact) {
-    //   handleAnimationStart();
-    //   // Step 1 → Actually dial + update db → then move to step 2
-    //   try {
-    //     const url = `tel:${selectedContact.number}`;
-    //     await Linking.openURL(url);
-
-    //     setCallstep(2);
-    //     setCallRequested(true);
-    //     handleAnimationFinish();
-
-    //     const now = new Date();
-    //     const { data, error } = await supabase
-    //       .from("user")
-    //       .update({
-    //         pressedCallBtn: [
-    //           new Date(now.getTime() - now.getTimezoneOffset() * 60000)
-    //             .toISOString()
-    //             .slice(0, -1),
-    //           selectedContact.number.toString(),
-    //         ],
-    //       })
-    //       .eq("userID", user.id)
-    //       .select();
-
-    //     console.log("updated call btn:", data, error);
-    //   } catch (err) {
-    //     console.error("Error opening dialer: ", err);
-    //   }
-    // }
-    // setShowCallPicker(false)
   };
 
   const handleCancel = async () => {
@@ -331,7 +297,7 @@ const Home = () => {
         </ThemedText>
 
         {/* Initial state */}
-        {callstep === 0 && (
+        {callRequested === false && (
           <>
             <ThemedText>Press the button below and help will</ThemedText>
             <ThemedText>reach you shortly.</ThemedText>
@@ -345,29 +311,8 @@ const Home = () => {
             />
             <Spacer />
 
-            <MarkSafeBtn />
           </>
         )}
-
-        {/* Animating state */}
-        {/* {callstep === 1 && !callRequested && (
-          <>
-            <ThemedText style={{ marginTop: 20, fontWeight: "bold" }}>
-              Calling for help...
-            </ThemedText>
-            <Spacer />
-            <CallButton
-              onAnimationStart={handleAnimationStart}
-              onAnimationFinish={handleAnimationFinish}
-              onPress={handleCallPress}
-              disabled={callRequested}
-            />
-            <Spacer />
-            <TouchableOpacity onPress={handleCancel} style={styles.cancelBtn}>
-              <Text style={styles.cancelBtnText}>Cancel Request</Text>
-            </TouchableOpacity>
-          </>
-        )} */}
 
         {/* After request */}
         {callRequested && (
@@ -518,9 +463,9 @@ const Home = () => {
 
         <Spacer height={20} />
 
-        {callRequested && <MarkSafeBtn />}
+        <MarkSafeBtn />
         {/* Alerts + Guide only in initial state */}
-        {callstep !== 1 && (
+        {callRequested === false && (
           <>
             <ThemedText style={styles.textLeft}>Alerts</ThemedText>
             <AlertCard />

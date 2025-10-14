@@ -369,7 +369,7 @@ const Profile = () => {
   if (error) {
     console.error("Error in fetching user table: ", error);
   }
-  console.log("profiledata email ", profileData?.email);
+  // console.log("profiledata email ", profileData?.email);
 
   // checks if session exists thru isPending
   useEffect(() => {
@@ -399,7 +399,7 @@ const Profile = () => {
     }
   }, [user]);
 
-  console.log("USerdata email", userData.email);
+  // console.log("USerdata email", userData.email);
 
   const fetchAddressData = async () => {
     // Get the current logged in user
@@ -481,7 +481,7 @@ const Profile = () => {
   const { data: guardianData, error: guardianError } = useQuery({
     queryKey: ["guardian", profileData?.userID],
     queryFn: fetchGuardianData,
-    enabled: !!profileData?.hasGuardian === true,
+    // enabled: !!profileData?.hasGuardian === true,
   });
   if (guardianError) {
     console.error("Error in fetching guardian table: ", addressError);
@@ -867,7 +867,7 @@ const Profile = () => {
         .eq("userID", user.id);
 
       // Update guardian table (if exists) ##############################
-      if (userData.hasGuardian) {
+      // if (userData.hasGuardian) {
         await supabase
           .from("guardian")
           .update({
@@ -877,7 +877,7 @@ const Profile = () => {
             guardianAddress: userGuardian.guardianAddress,
           })
           .eq("userID", user.id);
-      }
+      // }
 
       // Update guardian table (insert if none exists)
       if (
@@ -968,7 +968,7 @@ const Profile = () => {
       if (riskError) {
         console.error("Error in updating risk table: ", riskError);
       } else {
-        console.log("risk data", riskData);
+        // console.log("risk data", riskData);
       }
 
       //ANCHOR - PRIO API CONNECTION
@@ -994,7 +994,7 @@ const Profile = () => {
           });
 
           const result = await response.json();
-          console.log("Result: ", result.prediction);
+          // console.log("Result: ", result.prediction);
           return result.prediction;
         } catch (error) {
           console.error("error in getting prioritization: ", error);
@@ -1097,7 +1097,7 @@ const Profile = () => {
 
     // Dropdown case
     if (dropdownItems && isEditing) {
-      console.log("Dropdown items for", field, ":", dropdownItems);
+      // console.log("Dropdown items for", field, ":", dropdownItems);
 
       return (
         <View style={[styles.rowItem, { zIndex: 3000 }]}>

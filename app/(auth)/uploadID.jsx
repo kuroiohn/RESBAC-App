@@ -377,7 +377,6 @@ export default function uploadID() {
 
       // Create guardian record if guardian exists - with explicit userID
       const guardianData =
-        completeUserData.vulnerability?.hasGuardian === "yes" &&
         completeUserData.vulnerability?.guardianInfo
           ? await (async () => {
               const guardian = completeUserData.vulnerability.guardianInfo;
@@ -552,7 +551,7 @@ export default function uploadID() {
       //ANCHOR - PRIO API CONNECTION
       const getPrioritization = async () => {
         try {
-          const response = await fetch("https://xgprio.onrender.com/predict", {
+          const response = await fetch("https://xgprio-3odz.onrender.com/predict", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",

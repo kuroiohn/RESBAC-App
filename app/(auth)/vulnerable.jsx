@@ -257,14 +257,12 @@ const Vulnerable = () => {
       vulnerability: {
         hasGuardian,
         guardianInfo:
-          hasGuardian === "yes"
-            ? {
-                name: guardianName,
-                contact: guardianContact,
-                relationship: guardianRelation,
-                address: guardianAddress,
-              }
-            : null,
+            {
+              name: guardianName,
+              contact: guardianContact,
+              relationship: guardianRelation,
+              address: guardianAddress,
+            },
         householdCount,
         elderly:
           differenceInYears(new Date(), new Date(userDob)) >= 60 ? true : false,
@@ -288,7 +286,7 @@ const Vulnerable = () => {
     };
 
     // 🛑 GUARDIAN VALIDATION
-    if (!guardianName.trim() || !guardianContact.trim() || !guardianRelation.trim() || !guardianAddress.trim()) {
+    if ((!guardianName.trim() || !guardianContact.trim() || !guardianRelation.trim() || !guardianAddress.trim()) && from === "register") {
       Alert.alert(
           "Missing Information",
           "Please complete all guardian details before proceeding."
@@ -296,7 +294,7 @@ const Vulnerable = () => {
       return; // Stop execution if validation fails
     }
 
-    if (!/^\d{11}$/.test(guardianContact)) {
+    if (!/^\d{11}$/.test(guardianContact) && from === "register") {
       Alert.alert("Invalid Contact", "Please enter a valid phone number (11 digits).");
       return;
     }
@@ -511,7 +509,7 @@ const Vulnerable = () => {
         const getPrioritization = async () => {
           try {
             const response = await fetch(
-              "https://xgprio.onrender.com/predict",
+              "https://xgprio-3odz.onrender.com/predict",
               {
                 method: "POST",
                 headers: {

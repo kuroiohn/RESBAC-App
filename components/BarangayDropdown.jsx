@@ -5,21 +5,21 @@ import { StyleSheet } from "react-native";
 import { Colors } from "../constants/Colors";
 
 const barangays = [
-  { label: "Kalumpang", value: "Kalumpang" },
-  { label: "Barangka", value: "Barangka" },
-  { label: "Tañong", value: "Tañong" },
-  { label: "Jesus Dela Peña", value: "Jesus Dela Peña" },
-  { label: "I.V.C.", value: "I.V.C." },
-  { label: "San Roque", value: "San Roque" },
-  { label: "Sta. Elena", value: "Sta. Elena" },
-  { label: "Sto. Niño", value: "Sto. Niño" },
-  { label: "Malanday", value: "Malanday" },
-  { label: "Concepcion I", value: "Concepcion I" },
-  { label: "Marikina Heights", value: "Marikina Heights" },
-  { label: "Parang", value: "Parang" },
-  { label: "Nangka", value: "Nangka" },
-  { label: "Concepcion II", value: "Concepcion II" },
-  { label: "Fortune", value: "Fortune" },
+  // { label: "Kalumpang", value: "Kalumpang" },
+  // { label: "Barangka", value: "Barangka" },
+  // { label: "Tañong", value: "Tañong" },
+  // { label: "Jesus Dela Peña", value: "Jesus Dela Peña" },
+  // { label: "I.V.C.", value: "I.V.C." },
+  // { label: "San Roque", value: "San Roque" },
+  // { label: "Sta. Elena", value: "Sta. Elena" },
+  // { label: "Sto. Niño", value: "Sto. Niño" },
+  // { label: "Malanday", value: "Malanday" },
+  // { label: "Concepcion I", value: "Concepcion I" },
+  // { label: "Marikina Heights", value: "Marikina Heights" },
+  // { label: "Parang", value: "Parang" },
+  // { label: "Nangka", value: "Nangka" },
+  // { label: "Concepcion II", value: "Concepcion II" },
+  // { label: "Fortune", value: "Fortune" },
   { label: "Tumana", value: "Tumana" },
 ];
 
@@ -38,7 +38,7 @@ const BarangayDropdown = ({ value, onChange, disabled }) => {
       }}
       placeholder='Select Barangay'
       disabled={disabled}
-      listMode='MODAL'
+      listMode='SCROLLVIEW'
       scrollViewProps={{
         contentContainerStyle: {
           paddingBottom: 20,
@@ -70,7 +70,8 @@ const styles = StyleSheet.create({
   dropDownContainer: {
     borderColor: "#ccc",
     borderRadius: 8,
-    backgroundColor: "#fff", // Change this to white
+    backgroundColor: "#fff",
+    height: 45,
   },
 });
 

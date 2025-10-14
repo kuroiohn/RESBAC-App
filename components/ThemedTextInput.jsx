@@ -1,5 +1,5 @@
-import { TextInput, useColorScheme } from 'react-native';
-import { Colors } from '../constants/Colors';
+import { TextInput, useColorScheme } from "react-native";
+import { Colors } from "../constants/Colors";
 
 const ThemedTextInput = ({ style, ...props }) => {
   const colorScheme = useColorScheme();
@@ -9,8 +9,8 @@ const ThemedTextInput = ({ style, ...props }) => {
     <TextInput
       style={[
         {
-          backgroundColor: theme.inputBackground,
-          color: theme.text,
+          backgroundColor: "#f5f5f5",
+          color: "#625f72",
           padding: 20,
           borderRadius: 5,
         },

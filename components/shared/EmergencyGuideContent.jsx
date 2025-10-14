@@ -229,7 +229,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   guideImage: {
-    width: 125,
+    width: 110,
     height: 150,
     resizeMode: "contain",
     paddingHorizontal: 5,

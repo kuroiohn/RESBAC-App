@@ -44,6 +44,7 @@ export default async function handler(req, res) {
     // Build messages for Expo
     const messages = tokens.map(t => ({
       to: t.push_token,
+      icon: 'notification-icon',
       sound: 'default',
       title: title,
       body: body,

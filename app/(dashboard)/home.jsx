@@ -80,6 +80,45 @@ const Home = () => {
   ];
 
   useEffect(() => {
+    let isMounted = true;
+    const fetchData = async () => {
+      if (!user) return;
+      try {
+        const { data, error } = await supabase
+          .from("user")
+          .select(
+            `
+            pressedCallBtn,
+            requestStatus (status, message, updated_at, readStatus, sent_at)
+          `
+          )
+          .eq("userID", user.id)
+          .maybeSingle();
+
+        if (error) console.error(error);
+
+        if (isMounted && data) {
+          setCallRequested(Boolean(data.pressedCallBtn));
+          setReqStatus(data.requestStatus);
+        }
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    fetchData();
+    return () => {
+      isMounted = false;
+    };
+  }, [user]);
+
+  useEffect(() => {
+    if (reqData?.length) {
+      setLoading(false);
+    }
+  }, [reqData]);
+
+  useEffect(() => {
     const userid = user.id;
     // reads from supabase
     const fetchData = async () => {
@@ -159,8 +198,26 @@ const Home = () => {
       )
       .subscribe();
 
+    const reqStatusChannel = supabase
+      .channel("requestStatus-channel")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "requestStatus",
+          filter: `userID=eq.${user.id}`,
+        },
+        (payload) => {
+          console.log("Realtime requestStatus:", payload.new);
+          setReqStatus(payload.new);
+        }
+      )
+      .subscribe();
+
     return () => {
       supabase.removeChannel(callBtnChannel);
+      supabase.removeChannel(reqStatusChannel);
     };
   }, []);
 
@@ -332,6 +389,12 @@ const Home = () => {
                 contentContainerStyle={{ paddingBottom: 100 }}
               >
                 <View style={styles.statusCard}>
+                  {/* Loading Overlay */}
+                  {loading && (
+                    <View style={styles.loadingOverlay}>
+                      <ActivityIndicator size='large' color='#0060ff' />
+                    </View>
+                  )}
                   <Text style={styles.statusLabel}>Current Status</Text>
                   <View style={styles.statusLine} />
                   <Text style={styles.statusMessage}>
@@ -369,16 +432,10 @@ const Home = () => {
                   {loading && (
                     <View style={styles.loadingOverlay}>
                       <ActivityIndicator size='large' color='#0060ff' />
-                      <Text style={styles.loadingText}>
-                        Loading rescue updates...
-                      </Text>
                     </View>
                   )}
-
                   <Text style={styles.messageLabel}>Your Message</Text>
-
                   <View style={styles.statusLine} />
-
                   <Text style={styles.userMessageText}>
                     {r.message || "No message sent yet..."}
                   </Text>
@@ -469,12 +526,9 @@ const Home = () => {
 
         <MarkSafeBtn />
         {/* Alerts + Guide only in initial state */}
-        {callRequested === false && (
-          <>
-            <ThemedText style={styles.textLeft}>Alerts</ThemedText>
-            <AlertCard />
-          </>
-        )}
+
+        <ThemedText style={styles.textLeft}>Alerts</ThemedText>
+        <AlertCard />
       </ThemedView>
 
       <Modal

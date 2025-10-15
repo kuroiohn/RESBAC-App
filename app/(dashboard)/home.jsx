@@ -149,7 +149,9 @@ const Home = () => {
           console.log("Change received!", payload);
 
           if (payload.new?.pressedCallBtn !== undefined) {
-            setCallRequested(payload.new.pressedCallBtn !== null ? true : false);
+            setCallRequested(
+              payload.new.pressedCallBtn !== null ? true : false
+            );
             console.log("Realtime pressedCall: ", callRequested);
             setCallstep(payload.new.pressedCallBtn ? 2 : 1);
           }
@@ -310,7 +312,6 @@ const Home = () => {
               disabled={callRequested}
             />
             <Spacer />
-
           </>
         )}
 
@@ -364,8 +365,20 @@ const Home = () => {
                 </View>
 
                 <View style={styles.messageCard}>
+                  {/* Loading Overlay */}
+                  {loading && (
+                    <View style={styles.loadingOverlay}>
+                      <ActivityIndicator size='large' color='#0060ff' />
+                      <Text style={styles.loadingText}>
+                        Loading rescue updates...
+                      </Text>
+                    </View>
+                  )}
+
                   <Text style={styles.messageLabel}>Your Message</Text>
+
                   <View style={styles.statusLine} />
+
                   <Text style={styles.userMessageText}>
                     {r.message || "No message sent yet..."}
                   </Text>
@@ -377,15 +390,6 @@ const Home = () => {
                         minute: "numeric",
                       })}
                     </Text>
-                  )}
-                  {/* Loading Overlay */}
-                  {loading && (
-                    <View style={styles.loadingOverlay}>
-                      <ActivityIndicator size='large' color='#0060ff' />
-                      <Text style={styles.loadingText}>
-                        Loading rescue updates...
-                      </Text>
-                    </View>
                   )}
                 </View>
               </ScrollView>

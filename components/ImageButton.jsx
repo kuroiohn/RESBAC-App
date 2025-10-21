@@ -1,20 +1,16 @@
-import React, { useState } from "react";
+import React from "react";
 import { TouchableOpacity, Image, StyleSheet } from "react-native";
 
 import Logo from "../assets/EmerGuideBtn.png";
 
 const ImageButton = ({ onPress }) => {
-  const [isPressed, setIsPressed] = useState(false);
-
   return (
     <TouchableOpacity
-      activeOpacity={0.9}
-      onPressIn={() => setIsPressed(true)}
-      onPressOut={() => setIsPressed(false)}
+      activeOpacity={0.8}
       onPress={onPress}
       style={styles.buttonContainer}
     >
-      <Image style={styles.image} />
+      <Image source={Logo} style={styles.image} />
     </TouchableOpacity>
   );
 };

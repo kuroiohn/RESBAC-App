@@ -1,5 +1,12 @@
 import { useEffect, useState } from "react";
-import { View, Text, StyleSheet, Image, TouchableOpacity, Linking } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
+  Linking,
+} from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import supabase from "../contexts/supabaseClient";
@@ -13,44 +20,55 @@ const AlertCard = ({ alertLevel = 1 }) => {
   const queryClient = useQueryClient();
   const [time, setTime] = useState(new Date()); //NOTE - not used
   const { alertsData } = useRealtime();
-  const db = useSQLiteContext()
-  const [local,setLocal] = useState([])
+  const db = useSQLiteContext();
+  const [local, setLocal] = useState([]);
 
   const loadUsers = async () => {
     try {
       const results = await db.getAllAsync(`select * from alerts`);
-      setLocal(results)
-    } catch (error){
+      setLocal(results);
+    } catch (error) {
       console.error("Error in fetching from local offline storage:", error);
     }
-  }
+  };
   console.log("SQLite DB instance:", db);
 
-  const deleteSqlite = async () =>{
-    await db.runAsync('delete from alerts')
-  }
+  const deleteSqlite = async () => {
+    await db.runAsync("delete from alerts");
+  };
 
   useEffect(() => {
     if (!db || !alertsData) return;
 
     const insertData = async () => {
       try {
-        await db.runAsync('delete from alerts')
+        await db.runAsync("delete from alerts");
 
         for (const item of alertsData) {
-          const activeInt = item.isActive ? 1 : 0
+          const activeInt = item.isActive ? 1 : 0;
           await db.runAsync(
             `INSERT INTO alerts (alertTitle, created_at, alertDescription, isActive, alertLocation, alertType, riverLevel, alertLink) VALUES (?,?,?,?,?,?,?,?)`,
-            [item.alertTitle, item.created_at, item.alertDescription, activeInt, item.alertLocation, item.alertType, item.riverLevel, item.alertLink]
+            [
+              item.alertTitle,
+              item.created_at,
+              item.alertDescription,
+              activeInt,
+              item.alertLocation,
+              item.alertType,
+              item.riverLevel,
+              item.alertLink,
+            ]
           );
         }
 
         const results = await db.getAllAsync(`SELECT * FROM alerts`);
         console.log("Local DB rows:", results);
-        setLocal(results.map((row)=>({
-          ...row,
-          isActive: row.isActive === 1
-        })));
+        setLocal(
+          results.map((row) => ({
+            ...row,
+            isActive: row.isActive === 1,
+          }))
+        );
       } catch (error) {
         console.error("SQLite insert error:", error);
       }
@@ -59,10 +77,10 @@ const AlertCard = ({ alertLevel = 1 }) => {
     insertData();
   }, [db, alertsData]);
 
-  useEffect(()=> {
+  useEffect(() => {
     // deleteSqlite()
-    loadUsers()
-  },[])
+    loadUsers();
+  }, []);
 
   const renderData = alertsData?.length ? alertsData : local;
 
@@ -131,8 +149,6 @@ const AlertCard = ({ alertLevel = 1 }) => {
         return require("../assets/EarthquakeIcon.png");
       case "announcement":
         return "icon";
-      default:
-        return require("../assets/storm-cloud.png"); // fallback
     }
   };
 
@@ -140,86 +156,89 @@ const AlertCard = ({ alertLevel = 1 }) => {
     <>
       {renderData?.some((alert) => alert.isActive) ? (
         renderData
-        ?.sort((a,b) => new Date(b.activatedat) - new Date(a.activatedat))
-        .map(
-          (alert) =>
-            alert.isActive && (
-              <LinearGradient
-                key={alert.id}
-                colors={["#0060FF", "rgba(0, 58, 153, 0)"]}
-                start={{ x: 0.5, y: 0 }}
-                end={{ x: 0.5, y: 1 }}
-                style={styles.borderWrapper}
-              >
-                <View style={styles.innerCard}>
-                  {renderData === local &&
-                    <Text>Local</Text>}
-                  {/* Top right date + icon */}
-                  <View style={styles.dateRow}>
-                    <Text style={styles.dateText}>
-                      {formattedDate(alert.created_at)}
-                    </Text>
-                    <Ionicons
-                      name='calendar-outline'
-                      size={18}
-                      color='#333'
-                      style={{ marginLeft: 6 }}
-                    />
-                  </View>
-
-                  {/* Image + Info Row */}
-                  <View style={styles.topRow}>
-                  {alert.alertType === "announcement" ? (
-                    <View style={styles.iconContainer}>
-                      <Megaphone size={40} color="#0060FF" strokeWidth={1.5} />
+          ?.sort((a, b) => new Date(b.activatedat) - new Date(a.activatedat))
+          .map(
+            (alert) =>
+              alert.isActive && (
+                <LinearGradient
+                  key={alert.id}
+                  colors={["#0060FF", "rgba(0, 58, 153, 0)"]}
+                  start={{ x: 0.5, y: 0 }}
+                  end={{ x: 0.5, y: 1 }}
+                  style={styles.borderWrapper}
+                >
+                  <View style={styles.innerCard}>
+                    {renderData === local && <Text>Local</Text>}
+                    {/* Top right date + icon */}
+                    <View style={styles.dateRow}>
+                      <Text style={styles.dateText}>
+                        {formattedDate(alert.created_at)}
+                      </Text>
+                      <Ionicons
+                        name='calendar-outline'
+                        size={18}
+                        color='#333'
+                        style={{ marginLeft: 6 }}
+                      />
                     </View>
-                  ) : (
-                    <Image
-                      source={getAlertIcon(alert.alertType)}
-                      style={styles.image}
-                    />
-                  )}
 
-                    <View style={styles.statusColumn}>
-                      <Text style={styles.alertLevel}>
-                        {formatTitle(alert.alertTitle)}
-                      </Text>
-
-                      {/*<Text style={styles.timeText}>{formattedTime}</Text>*/}
-                      <Text style={styles.timeText}>
-                        {formattedTime(alert.created_at)}
-                      </Text>
-                      {alert.alertType === "fire" && alert.alertLocation && (
-                        <Text style={styles.meterText}>
-                          Near {alert.alertLocation}
-                        </Text>
+                    {/* Image + Info Row */}
+                    <View style={styles.topRow}>
+                      {alert.alertType === "announcement" ? (
+                        <View style={styles.iconContainer}>
+                          <Megaphone
+                            size={40}
+                            color='#0060FF'
+                            strokeWidth={1.5}
+                          />
+                        </View>
+                      ) : (
+                        <Image
+                          source={getAlertIcon(alert.alertType)}
+                          style={styles.image}
+                        />
                       )}
 
-                      {alert.alertType === "flood" && alert.riverLevel && (
-                        <Text style={styles.meterText}>
-                          {alert.riverLevel} meters
+                      <View style={styles.statusColumn}>
+                        <Text style={styles.alertLevel}>
+                          {formatTitle(alert.alertTitle)}
                         </Text>
-                      )}
+
+                        {/*<Text style={styles.timeText}>{formattedTime}</Text>*/}
+                        <Text style={styles.timeText}>
+                          {formattedTime(alert.created_at)}
+                        </Text>
+                        {alert.alertType === "fire" && alert.alertLocation && (
+                          <Text style={styles.meterText}>
+                            Near {alert.alertLocation}
+                          </Text>
+                        )}
+
+                        {alert.alertType === "flood" && alert.riverLevel && (
+                          <Text style={styles.meterText}>
+                            {alert.riverLevel} meters
+                          </Text>
+                        )}
+                      </View>
                     </View>
+
+                    {/* Message */}
+                    <Text style={styles.message}>{alert.alertDescription}</Text>
+
+                    {/* View Post Link */}
+                    {alert.alertLink && (
+                      <TouchableOpacity
+                        style={styles.linkButton}
+                        onPress={() => Linking.openURL(alert.alertLink)}
+                      >
+                        <Text style={styles.linkText}>View Post</Text>
+                        <ExternalLink size={14} color='#0060FF' />
+                      </TouchableOpacity>
+                    )}
                   </View>
-
-                  {/* Message */}
-                  <Text style={styles.message}>{alert.alertDescription}</Text>
-
-                  {/* View Post Link */}
-                  {alert.alertLink && (
-                    <TouchableOpacity
-                      style={styles.linkButton}
-                      onPress={() => Linking.openURL(alert.alertLink)}
-                    >
-                      <Text style={styles.linkText}>View Post</Text>
-                      <ExternalLink size={14} color="#0060FF" />
-                    </TouchableOpacity>
-                  )}
-                </View>
-              </LinearGradient>
-            )
-        )
+                </LinearGradient>
+              )
+          )
       ) : (
         <LinearGradient
           colors={["#0060ff", "transparent"]}

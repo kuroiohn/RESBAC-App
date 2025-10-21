@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { TouchableOpacity, Image, StyleSheet } from "react-native";
 
 import Logo from "../assets/EmerGuideBtn.png";
-import LogoPressed from "../assets/EmerGuideBtnPressed.png";
 
 const ImageButton = ({ onPress }) => {
   const [isPressed, setIsPressed] = useState(false);
@@ -15,7 +14,7 @@ const ImageButton = ({ onPress }) => {
       onPress={onPress}
       style={styles.buttonContainer}
     >
-      <Image source={isPressed ? LogoPressed : Logo} style={styles.image} />
+      <Image style={styles.image} />
     </TouchableOpacity>
   );
 };

@@ -24,6 +24,7 @@
     "crypto-js": "^4.2.0",
     "date-fns": "^4.1.0",
     "expo": "54.0.13",
+    "expo-checkbox": "~5.0.7",
     "expo-constants": "~18.0.8",
     "expo-dev-client": "~6.0.15",
     "expo-device": "~8.0.9",

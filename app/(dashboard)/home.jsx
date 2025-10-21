@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useState, useRef, useEffect } from "react";
+import Checkbox from "expo-checkbox";
 
 import Spacer from "../../components/Spacer";
 import ThemedText from "../../components/ThemedText";
@@ -46,6 +47,8 @@ const Home = () => {
   const [message, setMessage] = useState("");
 
   const [loading, setLoading] = useState(true);
+
+  const [rescueMe, setRescueMe] = useState(false);
 
   const handleSendMessage = async () => {
     if (!message.trim()) return;
@@ -549,14 +552,24 @@ const Home = () => {
               <TouchableOpacity
                 key={i}
                 style={styles.contactBtn}
-                onPress={() => {
-                  handleSelectNumber(c);
-                }}
+                onPress={() => handleSelectNumber(c, rescueMe)} // pass checkbox value
               >
                 <Text style={{ fontSize: 16 }}>{c.name}</Text>
                 <Text style={{ fontSize: 14, color: "#555" }}>{c.number}</Text>
               </TouchableOpacity>
             ))}
+
+            <Spacer height={20} />
+
+            {/* Rescue Me checkbox */}
+            <View style={styles.checkboxRow}>
+              <Checkbox
+                value={rescueMe}
+                onValueChange={setRescueMe}
+                color={rescueMe ? "#0060ff" : undefined}
+              />
+              <Text style={{ fontSize: 16 }}>Rescue Me</Text>
+            </View>
 
             <TouchableOpacity
               onPress={() => setShowCallPicker(false)}
@@ -574,6 +587,14 @@ const Home = () => {
 export default Home;
 
 const styles = StyleSheet.create({
+  checkboxRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 15,
+    marginLeft: 10,
+    gap: 8,
+  },
+
   scrollContainer: {
     paddingVertical: 20,
     paddingHorizontal: 10,

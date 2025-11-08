@@ -20,13 +20,6 @@
     "edgeToEdgeEnabled": true,
     "package": "com.lukewarmraven.resbac",
     "googleServicesFile": "./google-services.json",
-
-    "config": {
-      "googleMaps": {
-        "apiKey": "AIzaSyCd1cjMDWiM_figEfLKqG5y8wMlzlWvofg"
-      }
-    },
-
     "intentFilters": [
       {
         "action": "VIEW",
@@ -43,14 +36,6 @@
       }
     ]
   },
-
-  "ios": {
-    "config": {
-      "googleMapsApiKey": "AIzaSyCd1cjMDWiM_figEfLKqG5y8wMlzlWvofg"
-    },
-    "bundleIdentifier": "com.lukewarmraven.resbac"
-  },
-
   "web": {
     "favicon": "./assets/favicon.png"
   },

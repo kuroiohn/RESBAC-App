@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
 import { View, StyleSheet } from "react-native";
 import { WebView } from "react-native-webview";
+import { GOOGLE_MAPS_API_KEY } from "@env";
 
 export default function RouteMapWebView({ src, dest, safePopupTitle }) {
   const html = useMemo(() => {

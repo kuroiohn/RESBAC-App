@@ -562,14 +562,14 @@ const Home = () => {
             <Spacer height={20} />
 
             {/* Rescue Me checkbox */}
-            <View style={styles.checkboxRow}>
+            {/* <View style={styles.checkboxRow}>
               <Checkbox
                 value={rescueMe}
                 onValueChange={setRescueMe}
                 color={rescueMe ? "#0060ff" : undefined}
               />
               <Text style={{ fontSize: 16 }}>Rescue Me</Text>
-            </View>
+            </View> */}
 
             <TouchableOpacity
               onPress={() => setShowCallPicker(false)}

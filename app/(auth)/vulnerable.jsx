@@ -510,7 +510,7 @@ const Vulnerable = () => {
         const getPrioritization = async () => {
           try {
             const response = await fetch(
-              "https://xgprio-3odz.onrender.com/predict",
+              "https://ffxzuvjivql5sbw3zahbv4qi2q0tgwxj.lambda-url.ap-southeast-1.on.aws/predict",
               {
                 method: "POST",
                 headers: {

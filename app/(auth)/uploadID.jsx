@@ -326,7 +326,7 @@ export default function uploadID() {
       }
 
       const response = await fetch(
-        "https://kmeanscluster.onrender.com/cluster",
+        "https://didrbvtswfqnxxswkxwitvky6m0tzsqp.lambda-url.ap-southeast-1.on.aws/cluster",
         {
           method: "POST",
           headers: {
@@ -551,7 +551,7 @@ export default function uploadID() {
       //ANCHOR - PRIO API CONNECTION
       const getPrioritization = async () => {
         try {
-          const response = await fetch("https://xgprio-3odz.onrender.com/predict", {
+          const response = await fetch("https://ffxzuvjivql5sbw3zahbv4qi2q0tgwxj.lambda-url.ap-southeast-1.on.aws/predict", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",

@@ -8,55 +8,102 @@ export default function RouteMapWebView({ src, dest, safePopupTitle }) {
 
     return `
       <!DOCTYPE html>
+      
       <html>
         <head>
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-          <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-          <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
-          <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
           <style>
-            html, body, #map { height: 100%; margin: 0; padding: 0; }
-            .leaflet-routing-container { display: none }
+            html, body, #map {
+              height: 100%;
+              margin: 0;
+              padding: 0;
+            }
+            .gm-style .gm-style-iw-c {
+              padding: 8px !important;
+            }
+              .gm-style .gm-style-iw-c {
+  background: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+.gm-style .gm-style-iw-t::after {
+  display: none !important;
+}
+
           </style>
+          <!-- Load Google Maps JavaScript API -->
+          <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCd1cjMDWiM_figEfLKqG5y8wMlzlWvofg"></script>
         </head>
         <body>
           <div id="map"></div>
           <script>
-            const source = [${src[0]}, ${src[1]}];
-            const destination = [${dest[0]}, ${dest[1]}];
+  function initMap() {
+    const source = { lat: ${src[0]}, lng: ${src[1]} };
+    const destination = { lat: ${dest[0]}, lng: ${dest[1]} };
 
-            const map = L.map('map').setView(destination, 17);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-              attribution: '© OpenStreetMap'
-            }).addTo(map);
+    const map = new google.maps.Map(document.getElementById('map'), {
+      center: destination,
+      zoom: 14,
+      mapTypeId: 'roadmap'
+    });
 
-            L.marker(destination).addTo(map)
-              .bindTooltip('${safePopupTitle || "Destination"}', {
-                permanent: true,
-                direction: 'top',
-                offset: [-15, 0],
-              })
-              .openTooltip();
+    const directionsService = new google.maps.DirectionsService();
+    const directionsRenderer = new google.maps.DirectionsRenderer({
+      suppressMarkers: true,
+      polylineOptions: {
+        strokeColor: "#FF3B30",
+        strokeWeight: 5
+      }
+    });
 
-            L.marker(source).addTo(map)
-              .bindTooltip('Home', {
-                permanent: true,
-                direction: 'top',
-                offset: [-15, 0],
-              })
-              .openTooltip();
+    directionsRenderer.setMap(map);
 
-            L.Routing.control({
-              waypoints: [L.latLng(source[0], source[1]), L.latLng(destination[0], destination[1])],
-              lineOptions: { styles: [{ color: 'red', weight: 4 }] },
-              altLineOptions: {styles: [{color: 'red', opacity: 0.5, dashArray: '4,6'}]},
-              addWaypoints: false,
-              draggableWaypoints: false,
-              fitSelectedRoutes: true,
-              showAlternatives: true
-            }).addTo(map);
-          </script>
+    directionsService.route(
+      {
+        origin: source,
+        destination: destination,
+        travelMode: google.maps.TravelMode.DRIVING,
+      },
+      (response, status) => {
+        if (status === "OK") {
+          directionsRenderer.setDirections(response);
+        } else {
+          console.error("Directions request failed:", status);
+        }
+      }
+    );
+
+    // Custom styled info box
+    const infoStyle = "background:#fff;padding:6px 10px;border-radius:8px;font-size:13px;font-weight:600;color:#111;box-shadow:0 1px 6px rgba(0,0,0,0.25);";
+
+    // Home marker
+    const homeMarker = new google.maps.Marker({
+      position: source,
+      map: map,
+      icon: { url: "http://maps.google.com/mapfiles/ms/icons/red-dot.png" },
+    });
+    const homeInfo = new google.maps.InfoWindow({
+      content: '<div style="' + infoStyle + '">🏠 Home</div>'
+    });
+    homeInfo.open(map, homeMarker);
+
+    // Destination marker
+    const destMarker = new google.maps.Marker({
+      position: destination,
+      map: map,
+      icon: { url: "http://maps.google.com/mapfiles/ms/icons/red-dot.png" },
+    });
+    const destInfo = new google.maps.InfoWindow({
+      content: '<div style="' + infoStyle + '">📍 ${
+        safePopupTitle || "Evacuation Center"
+      }</div>'
+    });
+    destInfo.open(map, destMarker);
+  }
+
+  window.onload = initMap;
+</script>
+
         </body>
       </html>
     `;
@@ -64,7 +111,12 @@ export default function RouteMapWebView({ src, dest, safePopupTitle }) {
 
   return (
     <View style={styles.container}>
-      <WebView source={{ html }} originWhitelist={["*"]} />
+      <WebView
+        source={{ html }}
+        originWhitelist={["*"]}
+        javaScriptEnabled={true}
+        domStorageEnabled={true}
+      />
     </View>
   );
 }

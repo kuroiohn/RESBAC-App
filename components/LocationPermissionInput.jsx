@@ -10,11 +10,12 @@ import {
   Dimensions,
   Platform,
 } from "react-native";
-import { WebView } from 'react-native-webview';
+import MapView, { Marker } from "react-native-maps";
+
 import * as Location from "expo-location";
 import { Ionicons } from "@expo/vector-icons";
 
-const { width, height } = Dimensions.get('window');
+const { width, height } = Dimensions.get("window");
 
 const LocationPermissionInput = ({
   value,
@@ -58,7 +59,6 @@ const LocationPermissionInput = ({
 
       setCurrentLocation(coords);
       setShowMap(true);
-
     } catch (error) {
       console.error("Location error:", error);
       Alert.alert(
@@ -77,7 +77,7 @@ const LocationPermissionInput = ({
   const handleLocationConfirmed = async (selectedCoords) => {
     try {
       setIsGettingAddress(true);
-      
+
       // Try to get address
       let locationInfo;
       try {
@@ -96,7 +96,8 @@ const LocationPermissionInput = ({
             country: address?.country || "Philippines",
             postalCode: address?.postalCode || "",
             district: address?.district || "Unknown District",
-            barangay: address?.subLocality || address?.village || "Unknown Barangay",
+            barangay:
+              address?.subLocality || address?.village || "Unknown Barangay",
           },
           formattedAddress: formatAddress(address),
           timestamp: new Date().toISOString(),
@@ -114,7 +115,9 @@ const LocationPermissionInput = ({
             district: "Unknown District",
             barangay: "Unknown Barangay",
           },
-          formattedAddress: `Lat: ${selectedCoords.latitude.toFixed(6)}, Lng: ${selectedCoords.longitude.toFixed(6)}`,
+          formattedAddress: `Lat: ${selectedCoords.latitude.toFixed(
+            6
+          )}, Lng: ${selectedCoords.longitude.toFixed(6)}`,
           timestamp: new Date().toISOString(),
         };
       }
@@ -143,167 +146,6 @@ const LocationPermissionInput = ({
   const clearLocation = () => {
     setLocationData(null);
     onChange(null);
-  };
-
-  // Generate HTML for the map
-  const generateMapHTML = (lat, lng) => {
-    return `
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-        <style>
-            body { margin: 0; padding: 0; }
-            #map { height: 100vh; width: 100vw; }
-            .center-pin {
-                position: absolute;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -100%);
-                z-index: 1000;
-                font-size: 30px;
-                color: #ff0000;
-                pointer-events: none;
-                text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-            }
-            .confirm-btn {
-                position: absolute;
-                bottom: 20px;
-                left: 20px;
-                right: 20px;
-                background: #0060ff;
-                color: white;
-                border: none;
-                padding: 15px;
-                border-radius: 8px;
-                font-size: 16px;
-                font-weight: 600;
-                z-index: 1000;
-                cursor: pointer;
-                box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-            }
-            .confirm-btn:hover {
-                background: #0052e0;
-            }
-            .coords-display {
-                position: absolute;
-                top: 20px;
-                left: 20px;
-                right: 20px;
-                background: rgba(255, 255, 255, 0.95);
-                padding: 12px;
-                border-radius: 8px;
-                text-align: center;
-                font-size: 14px;
-                z-index: 1000;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-            }
-            .instruction {
-                font-weight: 600;
-                color: #333;
-                margin-bottom: 4px;
-            }
-            .coordinates {
-                font-family: 'Courier New', monospace;
-                color: #666;
-                font-size: 12px;
-            }
-            .recenter-btn {
-                position: absolute;
-                top: 80px;
-                right: 20px;
-                background: #0060ff;
-                color: white;
-                border: none;
-                padding: 8px 12px;
-                border-radius: 20px;
-                font-size: 12px;
-                font-weight: 600;
-                cursor: pointer;
-                z-index: 1000;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-                display: flex;
-                align-items: center;
-                gap: 4px;
-                white-space: nowrap;
-            }
-            .recenter-btn:hover {
-                background: #0052e0;
-            }
-        </style>
-    </head>
-    <body>
-        <div id="map"></div>
-        <div class="center-pin">📍</div>
-        <div class="coords-display">
-            <div class="instruction">Move the map to adjust your location</div>
-            <div class="coordinates" id="coordinates">${lat.toFixed(6)}, ${lng.toFixed(6)}</div>
-        </div>
-        <button class="recenter-btn" onclick="recenterMap()" title="Return to your actual GPS location">
-            Back to Current Location
-        </button>
-        <button class="confirm-btn" onclick="confirmLocation()">Choose This Location</button>
-        
-        <script>
-            let userLocation = [${lat}, ${lng}];
-            
-            // Initialize map
-            const map = L.map('map', {
-                center: userLocation,
-                zoom: 16,
-                zoomControl: true
-            });
-
-            // Add OpenStreetMap tiles
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '© OpenStreetMap contributors',
-                maxZoom: 19
-            }).addTo(map);
-
-            // Add user location marker (small blue dot)
-            const userMarker = L.circleMarker(userLocation, {
-                color: '#0060ff',
-                fillColor: '#0060ff',
-                fillOpacity: 0.8,
-                radius: 8,
-                weight: 2
-            }).addTo(map).bindPopup('Your current location');
-
-            // Update coordinates display when map moves
-            map.on('moveend', function() {
-                const center = map.getCenter();
-                document.getElementById('coordinates').textContent = 
-                    center.lat.toFixed(6) + ', ' + center.lng.toFixed(6);
-            });
-
-            function confirmLocation() {
-                const center = map.getCenter();
-                const message = JSON.stringify({
-                    type: 'locationSelected',
-                    latitude: center.lat,
-                    longitude: center.lng
-                });
-                window.ReactNativeWebView.postMessage(message);
-            }
-
-            function recenterMap() {
-                map.setView(userLocation, 16);
-            }
-
-            // Add loading indicator when tiles are loading
-            map.on('loading', function() {
-                console.log('Map loading...');
-            });
-
-            map.on('load', function() {
-                console.log('Map loaded');
-            });
-        </script>
-    </body>
-    </html>
-    `;
   };
 
   return (
@@ -347,7 +189,7 @@ const LocationPermissionInput = ({
             {locationData.formattedAddress}
           </Text>
 
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.editLocationButton}
             onPress={() => {
               setCurrentLocation(locationData.coordinates);
@@ -359,21 +201,22 @@ const LocationPermissionInput = ({
           </TouchableOpacity>
 
           <Text style={styles.coordinatesText}>
-            {locationData.coordinates.latitude.toFixed(6)}, {locationData.coordinates.longitude.toFixed(6)}
+            {locationData.coordinates.latitude.toFixed(6)},{" "}
+            {locationData.coordinates.longitude.toFixed(6)}
           </Text>
         </View>
       )}
 
       {!locationData && !loading && (
         <Text style={styles.helpText}>
-          We'll use your location to provide accurate emergency services in your area.
+          We'll use your location to provide accurate emergency services in your
+          area.
         </Text>
       )}
 
-      {/* Map Modal */}
       <Modal
         visible={showMap}
-        animationType="slide"
+        animationType='slide'
         onRequestClose={() => setShowMap(false)}
       >
         <View style={styles.mapContainer}>
@@ -389,39 +232,44 @@ const LocationPermissionInput = ({
           </View>
 
           {currentLocation && (
-            <WebView
-              source={{ 
-                html: generateMapHTML(currentLocation.latitude, currentLocation.longitude) 
-              }}
-              style={styles.webView}
-              onMessage={(event) => {
-                try {
-                  const data = JSON.parse(event.nativeEvent.data);
-                  if (data.type === 'locationSelected') {
-                    handleLocationConfirmed({
-                      latitude: data.latitude,
-                      longitude: data.longitude
-                    });
-                  }
-                } catch (error) {
-                  console.error('Error parsing message:', error);
-                }
-              }}
-              javaScriptEnabled={true}
-              domStorageEnabled={true}
-              startInLoadingState={true}
-              renderLoading={() => (
-                <View style={styles.webViewLoading}>
-                  <ActivityIndicator size="large" color="#0060ff" />
-                  <Text style={styles.loadingText}>Loading map...</Text>
-                </View>
-              )}
-            />
+            <View style={{ flex: 1 }}>
+              <MapView
+                style={{ flex: 1 }}
+                initialRegion={{
+                  latitude: currentLocation.latitude,
+                  longitude: currentLocation.longitude,
+                  latitudeDelta: 0.01,
+                  longitudeDelta: 0.01,
+                }}
+                onRegionChangeComplete={(region) => {
+                  setCurrentLocation({
+                    latitude: region.latitude,
+                    longitude: region.longitude,
+                  });
+                }}
+                provider={MapView.PROVIDER_GOOGLE}
+                showsUserLocation={true}
+              />
+
+              {/* Center Pin Overlay */}
+              <View pointerEvents='none' style={styles.pinContainer}>
+                <Ionicons name='location-sharp' size={40} color='#FF0000' />
+              </View>
+            </View>
           )}
+
+          <View style={styles.mapControls}>
+            <TouchableOpacity
+              style={styles.confirmBtn}
+              onPress={() => handleLocationConfirmed(currentLocation)}
+            >
+              <Text style={styles.confirmText}>Choose This Location</Text>
+            </TouchableOpacity>
+          </View>
 
           {isGettingAddress && (
             <View style={styles.processingOverlay}>
-              <ActivityIndicator size="large" color="#0060ff" />
+              <ActivityIndicator size='large' color='#0060ff' />
               <Text style={styles.processingText}>Getting address...</Text>
             </View>
           )}
@@ -521,7 +369,7 @@ const styles = StyleSheet.create({
   coordinatesText: {
     fontSize: 11,
     color: "#666",
-    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+    fontFamily: Platform.OS === "ios" ? "Courier" : "monospace",
   },
   helpText: {
     fontSize: 12,
@@ -543,7 +391,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     borderBottomWidth: 1,
     borderBottomColor: "#e0e0e0",
-    paddingTop: Platform.OS === 'ios' ? 50 : 20,
+    paddingTop: Platform.OS === "ios" ? 50 : 20,
   },
   backButton: {
     padding: 8,
@@ -558,25 +406,57 @@ const styles = StyleSheet.create({
   },
   webViewLoading: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f8f9ff',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#f8f9ff",
   },
   processingOverlay: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(255, 255, 255, 0.9)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   processingText: {
     marginTop: 10,
     fontSize: 16,
-    color: '#0060ff',
-    fontWeight: '500',
+    color: "#0060ff",
+    fontWeight: "500",
+  },
+
+  mapControls: {
+    position: "absolute",
+    bottom: 40,
+    left: 20,
+    right: 20,
+    alignItems: "center",
+  },
+  confirmBtn: {
+    backgroundColor: "#0060ff",
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  confirmText: {
+    color: "#fff",
+    fontWeight: "600",
+    fontSize: 16,
+  },
+  pinContainer: {
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    marginLeft: -20,
+    marginTop: -40, // lift the pin so the point touches the map center
+    zIndex: 10,
+    transform: [{ translateY: -10 }],
   },
 });
 

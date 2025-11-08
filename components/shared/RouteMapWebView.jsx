@@ -32,7 +32,7 @@ export default function RouteMapWebView({ src, dest, safePopupTitle }) {
 
           </style>
           <!-- Load Google Maps JavaScript API -->
-          <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCd1cjMDWiM_figEfLKqG5y8wMlzlWvofg"></script>
+          <script src="https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}"></script>
         </head>
         <body>
           <div id="map"></div>

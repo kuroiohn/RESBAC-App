@@ -9,10 +9,11 @@ import {
   View,
   TextInput,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import { useState, useRef, useEffect } from "react";
 import Checkbox from "expo-checkbox";
-
+import * as Location from 'expo-location'
 import Spacer from "../../components/Spacer";
 import ThemedText from "../../components/ThemedText";
 import ThemedView from "../../components/ThemedView";
@@ -26,6 +27,7 @@ import supabase from "../../contexts/supabaseClient";
 import PickupLocationsCard from "../../components/PickupLocationsCard";
 import { useNavigation } from "@react-navigation/native";
 import { useRealtime } from "../../contexts/RealtimeProvider";
+import LocationPermissionInput from "../../components/LocationPermissionInput";
 
 const Home = () => {
   const { user } = useUser();
@@ -40,6 +42,7 @@ const Home = () => {
   const [reqStatus, setReqStatus] = useState(null);
   const [showInput, setShowInput] = useState(false);
   const [showMessageModal, setShowMessageModal] = useState(false);
+  const [locationData, setLocationData] = useState(null); // GPS location data
 
   const { reqData } = useRealtime();
 
@@ -248,9 +251,30 @@ const Home = () => {
     // setShowCallPicker(false);
     // setCallstep(1); // now in "Calling for help..." state
     // setCallRequested(true);
+      
     try {
       setShowCallPicker(false); // close modal
       setSelectedContact(contact);
+
+      const {status} = await Location.requestForegroundPermissionsAsync()
+      if(status !== "granted"){
+        Alert.alert("Permission denied!", "Location access is required to proceed.")
+        return
+      }
+
+      const currentLoc = await Location.getCurrentPositionAsync({})
+      const {latitude, longitude} = currentLoc.coords
+      console.log("User loc: ", latitude, longitude)
+
+      const {error: currentErr } = await supabase
+      .from('address')
+      .update({
+        currentCoords: `${latitude},${longitude}`
+      })
+      .eq("userID", user.id)
+      if(currentErr){
+        console.error("Error in updating current loc in call btn: ", currentErr);
+      }
 
       // open dialer
       const phoneUrl = `tel:${contact.number}`;
@@ -319,6 +343,16 @@ const Home = () => {
     } = await supabase.auth.getUser();
     if (userError) {
       console.error("Error fetching auth user: ", userError);
+    }
+
+    const {error: currentErr } = await supabase
+      .from('address')
+      .update({
+        currentCoords: null
+      })
+      .eq("userID", user.id)
+    if(currentErr){
+      console.error("Error in updating current loc in call btn: ", currentErr);
     }
 
     const { data, error } = await supabase

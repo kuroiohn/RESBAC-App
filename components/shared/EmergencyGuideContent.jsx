@@ -1,4 +1,14 @@
-import { ScrollView, StyleSheet, Image, View, Pressable } from "react-native";
+import {
+  ScrollView,
+  StyleSheet,
+  Image,
+  View,
+  Pressable,
+  Linking,
+  TouchableOpacity,
+  Platform,
+  Text,
+} from "react-native";
 
 import Spacer from "../../components/Spacer";
 import ThemedText from "../../components/ThemedText";
@@ -83,6 +93,41 @@ const EmergencyGuideContent = () => {
           dest={[14.66, 121.12]} // evac center location
           safePopupTitle='Evacuation Center'
         />
+
+        {/* iPhone-style "Send Alert via SMS" card */}
+        {!session && (
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => {
+              const phoneNumber = "161";
+              const message = "This is an emergency. Please send help!";
+              const url = `sms:${phoneNumber}${
+                Platform.OS === "ios" ? "&" : "?"
+              }body=${encodeURIComponent(message)}`;
+              Linking.openURL(url).catch((err) =>
+                console.error("Failed to open SMS app:", err)
+              );
+            }}
+            style={styles.iosAlertCard}
+          >
+            <View style={styles.iosAlertContent}>
+              <View style={styles.iosAlertIconWrapper}>
+                <View style={styles.iosAlertGradient}>
+                  <Text style={styles.iosAlertIcon}>🚨</Text>
+                </View>
+              </View>
+              <View style={styles.iosAlertTextWrapper}>
+                <Text style={styles.iosAlertTitle}>Send Emergency Message</Text>
+                <Text style={styles.iosAlertSubtitle}>
+                  Tap to message emergency services via SMS.
+                </Text>
+              </View>
+            </View>
+          </TouchableOpacity>
+        )}
+
+        <Spacer height={20} />
+
         {/* What to Pack */}
         <ThemedText style={styles.textBlue}>
           What to pack in a Go-Bag?
@@ -234,5 +279,57 @@ const styles = StyleSheet.create({
     resizeMode: "contain",
     paddingHorizontal: 5,
     marginBottom: -15,
+  },
+  iosAlertCard: {
+    width: "100%",
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    paddingVertical: 18,
+    paddingHorizontal: 16,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 3 },
+    shadowRadius: 6,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: "#f2f2f2",
+  },
+  iosAlertContent: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  iosAlertIconWrapper: {
+    marginRight: 14,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  iosAlertGradient: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "#ff3b30", // solid Apple red
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#ff3b30",
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 5,
+  },
+
+  iosAlertIcon: {
+    fontSize: 22,
+  },
+  iosAlertTextWrapper: {
+    flex: 1,
+  },
+  iosAlertTitle: {
+    fontSize: 17,
+    fontWeight: "700",
+    color: "#000",
+  },
+  iosAlertSubtitle: {
+    fontSize: 14,
+    color: "#6b6b6b",
+    marginTop: 2,
   },
 });

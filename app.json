@@ -1,7 +1,5 @@
 {
-  "scheme": [
-    "resbacapp"
-  ],
+  "scheme": ["resbacapp"],
   "name": "RESBAC",
   "slug": "RESBAC1",
   "version": "1.0.0",
@@ -34,10 +32,7 @@
             "host": "m.me"
           }
         ],
-        "category": [
-          "BROWSABLE",
-          "DEFAULT"
-        ]
+        "category": ["BROWSABLE", "DEFAULT"]
       }
     ]
   },
@@ -48,13 +43,15 @@
     "expo-router",
     "expo-font",
     "expo-sqlite",
-    ["expo-notifications",
-    {
-      "icon": "./assets/notif-icon.png",
-      "color": "#0060ff",
-      "androidMode": "default",
-      "androidCollapsedTitle": "RESBAC Alert"
-    }]
+    [
+      "expo-notifications",
+      {
+        "icon": "./assets/notif-icon.png",
+        "color": "#0060ff",
+        "androidMode": "default",
+        "androidCollapsedTitle": "RESBAC Alert"
+      }
+    ]
   ],
   "extra": {
     "router": {},
@@ -63,10 +60,6 @@
     }
   },
   "sdkVersion": "54.0.0",
-  "platforms": [
-    "ios",
-    "android",
-    "web"
-  ],
+  "platforms": ["ios", "android", "web"],
   "owner": "lukewarmraven"
 }

@@ -331,12 +331,14 @@ const Profile = () => {
       .eq("userID", user.id)
       .single();
     
-      // const decFirstName = await decryptData(data.firstName)
+    const decFirstName = await decryptData(data.firstName)
+    const decMiddleName = await decryptData(data.middleName)
+    const decSurname = await decryptData(data.surname)
 
     setUserData({
-      firstName: data.firstName || "",
-      middleName: data.middleName || "",
-      surname: data.surname || "",
+      firstName: decFirstName || "",
+      middleName: decMiddleName || "",
+      surname: decSurname || "",
       dob: data.dateOfBirth || "",
       age: data.age || 0,
       sex: data.sex || "",
@@ -841,13 +843,15 @@ const Profile = () => {
       const newAge = differenceInYears(new Date(), new Date(userData.dob));
 
       // Update user table ############################################
-      const encFirstName = await encryptData(userData.firstName)
+      const encFirstName = encryptData(userData.firstName)
+      const encMiddleName = encryptData(userData.middleName)
+      const encSurname = encryptData(userData.surname)
       await supabase
         .from("user")
         .update({
           firstName: encFirstName,
-          middleName: userData.middleName,
-          surname: userData.surname,
+          middleName: encMiddleName,
+          surname: encSurname,
           age: newAge,
           sex: userData.sex,
           dateOfBirth: userData.dob,

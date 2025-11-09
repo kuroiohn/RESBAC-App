@@ -25,6 +25,7 @@ import { decode as atob, encode as btoa } from "base-64";
 import { ImageManipulator, SaveFormat } from "expo-image-manipulator";
 import Logo from "../../assets/RESBACLogo.png";
 import TitleText from "../../components/TitleText";
+import { encryptData } from "../../utils/encryption";
 
 export default function uploadID() {
   let pregnantID = null; // not insecure, its sandwiched anyways
@@ -263,6 +264,10 @@ export default function uploadID() {
     }
 
     setIsCreating(true);
+
+    //ANCHOR -  encrypt data here
+    // create variable of encrypted data
+
 
     //ANCHOR - INSERT TO SUPA
     try {
@@ -641,11 +646,13 @@ export default function uploadID() {
         throw new Error("Failed to create verification record");
       }
 
+      //ANCHOR - testing encryption
+      const encFirstName = encryptData(completeUserData.firstName)
       const { error: userError } = await supabase
         .from("user")
         .insert({
           userID: authResult.user.id,
-          firstName: completeUserData.firstName || "Unknown",
+          firstName: encFirstName || "Unknown",
           middleName: completeUserData.middleName || "",
           surname: completeUserData.surname || "User",
           sex: completeUserData.sex || "",

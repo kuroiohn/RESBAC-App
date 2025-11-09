@@ -41,6 +41,7 @@ import DropDownPicker from "react-native-dropdown-picker";
 import { MaterialIcons } from "@expo/vector-icons";
 import StreetDropdown from "../../components/StreetDropdown";
 import BarangayDropdown from "../../components/BarangayDropdown";
+import { decryptData, encryptData } from "../../utils/encryption";
 
 const Profile = () => {
   const { user, logout } = useUser();
@@ -329,6 +330,8 @@ const Profile = () => {
       .select("*")
       .eq("userID", user.id)
       .single();
+    
+      // const decFirstName = await decryptData(data.firstName)
 
     setUserData({
       firstName: data.firstName || "",
@@ -838,10 +841,11 @@ const Profile = () => {
       const newAge = differenceInYears(new Date(), new Date(userData.dob));
 
       // Update user table ############################################
+      const encFirstName = await encryptData(userData.firstName)
       await supabase
         .from("user")
         .update({
-          firstName: userData.firstName,
+          firstName: encFirstName,
           middleName: userData.middleName,
           surname: userData.surname,
           age: newAge,

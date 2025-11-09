@@ -10,7 +10,8 @@ import {
   Dimensions,
   Platform,
 } from "react-native";
-import MapView, { Marker } from "react-native-maps";
+import { WebView } from "react-native-webview";
+import { GOOGLE_MAPS_API_KEY } from "@env";
 
 import * as Location from "expo-location";
 import { Ionicons } from "@expo/vector-icons";
@@ -233,22 +234,64 @@ const LocationPermissionInput = ({
 
           {currentLocation && (
             <View style={{ flex: 1 }}>
-              <MapView
+              <WebView
                 style={{ flex: 1 }}
-                initialRegion={{
-                  latitude: currentLocation.latitude,
-                  longitude: currentLocation.longitude,
-                  latitudeDelta: 0.01,
-                  longitudeDelta: 0.01,
+                originWhitelist={["*"]}
+                javaScriptEnabled
+                domStorageEnabled
+                onMessage={(event) => {
+                  const data = JSON.parse(event.nativeEvent.data);
+                  if (data.type === "centerChanged") {
+                    setCurrentLocation({
+                      latitude: data.lat,
+                      longitude: data.lng,
+                    });
+                  }
                 }}
-                onRegionChangeComplete={(region) => {
-                  setCurrentLocation({
-                    latitude: region.latitude,
-                    longitude: region.longitude,
-                  });
+                source={{
+                  html: `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <script src="https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}"></script>
+          <style>
+            html, body, #map { height: 100%; margin: 0; padding: 0; }
+            #pin {
+              position: absolute;
+              top: 50%;
+              left: 50%;
+              transform: translate(-50%, -100%);
+              font-size: 40px;
+              color: red;
+              z-index: 999;
+              pointer-events: none;
+            }
+          </style>
+        </head>
+        <body>
+          <div id="map"></div>
+          <div id="pin">📍</div>
+          <script>
+            const map = new google.maps.Map(document.getElementById('map'), {
+              center: { lat: ${currentLocation.latitude}, lng: ${currentLocation.longitude} },
+              zoom: 16,
+              disableDefaultUI: true,
+            });
+
+            map.addListener("idle", () => {
+              const c = map.getCenter();
+              window.ReactNativeWebView.postMessage(JSON.stringify({
+                type: "centerChanged",
+                lat: c.lat(),
+                lng: c.lng()
+              }));
+            });
+          </script>
+        </body>
+      </html>
+    `,
                 }}
-                provider={MapView.PROVIDER_GOOGLE}
-                showsUserLocation={true}
               />
 
               {/* Center Pin Overlay */}

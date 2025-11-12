@@ -239,6 +239,10 @@ const LocationPermissionInput = ({
                 originWhitelist={["*"]}
                 javaScriptEnabled
                 domStorageEnabled
+                scalesPageToFit={true} //  allow pinch zoom (Android + iOS)
+                nestedScrollEnabled={true} //  smoother scrolling
+                setBuiltInZoomControls={true} //  Android native zoom controls
+                setDisplayZoomControls={false}
                 onMessage={(event) => {
                   const data = JSON.parse(event.nativeEvent.data);
                   if (data.type === "centerChanged") {

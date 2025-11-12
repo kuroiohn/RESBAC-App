@@ -12,6 +12,7 @@ import Constants from "expo-constants";
 import supabase from "../contexts/supabaseClient";
 import {SQLiteProvider} from 'expo-sqlite'
 import * as FileSystem from 'expo-file-system/legacy'
+import 'react-native-get-random-values';
 
 const queryClient = new QueryClient();
 

@@ -31,7 +31,7 @@ const AlertCard = ({ alertLevel = 1 }) => {
       console.error("Error in fetching from local offline storage:", error);
     }
   };
-  console.log("SQLite DB instance:", db);
+  // console.log("SQLite DB instance:", db);
 
   const deleteSqlite = async () => {
     await db.runAsync("delete from alerts");

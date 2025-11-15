@@ -250,7 +250,7 @@ const EvacuationStatusCard = ({ style, ...props }) => {
     if (mark === true) {
       return (
         <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-          <View style={styles.finalButton}>
+          {/* <View style={styles.finalButton}>
             <Text style={styles.buttonTextCentered}>Marked as Safe</Text>
             <Ionicons
               name='checkmark'
@@ -258,7 +258,7 @@ const EvacuationStatusCard = ({ style, ...props }) => {
               color='white'
               style={styles.iconRight}
             />
-          </View>
+          </View> */}
 
           <TouchableOpacity onPress={revertMarkAsSafe}>
             <View

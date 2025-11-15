@@ -130,19 +130,20 @@ const Profile = () => {
   const [isVerified, setIsVerified] = useState(false);
   const [loading, setLoading] = useState(true);
   // no risk level 0 since no area is submerged during alert 1
-  const moderateStreets = [
-    // risk level 1
+  const moderateStreets = [ // risk level 1
     "Bagong Farmers Avenue 1", //
+    "Liwanag Street Area",
+    
+    // di ko alam saan lalagay tong mga to na hindi naman binanggit kaya nandito lang sila sa moderate?
     "Banner Street", //
     "Camia Street", //
     "Cattleya Street", //
     "Crescent Street", //
     "Daisy Street", //
     "Jasmin Street", //
-    "Jewelmark Street", //
+    "Jewelmark Street",  //
     "Katipunan Street", //
     "Lacewing Street", //
-    "Liwanag Street Area",
     "Mil Flores Street", //
     "Monarch Street", //
     "Moscow Street", //
@@ -150,30 +151,59 @@ const Profile = () => {
     "Silverdrop Street", //
     "Sunkist Street", //
     "Swallowtail Street", //
-  ];
+
+    // missing from the orig list, from the updated street list from Mikai
+    "Apple",
+    "Brazil",
+    "Bulalakaw",
+    "Bukang Liwayway",
+    "Cherry",
+    "Damayan Alley",
+    "Del Rosario",
+    "Denmark",
+    // "Farmers Ave. 2", // ???????
+    "Iwahig",
+    "Kalamansi",
+    "Kalabasa",
+    "Kamias",
+    "Kislap",
+    "Kutitap",
+    "Malunggay",
+    "Monaco",
+    "Mustasa",
+    "Nova Scotia",
+    "Orange",
+    "Panganiban",
+    "Patola",
+    "Pechay",
+    "Piling Santos",
+    "Vergara"
+  ]
   const highStreets = [
-    "Angel Santos Street", //
-    "Ilaw Street", //
+    "Ampalaya Street", //
     "Kangkong Street", //
     "Labanos Street", //
-    "Palay Street", //
+    "Road Dike",
     "Upo Street", //
-  ];
-  const criticalStreets = [
-    "Ampalaya Street", //
     "Bagong Farmers Avenue 2", //
-    "Ilaw Street", //
     "Mais Street", //
-    "Pipino Street", //
     "Road 1",
     "Road 2",
     "Road 3",
     "Road 4",
     "Road 5",
-    "Road Dike",
     "Singkamas Street", //
     "Talong Street", //
-  ];
+  ]
+  const criticalStreets = [
+    "Angel Santos Street", //
+    "Ilaw Street", //
+    "Palay Street", //
+    "Pipino Street", //
+    "Kangkong Street", //
+    "Labanos Street", //
+    "Upo Street", //
+  ]
 
   // const [isEditing, setIsEditing] = useState(false);
   const [editingSections, setEditingSections] = useState({

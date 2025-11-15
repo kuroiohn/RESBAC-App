@@ -109,6 +109,55 @@ const EvacuationStatusCard = ({ style, ...props }) => {
     if (error) {
       console.error("Error in updating mark as safe", error);
     }
+
+    const { data: vul } = await supabase
+      .from("vulnerability")
+      .select(
+        `
+          id,
+          vulnerabilityList (
+              id,
+              elderly,
+              pregnantInfant,
+              physicalPWD,
+              psychPWD,
+              sensoryPWD,
+              medDep,
+              locationRiskLevel
+          )
+        `
+      )
+      .eq("userID", user.id)
+      .single()
+
+    const {data: address} = await supabase
+      .from('address')
+      .select('streetName')
+      .eq("userID", user.id)
+      .single()
+
+    const { error: logError } = await supabase
+      .from('activityLogs')
+      .insert({
+        activityType: "markSafe",
+        userType: "user",
+        log: {
+          active: new Date(),
+          streetName: address?.streetName ?? "Unknown",
+          vulData: {
+            elderly: vul?.vulnerabilityList?.elderly ?? "Unknown",
+            pregnant: vul?.vulnerabilityList?.pregnantInfant[0] ?? "Unknown",
+            infant: vul?.vulnerabilityList?.pregnantInfant[1] ?? "Unknown",
+            physicalPWD: !!vul?.vulnerabilityList?.physicalPWD ? true : false,
+            psychPWD: !!vul?.vulnerabilityList?.psychPWD ? true : false,
+            sensoryPWD: !!vul?.vulnerabilityList?.sensoryPWD ? true : false,
+            medDep: !!vul?.vulnerabilityList?.medDep ? true : false,
+          }
+        },
+      })
+      if(logError){
+        console.error("Error in logging activity in idinfo: ", logError);        
+      } 
   };
 
   // ##########################################

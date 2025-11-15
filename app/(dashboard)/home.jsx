@@ -309,6 +309,58 @@ const Home = () => {
         })
         .eq("userID", user.id);
 
+      const { data: vul } = await supabase
+        .from("vulnerability")
+        .select(
+          `
+            id,
+            vulnerabilityList (
+                id,
+                elderly,
+                pregnantInfant,
+                physicalPWD,
+                psychPWD,
+                sensoryPWD,
+                medDep,
+                locationRiskLevel
+            )
+          `
+        )
+        .eq("userID", user.id)
+        .single()
+
+      const {data: addressData} = await supabase
+      .from('address')
+      .select('streetName')
+      .eq('userID', user.id)
+      .single()
+
+      const { error: logError } = await supabase
+      .from('activityLogs')
+      .insert({
+        activityType: "callBtn",
+        userType: "user",
+        log: {
+          time: new Date(now.getTime() - now.getTimezoneOffset() * 60000)
+              .toISOString()
+              .slice(0, -1),
+          number: contact.number,
+          streetName: addressData?.streetName,
+          vulData: {
+            elderly: vul?.vulnerabilityList?.elderly ?? "Unknown",
+            pregnant: vul?.vulnerabilityList?.pregnantInfant[0] ?? "Unknown",
+            infant: vul?.vulnerabilityList?.pregnantInfant[1] ?? "Unknown",
+            physicalPWD: !!vul?.vulnerabilityList?.physicalPWD ? true : false,
+            psychPWD: !!vul?.vulnerabilityList?.psychPWD ? true : false,
+            sensoryPWD: !!vul?.vulnerabilityList?.sensoryPWD ? true : false,
+            medDep: !!vul?.vulnerabilityList?.medDep ? true : false,
+          }
+        } 
+      })
+      if(logError){
+        console.error("Error in logging activity: ", logError);        
+      } 
+
       if (reqCallError) {
         console.error("Error updating call button: ", reqCallError);
       }
@@ -496,7 +548,7 @@ const Home = () => {
                   style={styles.cancelRescueBtn}
                 >
                   <Text style={styles.cancelRescueBtnText}>
-                    Cancel Rescue Request
+                    Cancel Request
                   </Text>
                 </TouchableOpacity>
               )}

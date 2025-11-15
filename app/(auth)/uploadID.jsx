@@ -39,6 +39,9 @@ export default function uploadID() {
   // no risk level 0 since no area is submerged during alert 1
   const moderateStreets = [ // risk level 1
     "Bagong Farmers Avenue 1", //
+    "Liwanag Street Area",
+    
+    // di ko alam saan lalagay tong mga to na hindi naman binanggit kaya nandito lang sila sa moderate?
     "Banner Street", //
     "Camia Street", //
     "Cattleya Street", //
@@ -48,7 +51,6 @@ export default function uploadID() {
     "Jewelmark Street",  //
     "Katipunan Street", //
     "Lacewing Street", //
-    "Liwanag Street Area",
     "Mil Flores Street", //
     "Monarch Street", //
     "Moscow Street", //
@@ -57,29 +59,57 @@ export default function uploadID() {
     "Sunkist Street", //
     "Swallowtail Street", //
 
+    // missing from the orig list, from the updated street list from Mikai
+    "Apple",
+    "Brazil",
+    "Bulalakaw",
+    "Bukang Liwayway",
+    "Cherry",
+    "Damayan Alley",
+    "Del Rosario",
+    "Denmark",
+    // "Farmers Ave. 2", // ???????
+    "Iwahig",
+    "Kalamansi",
+    "Kalabasa",
+    "Kamias",
+    "Kislap",
+    "Kutitap",
+    "Malunggay",
+    "Monaco",
+    "Mustasa",
+    "Nova Scotia",
+    "Orange",
+    "Panganiban",
+    "Patola",
+    "Pechay",
+    "Piling Santos",
+    "Vergara"
   ]
   const highStreets = [
-    "Angel Santos Street", //
-    "Ilaw Street", //
+    "Ampalaya Street", //
     "Kangkong Street", //
     "Labanos Street", //
-    "Palay Street", //
-    "Upo Street" //
-  ]
-  const criticalStreets = [
-    "Ampalaya Street", //
+    "Road Dike",
+    "Upo Street", //
     "Bagong Farmers Avenue 2", //
-    "Ilaw Street", //
     "Mais Street", //
-    "Pipino Street", //
     "Road 1",
     "Road 2",
     "Road 3",
     "Road 4",
     "Road 5",
-    "Road Dike",
     "Singkamas Street", //
     "Talong Street", //
+  ]
+  const criticalStreets = [
+    "Angel Santos Street", //
+    "Ilaw Street", //
+    "Palay Street", //
+    "Pipino Street", //
+    "Kangkong Street", //
+    "Labanos Street", //
+    "Upo Street", //
   ]
 
   // Parse all the collected user data
@@ -295,7 +325,7 @@ export default function uploadID() {
 
       // Get clean location data
       const locationData = getCleanLocationData(completeUserData);
-      // console.log("Clean location data:", locationData);
+      console.log("Clean location data:", locationData);
 
       // Create address record
       const { data: addressData, error: addressError } = await supabase
@@ -647,12 +677,12 @@ export default function uploadID() {
       }
 
       //ANCHOR - testing encryption
-      const encFirstName = encryptData(completeUserData.firstName)
+      // const encFirstName = encryptData(completeUserData.firstName)
       const { error: userError } = await supabase
         .from("user")
         .insert({
           userID: authResult.user.id,
-          firstName: encFirstName || "Unknown",
+          firstName: completeUserData.firstName || "Unknown",
           middleName: completeUserData.middleName || "",
           surname: completeUserData.surname || "User",
           sex: completeUserData.sex || "",
@@ -698,7 +728,22 @@ export default function uploadID() {
         console.error("Error in login after registration: ", loginError);
       }
       const currentUser = loginData.user;
+      const userID = currentUser.id;
 
+      const { error: logError } = await supabase
+        .from('activityLogs')
+        .insert({
+          activityType: "registration",
+          userType: "user",
+          log: {
+            created_at: new Date()
+          },
+          userID: userID
+        })
+        if(logError){
+          console.error("Error in logging activity: ", logError);        
+        } 
+        
       // console.log("Current user: ", currentUser);
       // console.log("Final user data:", finalUserData);
 

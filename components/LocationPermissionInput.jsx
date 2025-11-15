@@ -10,11 +10,12 @@ import {
   Dimensions,
   Platform,
 } from "react-native";
-import { WebView } from "react-native-webview";
 import { GOOGLE_MAPS_API_KEY } from "@env";
+import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 
 import * as Location from "expo-location";
 import { Ionicons } from "@expo/vector-icons";
+import { Animated } from "react-native";
 
 const { width, height } = Dimensions.get("window");
 
@@ -29,6 +30,7 @@ const LocationPermissionInput = ({
   const [showMap, setShowMap] = useState(false);
   const [currentLocation, setCurrentLocation] = useState(null);
   const [isGettingAddress, setIsGettingAddress] = useState(false);
+  const [pinAnim] = useState(new Animated.Value(0));
 
   const requestLocationPermission = async () => {
     if (disabled) return;
@@ -234,70 +236,71 @@ const LocationPermissionInput = ({
 
           {currentLocation && (
             <View style={{ flex: 1 }}>
-              <WebView
-                style={{ flex: 1 }}
-                originWhitelist={["*"]}
-                javaScriptEnabled
-                domStorageEnabled
-                onMessage={(event) => {
-                  const data = JSON.parse(event.nativeEvent.data);
-                  if (data.type === "centerChanged") {
+              {currentLocation && (
+                <MapView
+                  provider={PROVIDER_GOOGLE}
+                  style={{ flex: 1 }}
+                  initialRegion={{
+                    latitude: currentLocation.latitude,
+                    longitude: currentLocation.longitude,
+                    latitudeDelta: 0.01,
+                    longitudeDelta: 0.01,
+                  }}
+                  showsUserLocation={true}
+                  showsMyLocationButton={true}
+                  onRegionChange={() => {
+                    Animated.spring(pinAnim, {
+                      toValue: -10,
+                      useNativeDriver: true,
+                      friction: 3,
+                    }).start();
+                  }}
+                  onRegionChangeComplete={(region) => {
                     setCurrentLocation({
-                      latitude: data.lat,
-                      longitude: data.lng,
+                      latitude: region.latitude,
+                      longitude: region.longitude,
                     });
-                  }
-                }}
-                source={{
-                  html: `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <script src="https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}"></script>
-          <style>
-            html, body, #map { height: 100%; margin: 0; padding: 0; }
-            #pin {
-              position: absolute;
-              top: 50%;
-              left: 50%;
-              transform: translate(-50%, -100%);
-              font-size: 40px;
-              color: red;
-              z-index: 999;
-              pointer-events: none;
-            }
-          </style>
-        </head>
-        <body>
-          <div id="map"></div>
-          <div id="pin">📍</div>
-          <script>
-            const map = new google.maps.Map(document.getElementById('map'), {
-              center: { lat: ${currentLocation.latitude}, lng: ${currentLocation.longitude} },
-              zoom: 16,
-              disableDefaultUI: true,
-            });
+                    Animated.spring(pinAnim, {
+                      toValue: 0,
+                      useNativeDriver: true,
+                      friction: 3,
+                    }).start();
+                  }}
+                />
+              )}
 
-            map.addListener("idle", () => {
-              const c = map.getCenter();
-              window.ReactNativeWebView.postMessage(JSON.stringify({
-                type: "centerChanged",
-                lat: c.lat(),
-                lng: c.lng()
-              }));
-            });
-          </script>
-        </body>
-      </html>
-    `,
-                }}
-              />
+              {/* Fixed Center Pin Overlay */}
+              <Animated.View
+                style={[
+                  styles.pinContainer,
+                  { transform: [{ translateX: -20 }, { translateY: pinAnim }] },
+                ]}
+              >
+                <Ionicons name='location-sharp' size={40} color='#ff3b30' />
+              </Animated.View>
 
-              {/* Center Pin Overlay */}
-              <View pointerEvents='none' style={styles.pinContainer}>
-                <Ionicons name='location-sharp' size={40} color='#FF0000' />
+              {/* Coordinates display (optional for debugging) */}
+              <View style={styles.coordOverlay}>
+                <Text style={styles.coordText}>
+                  {currentLocation?.latitude.toFixed(6)},{" "}
+                  {currentLocation?.longitude.toFixed(6)}
+                </Text>
               </View>
+
+              {/* Recenter button */}
+              <TouchableOpacity
+                style={styles.recenterButton}
+                onPress={async () => {
+                  const location = await Location.getCurrentPositionAsync({});
+                  setCurrentLocation({
+                    latitude: location.coords.latitude,
+                    longitude: location.coords.longitude,
+                  });
+                }}
+              >
+                <Ionicons name='navigate' size={18} color='#fff' />
+                <Text style={{ color: "#fff", marginLeft: 6 }}>Recenter</Text>
+              </TouchableOpacity>
             </View>
           )}
 
@@ -500,6 +503,47 @@ const styles = StyleSheet.create({
     marginTop: -40, // lift the pin so the point touches the map center
     zIndex: 10,
     transform: [{ translateY: -10 }],
+  },
+  recenterButton: {
+    position: "absolute",
+    bottom: 100,
+    right: 20,
+    backgroundColor: "#0060ff",
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 30,
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  pinContainer: {
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    transform: [{ translateX: -20 }, { translateY: -40 }],
+    zIndex: 10,
+  },
+
+  coordOverlay: {
+    position: "absolute",
+    top: 90,
+    alignSelf: "center",
+    backgroundColor: "rgba(255,255,255,0.9)",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+  },
+
+  coordText: {
+    fontSize: 13,
+    color: "#333",
+    fontFamily: Platform.OS === "ios" ? "Courier" : "monospace",
   },
 });
 

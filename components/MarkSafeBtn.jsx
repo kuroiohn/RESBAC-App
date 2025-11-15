@@ -160,6 +160,32 @@ const EvacuationStatusCard = ({ style, ...props }) => {
       } 
   };
 
+  const revertMarkAsSafe = async () => {
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError) {
+      console.error("Error fetching auth user: ", userError);
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("user")
+      .update({ markAsSafe: null })
+      .eq("userID", user.id)
+      .select();
+
+    if (error) {
+      console.error("Error reverting mark as safe", error);
+    } else {
+      console.log("Mark as Safe reverted:", data);
+      setMark(false);
+      setStep(0);
+    }
+  };
+
   // ##########################################
   console.log("markAsSafe:", mark, "Step: ", step);
 
@@ -220,17 +246,27 @@ const EvacuationStatusCard = ({ style, ...props }) => {
   const renderButton = () => {
     const label = getButtonLabel();
 
-    // Step 2 (final): green button with check icon, centered
+    // Step 2 (final): green button with check icon + revert option
     if (mark === true) {
       return (
-        <View style={styles.finalButton}>
-          <Text style={styles.buttonTextCentered}>{label}</Text>
-          <Ionicons
-            name='checkmark'
-            size={18}
-            color='white'
-            style={styles.iconRight}
-          />
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+          <View style={styles.finalButton}>
+            <Text style={styles.buttonTextCentered}>Marked as Safe</Text>
+            <Ionicons
+              name='checkmark'
+              size={18}
+              color='white'
+              style={styles.iconRight}
+            />
+          </View>
+
+          <TouchableOpacity onPress={revertMarkAsSafe}>
+            <View
+              style={[styles.finalButton, { backgroundColor: "#e3637aff" }]}
+            >
+              <Text style={styles.buttonTextCentered}>Cancel</Text>
+            </View>
+          </TouchableOpacity>
         </View>
       );
     }

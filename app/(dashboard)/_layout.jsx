@@ -4,10 +4,18 @@ import { Colors } from "../../constants/Colors";
 import TopBar from "../../components/TopBar";
 import { Ionicons } from "@expo/vector-icons";
 import UserOnly from "../../components/auth/UserOnly";
+import { useRealtime } from "../../contexts/RealtimeProvider";
 
 const DashboardLayout = () => {
   const colorScheme = useColorScheme();
   const theme = Colors[colorScheme] ?? Colors.light;
+
+  const { alertsData } = useRealtime(); // get realtime alerts from context
+
+  // compute active alerts count
+  const activeAlertsCount = alertsData
+    ? alertsData.filter((a) => a.isActive === true).length
+    : 0;
 
   return (
     <UserOnly>
@@ -38,10 +46,24 @@ const DashboardLayout = () => {
           }}
         />
 
+        {/* Alerts tab */}
         <Tabs.Screen
           name='alerts'
           options={{
             title: "Alerts",
+            tabBarBadge: activeAlertsCount > 0 ? activeAlertsCount : undefined, // show badge only if > 0
+            tabBarBadgeStyle: {
+              backgroundColor: "red",
+              position: "absolute",
+              right: 0, // move right
+              top: 0,
+              minWidth: 18,
+              height: 18,
+              borderRadius: 9,
+              fontSize: 11,
+              textAlign: "center",
+              fontWeight: "bold",
+            },
             tabBarIcon: ({ focused }) => (
               <Ionicons
                 size={24}

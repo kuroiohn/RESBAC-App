@@ -17,6 +17,11 @@
       "foregroundImage": "./assets/icon.png",
       "backgroundColor": "#ffffff"
     },
+    "config": {
+      "googleMaps": {
+        "apiKey": "AIzaSyCd1cjMDWiM_figEfLKqG5y8wMlzlWvofg"
+      }
+    },
     "edgeToEdgeEnabled": true,
     "package": "com.lukewarmraven.resbac",
     "googleServicesFile": "./google-services.json",
@@ -43,6 +48,7 @@
     "expo-router",
     "expo-font",
     "expo-sqlite",
+    "./plugins/removeDuplicateAttrs.js",
     [
       "expo-notifications",
       {

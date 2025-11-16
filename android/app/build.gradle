@@ -130,6 +130,9 @@ android {
     androidResources {
         ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:!CVS:!thumbs.db:!picasa.ini:!*~'
     }
+    lint {
+        baseline = file("lint-baseline.xml")
+    }
 }
 
 // Apply static values from `gradle.properties` to the `android.packagingOptions`

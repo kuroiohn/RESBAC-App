@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   Linking,
+  Platform,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Phone } from "lucide-react-native";
@@ -15,29 +16,32 @@ import { useEffect, useState } from "react";
 
 export default function RescuerCard() {
   const { emerPData } = useRealtime();
-  const db = useSQLiteContext()
-  const [local,setLocal] = useState([])
+  const db = useSQLiteContext();
+  const [local, setLocal] = useState([]);
 
   const loadUsers = async () => {
     try {
       const results = await db.getAllAsync(`select * from rescuers`);
-      setLocal(results)
-    } catch (error){
-      console.error("Error in fetching from local offline storage rescuers:", error);
+      setLocal(results);
+    } catch (error) {
+      console.error(
+        "Error in fetching from local offline storage rescuers:",
+        error
+      );
     }
-  }
+  };
   console.log("SQLite DB instance:", db);
 
-  const deleteSqlite = async () =>{
-    await db.runAsync('delete from rescuers')
-  }
+  const deleteSqlite = async () => {
+    await db.runAsync("delete from rescuers");
+  };
 
   useEffect(() => {
     if (!db || !emerPData) return;
 
     const insertData = async () => {
       try {
-        await db.runAsync('delete from rescuers')
+        await db.runAsync("delete from rescuers");
 
         for (const item of emerPData) {
           // Check if the row exists
@@ -50,13 +54,29 @@ export default function RescuerCard() {
             // Update existing row
             await db.runAsync(
               `UPDATE rescuers SET created_at = ?, emerPNumber = ?, emerPRole = ?, emerPBrgy = ?, emerPMessLink = ?, emerPImage = ?  WHERE emerPName = ?`,
-              [item.emerPName, item.created_at, item.emerPNumber, item.emerPRole,item.emerPBrgy, item.emerPMessLink, item.emerPImage]
+              [
+                item.emerPName,
+                item.created_at,
+                item.emerPNumber,
+                item.emerPRole,
+                item.emerPBrgy,
+                item.emerPMessLink,
+                item.emerPImage,
+              ]
             );
           } else {
             // Insert new row
             await db.runAsync(
               `INSERT INTO rescuers (emerPName, created_at, emerPNumber, emerPRole, emerPBrgy, emerPMessLink, emerPImage) VALUES (?,?,?,?,?,?,?)`,
-              [item.emerPName, item.created_at, item.emerPNumber, item.emerPRole,item.emerPBrgy, item.emerPMessLink, item.emerPImage]
+              [
+                item.emerPName,
+                item.created_at,
+                item.emerPNumber,
+                item.emerPRole,
+                item.emerPBrgy,
+                item.emerPMessLink,
+                item.emerPImage,
+              ]
             );
           }
         }
@@ -72,10 +92,10 @@ export default function RescuerCard() {
     insertData();
   }, [db, emerPData]);
 
-  useEffect(()=> {
+  useEffect(() => {
     // deleteSqlite()
-    loadUsers()
-  },[])
+    loadUsers();
+  }, []);
 
   const handleContactBtn = async (number) => {
     if (number) {
@@ -104,15 +124,32 @@ export default function RescuerCard() {
             style={styles.gradient}
           >
             <View style={styles.card}>
-              {renderData === local &&
-                <Text>Local</Text>}
+              {/*  Floating SMS Icon */}
+              <TouchableOpacity
+                style={styles.smsFloatingBtn}
+                onPress={() => {
+                  const phoneNumber = emerP.emerPNumber || "161";
+                  const message = "This is an emergency. Please send help!";
+                  const url = `sms:${phoneNumber}${
+                    Platform.OS === "ios" ? "&" : "?"
+                  }body=${encodeURIComponent(message)}`;
+                  Linking.openURL(url);
+                }}
+              >
+                <Ionicons
+                  name='chatbubble-ellipses-outline'
+                  size={14}
+                  color='#0060FF'
+                />
+              </TouchableOpacity>
+              {renderData === local && <Text>Local</Text>}
               {/* Top Row: Image + Info */}
               <View style={styles.topRow}>
                 <Image
                   source={
                     emerP.emerPImage
                       ? { uri: emerP.emerPImage }
-                      : require("../assets/icon.png") // 👈 placeholder
+                      : require("../assets/icon.png") //  placeholder
                   }
                   style={styles.profileImage}
                   resizeMode='cover'
@@ -137,7 +174,7 @@ export default function RescuerCard() {
 
               {/* Bottom: Buttons (Same Row) */}
               <View style={styles.buttonsRow}>
-                {/* 📞 Call Button with number */}
+                {/*  Call Button with number */}
                 <TouchableOpacity
                   activeOpacity={0.8}
                   onPress={() => handleContactBtn(emerP.emerPNumber)}
@@ -153,7 +190,7 @@ export default function RescuerCard() {
                   <Text style={styles.callText}>Call</Text>
                 </TouchableOpacity>
 
-                {/* 💬 Message Button */}
+                {/*  Message Button */}
                 <TouchableOpacity
                   activeOpacity={0.8}
                   onPress={() => handleMsgBtn(emerP.emerPMessLink)}
@@ -204,7 +241,7 @@ const styles = StyleSheet.create({
   profileImage: {
     width: 60,
     height: 60,
-    borderRadius: 30, // 👈 circle
+    borderRadius: 30, //  circle
     backgroundColor: "#e5e7eb",
     marginRight: 12,
   },
@@ -270,5 +307,25 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingHorizontal: 12,
     paddingBottom: 12,
+  },
+
+  smsFloatingBtn: {
+    position: "absolute",
+    top: 8,
+    right: 8,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: "#e8f0ff",
+    justifyContent: "center",
+    alignItems: "center",
+
+    // subtle shadow for iOS + Android
+    shadowColor: "#000",
+    shadowOpacity: 0.15,
+    shadowRadius: 2,
+    shadowOffset: { width: 0, height: 1 },
+    elevation: 3,
+    zIndex: 20,
   },
 });

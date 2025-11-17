@@ -4,6 +4,11 @@
     "appVersionSource": "remote"
   },
   "build": {
+     "android": {
+      "env": {
+        "ANDROID_SDK_ROOT": "/home/expo/android-sdk" 
+      }
+    },
     "development": {
       "developmentClient": true,
       "distribution": "internal",

@@ -128,36 +128,34 @@ const EvacuationStatusCard = ({ style, ...props }) => {
         `
       )
       .eq("userID", user.id)
-      .single()
+      .single();
 
-    const {data: address} = await supabase
-      .from('address')
-      .select('streetName')
+    const { data: address } = await supabase
+      .from("address")
+      .select("streetName")
       .eq("userID", user.id)
-      .single()
+      .single();
 
-    const { error: logError } = await supabase
-      .from('activityLogs')
-      .insert({
-        activityType: "markSafe",
-        userType: "user",
-        log: {
-          active: new Date(),
-          streetName: address?.streetName ?? "Unknown",
-          vulData: {
-            elderly: vul?.vulnerabilityList?.elderly ?? "Unknown",
-            pregnant: vul?.vulnerabilityList?.pregnantInfant[0] ?? "Unknown",
-            infant: vul?.vulnerabilityList?.pregnantInfant[1] ?? "Unknown",
-            physicalPWD: !!vul?.vulnerabilityList?.physicalPWD ? true : false,
-            psychPWD: !!vul?.vulnerabilityList?.psychPWD ? true : false,
-            sensoryPWD: !!vul?.vulnerabilityList?.sensoryPWD ? true : false,
-            medDep: !!vul?.vulnerabilityList?.medDep ? true : false,
-          }
+    const { error: logError } = await supabase.from("activityLogs").insert({
+      activityType: "markSafe",
+      userType: "user",
+      log: {
+        active: new Date(),
+        streetName: address?.streetName ?? "Unknown",
+        vulData: {
+          elderly: vul?.vulnerabilityList?.elderly ?? "Unknown",
+          pregnant: vul?.vulnerabilityList?.pregnantInfant[0] ?? "Unknown",
+          infant: vul?.vulnerabilityList?.pregnantInfant[1] ?? "Unknown",
+          physicalPWD: !!vul?.vulnerabilityList?.physicalPWD ? true : false,
+          psychPWD: !!vul?.vulnerabilityList?.psychPWD ? true : false,
+          sensoryPWD: !!vul?.vulnerabilityList?.sensoryPWD ? true : false,
+          medDep: !!vul?.vulnerabilityList?.medDep ? true : false,
         },
-      })
-      if(logError){
-        console.error("Error in logging activity in idinfo: ", logError);        
-      } 
+      },
+    });
+    if (logError) {
+      console.error("Error in logging activity in idinfo: ", logError);
+    }
   };
 
   const revertMarkAsSafe = async () => {
@@ -233,9 +231,9 @@ const EvacuationStatusCard = ({ style, ...props }) => {
     return (
       <Image
         source={
-          mark === false
-            ? require("../assets/bell.png")
-            : require("../assets/shield.png")
+          mark
+            ? require("../assets/shield-safe.png") // when marked safe
+            : require("../assets/bell.png") // default
         }
         style={styles.image}
         resizeMode='contain'
@@ -317,7 +315,11 @@ const EvacuationStatusCard = ({ style, ...props }) => {
 
   return (
     <LinearGradient
-      colors={["#0060FF", "rgba(0, 58, 153, 0)"]}
+      colors={
+        mark
+          ? ["#31C48D", "rgba(49, 196, 141, 0)"] // green stroke
+          : ["#0060FF", "rgba(0, 58, 153, 0)"] // blue stroke
+      }
       start={{ x: 0.5, y: 0 }}
       end={{ x: 0.5, y: 1 }}
       style={styles.borderWrapper}

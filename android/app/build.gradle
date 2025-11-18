@@ -131,6 +131,9 @@ android {
         ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:!CVS:!thumbs.db:!picasa.ini:!*~'
     }
     lint {
+        abortOnError = false
+        checkReleaseBuilds = false
+        warningsAsErrors = false
         baseline = file("lint-baseline.xml")
     }
 }

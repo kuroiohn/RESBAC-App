@@ -47,9 +47,9 @@ const Profile = () => {
   const { user, logout } = useUser();
   const queryClient = useQueryClient();
   const router = useRouter();
-  const [open, setOpen] = useState(false);
-  const [openSex, setOpenSex] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
+  // const [open, setOpen] = useState(false);
+  // const [openSex, setOpenSex] = useState(false);
+  // const [menuOpen, setMenuOpen] = useState(false);
   const [openDropdowns, setOpenDropdowns] = useState({}); // dynamic for multiple dropdowns
   const [dropdownValues, setDropdownValues] = useState({
     sex: " ",
@@ -348,6 +348,7 @@ const Profile = () => {
   //reads from supabase
 
   const fetchUserData = async () => {
+    setLoading(true)
     // Get the current logged in user
     const { error: userError } = await supabase.auth.getUser();
     if (userError || !user) {
@@ -361,20 +362,30 @@ const Profile = () => {
       .eq("userID", user.id)
       .single();
 
+    console.log("encrypted:", data);  
+
     //ANCHOR - decryption here
-    // const decFirstName = await decryptData(data.firstName)
-    // const decMiddleName = await decryptData(data.middleName)
-    // const decSurname = await decryptData(data.surname)
+    const [
+      decFirstName,
+      decMiddleName,
+      decSurname,
+      decUserNumber
+    ] = await Promise.all([
+      decryptData(data.firstName),
+      decryptData(data.middleName),
+      decryptData(data.surname),
+      decryptData(data.userNumber)
+    ]);
 
     setUserData({
-      firstName: data.firstName || "",
-      middleName: data.middleName || "",
-      surname: data.surname || "",
+      firstName: decFirstName || "",
+      middleName: decMiddleName || "",
+      surname: decSurname || "",
       dob: data.dateOfBirth || "",
       age: data.age || 0,
       sex: data.sex || "",
       mpin: data.mpin || "",
-      userNumber: data.userNumber || "",
+      userNumber: decUserNumber || "",
       householdSize: data.householdSize || 0,
       addressID: data.addressID || 0,
       hasGuardian: data.hasGuardian || false,
@@ -389,8 +400,10 @@ const Profile = () => {
       console.error("Fetch error in user table: ", error);
     }
     // console.log("Successful fetch", data);
+    setLoading(false)
     return data;
   };
+
   const {
     data: profileData,
     isPending,
@@ -487,6 +500,7 @@ const Profile = () => {
   // console.log("hasGuardian: ", profileData?.hasGuardian);
 
   const fetchGuardianData = async () => {
+    setLoading(true)
     // Get the current logged in user
     const { error: userError } = await supabase.auth.getUser();
     if (userError || !user) {
@@ -500,11 +514,23 @@ const Profile = () => {
       .eq("userID", user.id)
       .single();
 
+    const [
+      decFullName,
+      decRelationship,
+      decGuardianContact,
+      decGuardianAddress
+    ] = await Promise.all([
+      decryptData(data.fullName),
+      decryptData(data.relationship),
+      decryptData(data.guardianContact),
+      decryptData(data.guardianAddress),
+
+    ])
     setUserGuardian({
-      fullName: data.fullName || "",
-      relationship: data.relationship || "",
-      guardianContact: data.guardianContact || "",
-      guardianAddress: data.guardianAddress || "",
+      fullName: decFullName || "",
+      relationship: decRelationship || "",
+      guardianContact: decGuardianContact || "",
+      guardianAddress: decGuardianAddress || "",
       userID: data.userID || "",
     });
 
@@ -512,6 +538,7 @@ const Profile = () => {
       console.error("Fetch error in guardian table: ", error);
     }
     // console.log("Successful fetch", data);
+    setLoading(false)
     return data;
   };
   const { data: guardianData, error: guardianError } = useQuery({

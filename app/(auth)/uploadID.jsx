@@ -410,19 +410,32 @@ export default function uploadID() {
         }
       }
 
+      //ANCHOR - encryption for guardian
+      const [
+        encGuardianName,
+        encRelationship,
+        encGuardianContact,
+        encGuardianAddress
+      ] = await Promise.all([
+        encryptData(completeUserData.vulnerability.guardianInfo.name),
+        encryptData(completeUserData.vulnerability.guardianInfo.relationship),
+        encryptData(completeUserData.vulnerability.guardianInfo.contact),
+        encryptData(completeUserData.vulnerability.guardianInfo.address)
+      ]);
+
       // Create guardian record if guardian exists - with explicit userID
       const guardianData =
         completeUserData.vulnerability?.guardianInfo
           ? await (async () => {
-              const guardian = completeUserData.vulnerability.guardianInfo;
+              // const guardian = completeUserData.vulnerability.guardianInfo;
               const { data: guardianResult, error: guardianError } =
                 await supabase
                   .from("guardian")
                   .insert({
-                    fullName: guardian.name || "Unknown Guardian",
-                    relationship: guardian.relationship || "Unknown",
-                    guardianContact: guardian.contact || "0000000000",
-                    guardianAddress: guardian.address || "Unknown Address",
+                    fullName: encGuardianName || "Unknown Guardian",
+                    relationship: encRelationship || "Unknown",
+                    guardianContact: encGuardianContact || "0000000000",
+                    guardianAddress: encGuardianAddress || "Unknown Address",
                     userID: authResult.user.id,
                   })
                   .select("*")
@@ -676,20 +689,33 @@ export default function uploadID() {
         throw new Error("Failed to create verification record");
       }
 
-      //ANCHOR - testing encryption
-      // const encFirstName = encryptData(completeUserData.firstName)
+      //ANCHOR - encryption
+      const [
+        encFirstName,
+        encMiddleName,
+        encsurname,
+        encUserNumber
+      ] = await Promise.all([
+        encryptData(completeUserData.firstName),
+        encryptData(completeUserData.middleName),
+        encryptData(completeUserData.surname),
+        encryptData(completeUserData.contactNumber)
+      ]);
+      // const encDob = encryptData(completeUserData.dob)
+      // const encAge = encryptData(completeUserData.age)
+
       const { error: userError } = await supabase
         .from("user")
         .insert({
           userID: authResult.user.id,
-          firstName: completeUserData.firstName || "Unknown",
-          middleName: completeUserData.middleName || "",
-          surname: completeUserData.surname || "User",
+          firstName: encFirstName || "Unknown",
+          middleName: encMiddleName || "",
+          surname: encsurname || "User",
           sex: completeUserData.sex || "",
           dateOfBirth: completeUserData.dob || new Date("2025-01-01"),
           age: completeUserData.age || 0,
           mpin: Math.floor(1000 + Math.random() * 9000).toString(),
-          userNumber: completeUserData.contactNumber || "0000000000",
+          userNumber: encUserNumber || "0000000000",
           householdSize:
             parseInt(completeUserData.vulnerability?.householdCount) || 1,
           addressID: addressData.id,

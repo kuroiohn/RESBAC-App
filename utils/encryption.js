@@ -1,48 +1,59 @@
-import CryptoJS from "crypto-js";
-import { PASSPHRASE } from "@env";
+import { ANON_KEY } from "@env";
 
-const PASSPHRASEKEY = PASSPHRASE;
+const ENCRYPT_URL = "https://ubjzyfxedngrsewkaccy.supabase.co/functions/v1/encrypt";
+const DECRYPT_URL = "https://ubjzyfxedngrsewkaccy.supabase.co/functions/v1/decrypt";
 
-const deriveKey = (passphrase, salt) => {
-  return CryptoJS.PBKDF2(passphrase, CryptoJS.enc.Hex.parse(salt), {
-    keySize: 256 / 32,
-    iterations: 10000,
+export const encryptData = async (plainText) => {
+  // --- 1. ENCRYPT ---
+  const encryptRes = await fetch(ENCRYPT_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${ANON_KEY}`
+    },
+    body: JSON.stringify({ text: plainText })
   });
+  const encrypted = await encryptRes.json();
+
+  return encrypted
 };
 
-export const encryptData = (plainText) => {
-  if (!plainText) return plainText;
+export const decryptData = async (payload) => {
+    // If payload is null or undefined, return empty string
+  if (!payload) return "";
 
-  // generate random salt and IV using crypto-js
-  const salt = CryptoJS.lib.WordArray.random(16).toString();
-  const iv = CryptoJS.lib.WordArray.random(16).toString();
+  try {
+    // Parse payload if it's a JSON string
+    const { salt, iv, ciphertext } =
+      typeof payload === "string" ? JSON.parse(payload) : payload;
 
-  const key = deriveKey(PASSPHRASEKEY, salt);
+    // Check if all required fields exist
+    if (!salt || !iv || !ciphertext) {
+      console.error("Invalid payload for decryption:", payload);
+      return "";
+    }
 
-  const encrypted = CryptoJS.AES.encrypt(plainText, key, {
-    iv: CryptoJS.enc.Hex.parse(iv),
-    mode: CryptoJS.mode.CBC,
-    padding: CryptoJS.pad.Pkcs7,
-  });
+    // Call your Edge function to decrypt
+    const decryptRes = await fetch(DECRYPT_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${ANON_KEY}`
+      },
+      body: JSON.stringify({ salt, iv, ciphertext })
+    });
 
-  return JSON.stringify({
-    salt,
-    iv,
-    ciphertext: encrypted.toString(),
-  });
-};
+    const decrypted = await decryptRes.json();
 
-export const decryptData = (payload) => {
-  if (!payload) return payload;
+    // Ensure the response has plaintext
+    if (!decrypted?.plaintext) {
+      console.error("Decryption failed, invalid response:", decrypted);
+      return "";
+    }
 
-  const { salt, iv, ciphertext } = JSON.parse(payload);
-  const key = deriveKey(PASSPHRASEKEY, salt);
-
-  const decrypted = CryptoJS.AES.decrypt(ciphertext, key, {
-    iv: CryptoJS.enc.Hex.parse(iv),
-    mode: CryptoJS.mode.CBC,
-    padding: CryptoJS.pad.Pkcs7,
-  });
-
-  return decrypted.toString(CryptoJS.enc.Utf8);
+    return decrypted.plaintext;
+  } catch (err) {
+    console.error("Decryption error:", err, "Payload:", payload);
+    return "";
+  }
 };

@@ -4,6 +4,7 @@
 node_modules/
 resbac-eb247-f84d67e51891.json
 .env
+resbac.code-workspace
 
 # Expo
 .expo/

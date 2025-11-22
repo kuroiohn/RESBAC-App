@@ -35,7 +35,8 @@
           {
             "scheme": "https",
             "host": "m.me"
-          }
+          },
+          { "scheme": "resbacapp" }
         ],
         "category": ["BROWSABLE", "DEFAULT"]
       }

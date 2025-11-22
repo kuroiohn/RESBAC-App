@@ -1,12 +1,12 @@
 import { StyleSheet, Text, useColorScheme, View, Platform, Alert } from "react-native";
-import { Stack } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import { Colors } from "../constants/Colors";
 import { StatusBar } from "expo-status-bar";
 import { UserProvider } from "../contexts/UserContext";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { RealtimeProvider } from "../contexts/RealtimeProvider";
 import * as NavigationBar from "expo-navigation-bar";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import * as Notifications from "expo-notifications";
 import Constants from "expo-constants";
 import supabase from "../contexts/supabaseClient";
@@ -18,6 +18,9 @@ const queryClient = new QueryClient();
 
 export default function RootLayout() {
   const theme = Colors.light;
+  const router = useRouter();
+  const notificationListener = useRef();
+  const responseListener = useRef();
   const projectId = Constants.expoConfig?.extra?.eas?.projectId ||
   Constants.easConfig?.projectId; // fallback for some builds
 
@@ -121,6 +124,42 @@ export default function RootLayout() {
         shouldSetBadge: false,
       }),
     });
+
+    // Handle notification received while app is foregrounded
+    notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
+      console.log('Notification received:', notification);
+    });
+
+    // Handle user tapping on notification
+    responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
+      const data = response.notification.request.content.data;
+      console.log('Notification tapped with data:', data);
+
+      // Route to appropriate screen based on notification type
+      if (data.type === 'rescue_status_update') {
+        // Navigate to home screen to see rescue status
+        router.push('/(dashboard)/home');
+      } else if (data.type === 'user_verification') {
+        // Navigate to profile/account screen
+        router.push('/(dashboard)/account');
+      } else if (data.type === 'mark_as_safe') {
+        // Navigate to home screen to see safe status
+        router.push('/(dashboard)/home');
+      } else if (data.screen) {
+        // Fallback to screen specified in notification data
+        router.push(`/(dashboard)/${data.screen}`);
+      }
+    });
+
+    // Cleanup listeners on unmount
+    return () => {
+      if (notificationListener.current) {
+        notificationListener.current.remove();
+      }
+      if (responseListener.current) {
+        responseListener.current.remove();
+      }
+    };
   }, []);
 
   return (

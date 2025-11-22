@@ -38,8 +38,7 @@ export default async function handler(req, res) {
                   'Emergency Alert';
 
     let body = record.alertDescription;
-    if (record.riverLevel) body += ` (${record.riverLevel} meters)`;
-    if (record.alertLocation) body += ` near ${record.alertLocation}`;
+    if (record.riverLevel) body += ` (${record.riverLevel} meters)`
 
     // Build messages for Expo
     const messages = tokens.map(t => ({

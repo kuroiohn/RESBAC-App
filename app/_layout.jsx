@@ -138,7 +138,7 @@ export default function RootLayout() {
       // Route to appropriate screen based on notification type
       if (data.type === 'rescue_status_update') {
         // Navigate to home screen to see rescue status
-        router.push('/(dashboard)/home');
+        router.replace("/(dashboard)/home")
       } else if (data.type === 'user_verification') {
         // Navigate to profile/account screen
         router.push('/(dashboard)/account');

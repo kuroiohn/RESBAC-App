@@ -369,20 +369,28 @@ const Profile = () => {
       decFirstName,
       decMiddleName,
       decSurname,
-      decUserNumber
+      decUserNumber,
+      decDob,
+      decAge
     ] = await Promise.all([
       decryptData(data.firstName),
       decryptData(data.middleName),
       decryptData(data.surname),
-      decryptData(data.userNumber)
+      decryptData(data.userNumber),
+      decryptData(data.dateOfBirth),
+      decryptData(data.age)
     ]);
 
     setUserData({
       firstName: decFirstName || "",
       middleName: decMiddleName || "",
       surname: decSurname || "",
-      dob: data.dateOfBirth || "",
-      age: data.age || 0,
+      dob: new Date(decDob).toLocaleDateString("en-us",{
+        "month":"short",
+        "day":"2-digit",
+        "year": "numeric"
+      }) || "",
+      age: decAge || 0,
       sex: data.sex || "",
       mpin: data.mpin || "",
       userNumber: decUserNumber || "",
@@ -464,12 +472,27 @@ const Profile = () => {
       .eq("userID", user.id)
       .single();
 
+    const [
+      dhouseInfo,
+      dstreetName,
+      dbrgyName,
+      dcityName,
+      dgeolocationCoords
+    ] = await Promise.all([
+      decryptData(data.houseInfo),
+      decryptData(data.streetName),
+      decryptData(data.brgyName),
+      decryptData(data.cityName),
+      decryptData(data.geolocationCoords)
+    ])
+
+    //ANCHOR -  decryption address
     setUserAddress({
-      houseInfo: data.houseInfo || "",
-      streetName: data.streetName || "",
-      brgyName: data.brgyName || "",
-      cityName: data.cityName || "",
-      geolocationCoords: data.geolocationCoords || "",
+      houseInfo: dhouseInfo || "",
+      streetName: dstreetName || "",
+      brgyName: dbrgyName || "",
+      cityName: dcityName || "",
+      geolocationCoords: dgeolocationCoords || "",
       userID: data.userID || "",
     });
 
@@ -904,6 +927,8 @@ const Profile = () => {
       // const encFirstName = encryptData(userData.firstName)
       // const encMiddleName = encryptData(userData.middleName)
       // const encSurname = encryptData(userData.surname)
+      //ANCHOR - encryption for update
+
       await supabase
         .from("user")
         .update({

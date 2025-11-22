@@ -292,12 +292,7 @@ export default function uploadID() {
       Alert.alert("Error", "Missing registration data. Please start over.");
       return;
     }
-
     setIsCreating(true);
-
-    //ANCHOR -  encrypt data here
-    // create variable of encrypted data
-
 
     //ANCHOR - INSERT TO SUPA
     try {
@@ -327,15 +322,30 @@ export default function uploadID() {
       const locationData = getCleanLocationData(completeUserData);
       console.log("Clean location data:", locationData);
 
+      //ANCHOR - encryption
+      const [
+        ehouseInfo,
+        estreetName,
+        ebrgyName,
+        ecityName,
+        ecoordinates
+      ] = await Promise.all([
+        encryptData(locationData.houseInfo),
+        encryptData(locationData.streetName),
+        encryptData(locationData.brgyName),
+        encryptData(locationData.cityName),
+        encryptData(locationData.coordinates),
+      ])
+      
       // Create address record
       const { data: addressData, error: addressError } = await supabase
         .from("address")
         .insert({
-          houseInfo: locationData.houseInfo,
-          streetName: locationData.streetName,
-          brgyName: locationData.brgyName,
-          cityName: locationData.cityName,
-          geolocationCoords: locationData.coordinates,
+          houseInfo: ehouseInfo,
+          streetName: estreetName,
+          brgyName: ebrgyName,
+          cityName: ecityName,
+          geolocationCoords: ecoordinates,
           userID: authResult.user.id,
         })
         .select("*")
@@ -694,15 +704,17 @@ export default function uploadID() {
         encFirstName,
         encMiddleName,
         encsurname,
-        encUserNumber
+        encUserNumber,
+        encDob,
+        encAge
       ] = await Promise.all([
         encryptData(completeUserData.firstName),
         encryptData(completeUserData.middleName),
         encryptData(completeUserData.surname),
-        encryptData(completeUserData.contactNumber)
+        encryptData(completeUserData.contactNumber),
+        encryptData(completeUserData.dob),
+        encryptData(completeUserData.age)
       ]);
-      // const encDob = encryptData(completeUserData.dob)
-      // const encAge = encryptData(completeUserData.age)
 
       const { error: userError } = await supabase
         .from("user")
@@ -712,8 +724,8 @@ export default function uploadID() {
           middleName: encMiddleName || "",
           surname: encsurname || "User",
           sex: completeUserData.sex || "",
-          dateOfBirth: completeUserData.dob || new Date("2025-01-01"),
-          age: completeUserData.age || 0,
+          dateOfBirth: encDob || "",
+          age: encAge || "",
           mpin: Math.floor(1000 + Math.random() * 9000).toString(),
           userNumber: encUserNumber || "0000000000",
           householdSize:

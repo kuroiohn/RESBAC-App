@@ -928,17 +928,54 @@ const Profile = () => {
       // const encMiddleName = encryptData(userData.middleName)
       // const encSurname = encryptData(userData.surname)
       //ANCHOR - encryption for update
+      const [
+        efirstName,
+        emiddleName,
+        esurname,
+        eage,
+        edob,
+        euserNumber,
+        //address
+        ehouseInfo,
+        estreetName,
+        ebrgyName,
+        ecityName,
+        egeolocationCoords,
+        //guardian
+        efullName,
+        erelationship,
+        eguardianContact,
+        eguardianAddress
+      ] = await Promise.all([
+        encryptData(userData.firstName),
+        encryptData(userData.middleName),
+        encryptData(userData.surname),
+        encryptData(newAge),
+        encryptData(userData.dob),
+        encryptData(userData.userNumber),
+        //address
+        encryptData(userAddress.houseInfo),
+        encryptData(userAddress.streetName),
+        encryptData(userAddress.brgyName),
+        encryptData(userAddress.cityName),
+        encryptData(userAddress.geolocationCoords),
+        //guardian
+        encryptData(userGuardian.fullName),
+        encryptData(userGuardian.relationship),
+        encryptData(userGuardian.guardianContact),
+        encryptData(userGuardian.guardianAddress)
+      ])
 
       await supabase
         .from("user")
         .update({
-          firstName: userData.firstName,
-          middleName: userData.middleName,
-          surname: userData.surname,
-          age: newAge,
+          firstName: efirstName,
+          middleName: emiddleName,
+          surname: esurname,
+          age: eage,
           sex: userData.sex,
-          dateOfBirth: userData.dob,
-          userNumber: userData.userNumber,
+          dateOfBirth: edob,
+          userNumber: euserNumber,
           householdSize: userData.householdSize,
           hasGuardian: userData.hasGuardian,
         })
@@ -949,69 +986,67 @@ const Profile = () => {
       await supabase
         .from("address")
         .update({
-          houseInfo: userAddress.houseInfo,
-          streetName: userAddress.streetName,
-          brgyName: userAddress.brgyName,
-          cityName: userAddress.cityName,
-          geolocationCoords: userAddress.geolocationCoords,
+          houseInfo: ehouseInfo,
+          streetName: estreetName,
+          brgyName: ebrgyName,
+          cityName: ecityName,
+          geolocationCoords: egeolocationCoords,
         })
         .eq("userID", user.id);
 
       // Update guardian table (if exists) ##############################
-      // if (userData.hasGuardian) {
         await supabase
           .from("guardian")
           .update({
-            fullName: userGuardian.fullName,
-            relationship: userGuardian.relationship,
-            guardianContact: userGuardian.guardianContact,
-            guardianAddress: userGuardian.guardianAddress,
+            fullName: efullName,
+            relationship: erelationship,
+            guardianContact: eguardianContact,
+            guardianAddress: eguardianAddress,
           })
           .eq("userID", user.id);
-      // }
 
       // Update guardian table (insert if none exists)
-      if (
-        editingSections.guardian &&
-        (userGuardian.fullName ||
-          userGuardian.relationship ||
-          userGuardian.guardianContact ||
-          userGuardian.guardianAddress)
-      ) {
-        // Check if guardian exists
-        const { data: existingGuardian } = await supabase
-          .from("guardian")
-          .select("userID")
-          .eq("userID", user.id)
-          .single();
+      // if (
+      //   editingSections.guardian &&
+      //   (userGuardian.fullName ||
+      //     userGuardian.relationship ||
+      //     userGuardian.guardianContact ||
+      //     userGuardian.guardianAddress)
+      // ) {
+      //   // Check if guardian exists
+      //   const { data: existingGuardian } = await supabase
+      //     .from("guardian")
+      //     .select("userID")
+      //     .eq("userID", user.id)
+      //     .single();
 
-        if (existingGuardian) {
-          // Update
-          await supabase
-            .from("guardian")
-            .update({
-              fullName: userGuardian.fullName,
-              relationship: userGuardian.relationship,
-              guardianContact: userGuardian.guardianContact,
-              guardianAddress: userGuardian.guardianAddress,
-            })
-            .eq("userID", user.id);
-        } else {
-          // Insert
-          await supabase.from("guardian").insert({
-            userID: user.id,
-            fullName: userGuardian.fullName,
-            relationship: userGuardian.relationship,
-            guardianContact: userGuardian.guardianContact,
-            guardianAddress: userGuardian.guardianAddress,
-          });
-          // Optionally update hasGuardian in user table
-          await supabase
-            .from("user")
-            .update({ hasGuardian: true })
-            .eq("userID", user.id);
-        }
-      }
+      //   if (existingGuardian) {
+      //     // Update
+      //     await supabase
+      //       .from("guardian")
+      //       .update({
+      //         fullName: userGuardian.fullName,
+      //         relationship: userGuardian.relationship,
+      //         guardianContact: userGuardian.guardianContact,
+      //         guardianAddress: userGuardian.guardianAddress,
+      //       })
+      //       .eq("userID", user.id);
+      //   } else {
+      //     // Insert
+      //     await supabase.from("guardian").insert({
+      //       userID: user.id,
+      //       fullName: userGuardian.fullName,
+      //       relationship: userGuardian.relationship,
+      //       guardianContact: userGuardian.guardianContact,
+      //       guardianAddress: userGuardian.guardianAddress,
+      //     });
+      //     // Optionally update hasGuardian in user table
+      //     await supabase
+      //       .from("user")
+      //       .update({ hasGuardian: true })
+      //       .eq("userID", user.id);
+      //   }
+      // }
 
       // Update vulnerability table ###################################
       await supabase

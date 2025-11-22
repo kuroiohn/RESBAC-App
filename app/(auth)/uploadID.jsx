@@ -709,7 +709,7 @@ export default function uploadID() {
         encAge
       ] = await Promise.all([
         encryptData(completeUserData.firstName),
-        encryptData(completeUserData.middleName),
+        completeUserData?.middleName ? encryptData(completeUserData?.middleName) : null,
         encryptData(completeUserData.surname),
         encryptData(completeUserData.contactNumber),
         encryptData(completeUserData.dob),

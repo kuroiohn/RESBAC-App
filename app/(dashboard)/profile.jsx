@@ -1444,7 +1444,11 @@ const Profile = () => {
               editable={true}
             />
           ) : (
-            <Text style={styles.valueText}>{userData.dob || "—"}</Text>
+            <Text style={styles.valueText}>{new Date(userData.dob).toLocaleDateString("en-us",{
+              "month":"short",
+              "day":"2-digit",
+              "year":"numeric"
+            }) || "—"}</Text>
           )}
         </View>
 

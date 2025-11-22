@@ -374,7 +374,7 @@ const Profile = () => {
       decAge
     ] = await Promise.all([
       decryptData(data.firstName),
-      decryptData(data.middleName),
+      data?.middleName ? decryptData(data?.middleName) : Promise.resolve(""),
       decryptData(data.surname),
       decryptData(data.userNumber),
       decryptData(data.dateOfBirth),
@@ -385,11 +385,7 @@ const Profile = () => {
       firstName: decFirstName || "",
       middleName: decMiddleName || "",
       surname: decSurname || "",
-      dob: new Date(decDob).toLocaleDateString("en-us",{
-        "month":"short",
-        "day":"2-digit",
-        "year": "numeric"
-      }) || "",
+      dob: decDob || "",
       age: decAge || 0,
       sex: data.sex || "",
       mpin: data.mpin || "",
@@ -923,10 +919,6 @@ const Profile = () => {
     try {
       const newAge = differenceInYears(new Date(), new Date(userData.dob));
 
-      // Update user table ############################################
-      // const encFirstName = encryptData(userData.firstName)
-      // const encMiddleName = encryptData(userData.middleName)
-      // const encSurname = encryptData(userData.surname)
       //ANCHOR - encryption for update
       const [
         efirstName,
@@ -948,7 +940,7 @@ const Profile = () => {
         eguardianAddress
       ] = await Promise.all([
         encryptData(userData.firstName),
-        encryptData(userData.middleName),
+        userData?.middleName ? encryptData(userData?.middleName) : null,
         encryptData(userData.surname),
         encryptData(newAge),
         encryptData(userData.dob),
@@ -1004,49 +996,6 @@ const Profile = () => {
             guardianAddress: eguardianAddress,
           })
           .eq("userID", user.id);
-
-      // Update guardian table (insert if none exists)
-      // if (
-      //   editingSections.guardian &&
-      //   (userGuardian.fullName ||
-      //     userGuardian.relationship ||
-      //     userGuardian.guardianContact ||
-      //     userGuardian.guardianAddress)
-      // ) {
-      //   // Check if guardian exists
-      //   const { data: existingGuardian } = await supabase
-      //     .from("guardian")
-      //     .select("userID")
-      //     .eq("userID", user.id)
-      //     .single();
-
-      //   if (existingGuardian) {
-      //     // Update
-      //     await supabase
-      //       .from("guardian")
-      //       .update({
-      //         fullName: userGuardian.fullName,
-      //         relationship: userGuardian.relationship,
-      //         guardianContact: userGuardian.guardianContact,
-      //         guardianAddress: userGuardian.guardianAddress,
-      //       })
-      //       .eq("userID", user.id);
-      //   } else {
-      //     // Insert
-      //     await supabase.from("guardian").insert({
-      //       userID: user.id,
-      //       fullName: userGuardian.fullName,
-      //       relationship: userGuardian.relationship,
-      //       guardianContact: userGuardian.guardianContact,
-      //       guardianAddress: userGuardian.guardianAddress,
-      //     });
-      //     // Optionally update hasGuardian in user table
-      //     await supabase
-      //       .from("user")
-      //       .update({ hasGuardian: true })
-      //       .eq("userID", user.id);
-      //   }
-      // }
 
       // Update vulnerability table ###################################
       await supabase
@@ -1153,7 +1102,6 @@ const Profile = () => {
         vulnerability: false,
       });
 
-      //setUserData(editedUser);
     } catch (error) {
       console.error("Error updating profile:", error);
       Alert.alert("Error", "Failed to update profile. Please try again.");
@@ -1510,7 +1458,7 @@ const Profile = () => {
             />
           ) : (
             <Text style={styles.valueText}>
-              {userData.age?.toString() || "—"}
+              {userData.age || "—"}
             </Text>
           )}
         </View>
@@ -1631,17 +1579,6 @@ const Profile = () => {
               disabled={!editingSections.address}
             />
           )}
-
-          <View style={styles.row}>
-            {renderField(
-              "address",
-              "completeAddress",
-              "Complete Address",
-              locationData?.formattedAddress ||
-                `${userAddress.streetName}, ${userAddress.brgyName}, ${userAddress.cityName} City`,
-              true
-            )}
-          </View>
           {/* <Text style={styles.label}>Barangay</Text> */}
           {/* <TextInput style={[styles.input, styles.disabledInput]} value={userAddress.brgyName || ""} editable={true} /> */}
         </View>

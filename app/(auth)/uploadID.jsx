@@ -127,7 +127,7 @@ export default function uploadID() {
         ? `${userData.location.coordinates.latitude},${userData.location.coordinates.longitude}`
         : defaultCoordinates;
 
-    const gpsCityName = userData.location?.address?.city || "Unknown City";
+    const gpsCityName = userData.location?.address?.city || "Marikina City";
     const gpsBrgyName =
       userData.barangay ||
       userData.location?.address?.barangay ||

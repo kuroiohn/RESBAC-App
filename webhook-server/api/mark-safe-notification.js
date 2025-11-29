@@ -8,27 +8,43 @@ export default async function handler(req, res) {
   try {
     const { record, old_record } = req.body;
 
+    console.log("Mark Safe Webhook received:", JSON.stringify({ new: record, old: old_record }));
+
     // Only process if record exists
     if (!record) {
       return res.status(200).json({ message: 'No valid record, skipping' });
     }
 
-    // Only send notification when user is marked as safe (markAsSafe is not null)
-    if (!record.markAsSafe) {
-      return res.status(200).json({ message: 'User not marked safe, skipping' });
-    }
+    // Determine the type of update
+    const isMarkedSafe = !!record.markAsSafe; // True if date exists
+    const wasMarkedSafe = old_record && !!old_record.markAsSafe; // True if date existed before
 
-    // If old_record exists, check if markAsSafe status actually changed from null to a date
-    if (old_record) {
-      const wasAlreadySafe = old_record.markAsSafe !== null;
-      if (wasAlreadySafe) {
-        return res.status(200).json({ message: 'User was already marked safe, skipping' });
-      }
+    let notificationTitle = '';
+    let notificationBody = '';
+    let isReset = false;
+
+    // SCENARIO 1: User marked as safe (New: Date, Old: Null)
+    if (isMarkedSafe && !wasMarkedSafe) {
+      notificationTitle = 'You\'re Marked as Safe! ✓';
+      notificationBody = 'Your status has been updated. You are now marked as safe in the system.';
+    }
+    // SCENARIO 2: Safety status reset/cancelled (New: Null, Old: Date)
+    else if (!isMarkedSafe && wasMarkedSafe) {
+      notificationTitle = 'Safety Status Updated';
+      notificationBody = 'Your safety status has been updated.';
+      isReset = true;
+    }
+    // SCENARIO 3: No change or invalid state -> Skip
+    else {
+      console.log("Skipping: No relevant change in markAsSafe status");
+      return res.status(200).json({ message: 'Status unchanged or not relevant, skipping' });
     }
 
     // Get Supabase credentials
     const supabaseUrl = process.env.SUPABASE_URL;
     const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    console.log(`Fetching token for UserID: ${record.userID}`);
 
     // Get the specific user's push token
     const tokensResponse = await fetch(
@@ -42,8 +58,10 @@ export default async function handler(req, res) {
     );
 
     const tokens = await tokensResponse.json();
+    console.log(`Tokens found: ${JSON.stringify(tokens)}`);
 
     if (!tokens || tokens.length === 0) {
+      console.error(`ERROR: No push token found for user ${record.userID}`);
       return res.status(200).json({ message: 'No push token found for this user' });
     }
 
@@ -52,18 +70,19 @@ export default async function handler(req, res) {
       to: t.push_token,
       icon: 'notification-icon',
       sound: 'default',
-      title: 'You\'re Marked as Safe! ✓',
-      body: 'Your status has been updated. You are now marked as safe in the system.',
+      title: notificationTitle,
+      body: notificationBody,
       data: {
         type: 'mark_as_safe',
-        markedSafe: true,
+        markedSafe: isMarkedSafe,
+        isReset: isReset,
         userID: record.userID,
         screen: 'home',
       },
       priority: 'high',
       channelId: 'alerts',
       android: {
-        color: '#00C853',
+        color: isReset ? '#FFA000' : '#00C853',
         priority: 'high',
         sound: 'default',
         vibrate: true
@@ -82,10 +101,11 @@ export default async function handler(req, res) {
     });
 
     const result = await expoResponse.json();
+    console.log("Expo Result:", JSON.stringify(result));
 
     return res.status(200).json({
       success: true,
-      message: `Sent mark as safe notification to user`,
+      message: `Sent ${isReset ? 'reset' : 'marked safe'} notification to user`,
       result
     });
 

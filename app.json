@@ -62,6 +62,7 @@
   ],
   "extra": {
     "router": {},
+    "googleMapsApiKey": "AIzaSyCd1cjMDWiM_figEfLKqG5y8wMlzlWvofg",
     "eas": {
       "projectId": "c9f09e1b-da31-40a2-982b-74d060f39cc9"
     }

@@ -40,6 +40,9 @@ const Vulnerable = () => {
   // new add by ten
   const { from } = useLocalSearchParams();
 
+  // Validation State
+  const [formErrors, setFormErrors] = useState({});
+
   useEffect(() => {
     if (from === "profile") {
       // Prefill formData with userVul from Profile
@@ -58,12 +61,8 @@ const Vulnerable = () => {
 
   const handleSubmit = () => {
     if (from === "profile") {
-      // Save edits
-      // console.log("Updating vulnerability info:", formData);
       router.replace("/dashboard/profile"); // go back to Profile
     } else {
-      // Registration flow
-      // console.log("Registering vulnerability:", formData);
       router.push("/(auth)/nextStep"); // go to next registration step
     }
   };
@@ -72,7 +71,6 @@ const Vulnerable = () => {
   const [userSex, setUserSex] = useState("");
   // Parse incoming data from register screen
   const existingUserData = userData ? JSON.parse(userData) : {};
-  // console.log("Received user data in vulnerable screen:", existingUserData);
 
   //form field state variables for guardian
   const [hasGuardian, setHasGuardian] = useState(null);
@@ -188,18 +186,6 @@ const Vulnerable = () => {
 
   // Function to handle selections for Sensory disabilities
   const toggleSensoryDisability = (disability) => {
-    // if (disability === "Others"){
-    //     if (sensoryDisability.some((item) => item.startsWith("Other: "))) {
-    //         // remove "Others" if it's already there
-    //         setSensoryDisability(
-    //             sensoryDisability.filter((item) => !item.startsWith("Other: "))
-    //         );
-    //     } else {
-    //     // add a placeholder first (or empty string if you want)
-    //     setSensoryDisability([...sensoryDisability, `Other: ${otherSensoryDisability || ""}`]);
-    //     }
-    // }
-    // else {
     if (sensoryDisability.includes(disability)) {
       setSensoryDisability(
         sensoryDisability.filter((item) => item !== disability)
@@ -207,7 +193,6 @@ const Vulnerable = () => {
     } else {
       setSensoryDisability([...sensoryDisability, disability]);
     }
-    // }
   };
 
   // Function to handle selections for Health conditions
@@ -231,8 +216,6 @@ const Vulnerable = () => {
     }
 
     setUserSex(data.sex);
-    // console.log("Sex: ", userSex);
-
     return data;
   };
 
@@ -242,8 +225,59 @@ const Vulnerable = () => {
     }
   }, [from]);
 
+  // Helper to clear errors
+  const clearFieldError = (fieldName) => {
+    const newErrors = { ...formErrors };
+    delete newErrors[fieldName];
+    setFormErrors(newErrors);
+  };
+
+  // Validation Function
+  const validateForm = () => {
+    const errors = {};
+
+    // Only run these validations during registration (or whenever the fields are visible)
+    if (from === "register") {
+      // Guardian Name
+      if (!guardianName || guardianName.trim() === "") {
+        errors.guardianName = "Guardian Name is required";
+      }
+
+      // Guardian Contact Number
+      if (!guardianContact || guardianContact.trim() === "") {
+        errors.guardianContact = "Guardian Contact Number is required";
+      } else if (!/^\d{11}$/.test(guardianContact.replace(/[^0-9]/g, ""))) {
+        errors.guardianContact = "Contact Number must be exactly 11 digits";
+      }
+
+      // Relationship
+      if (!guardianRelation || guardianRelation.trim() === "") {
+        errors.guardianRelation = "Relationship is required";
+      }
+
+      // Guardian Address
+      if (!guardianAddress || guardianAddress.trim() === "") {
+        errors.guardianAddress = "Guardian Address is required";
+      }
+
+      // Household Count
+      if (!householdCount) {
+        errors.householdCount = "Household count is required";
+      }
+    }
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleNext = async () => {
     console.log("Collecting vulnerability data...");
+
+    // Validate Form First
+    if (!validateForm()) {
+        // Optional: Scroll to top or show a general error toast if needed
+        return;
+    }
 
     // Get sex from userData (should be available from register screen)
     const userSex = existingUserData.sex;
@@ -282,31 +316,6 @@ const Vulnerable = () => {
       },
       step: "vulnerability",
     };
-
-    // 🛑 GUARDIAN VALIDATION
-    if (
-      (!guardianName.trim() ||
-        !guardianContact.trim() ||
-        !guardianRelation.trim() ||
-        !guardianAddress.trim()) &&
-      from === "register"
-    ) {
-      Alert.alert(
-        "Missing Information",
-        "Please complete all guardian details before proceeding."
-      );
-      return; // Stop execution if validation fails
-    }
-
-    if (!/^\d{11}$/.test(guardianContact) && from === "register") {
-      Alert.alert(
-        "Invalid Contact",
-        "Please enter a valid phone number (11 digits)."
-      );
-      return;
-    }
-
-    // console.log("Complete user data with vulnerability:", completeUserData);
 
     if (from === "register") {
       // Navigate to upload screen with all data
@@ -357,13 +366,11 @@ const Vulnerable = () => {
               if (error) {
                 console.error("Error in updating vul pregnantID: ", error);
               }
-            } else {
-              // console.log("Pregnant Data: ", pregnantData);
             }
           }
         }
         const data = await fetchSex();
-        // Update vulnerability table ###################################
+        // Update vulnerability table
         await supabase
           .from("vulnerabilityList")
           .update({
@@ -383,7 +390,6 @@ const Vulnerable = () => {
             psychPWD: psychologicalDisability,
             sensoryPWD: sensoryDisability,
             medDep: healthCondition,
-            // locationRiskLevel: userVul.locationRiskLevel,
           })
           .eq("userID", user.id);
 
@@ -397,71 +403,19 @@ const Vulnerable = () => {
           })
           .eq("userID", user.id);
 
-        console.log(`RISK SCORE DATA: ${physicalDisability}`);
-
-        //ANCHOR - RISKSCORE
-        // add values of the riskscore here
-        // make new usestate for all the scores
-        // if not, make conditionals
+        // Calculate Risk Scores
         const age = differenceInYears(new Date(), new Date(data.dateOfBirth));
-        console.log({
-          // 60 - 69
-          elderlyScore:
-            age >= 90
-              ? 4 // 90+
-              : age >= 80
-              ? 3 // 80 - 89
-              : age >= 70
-              ? 2 // 70 - 79
-              : age >= 60
-              ? 2
-              : 0,
-          pregnantInfantScore:
-            pregnancy === "yes" && hasInfant === "yes"
-              ? 4
-              : pregnancy === "yes" || hasInfant === "yes"
-              ? 2
-              : 0,
-          physicalPWDScore:
-            physicalDisability?.length > 2
-              ? 4
-              : physicalDisability?.length === 2
-              ? 2
-              : physicalDisability?.length === 1
-              ? 1
-              : 0,
-          psychPWDScore:
-            psychologicalDisability?.length > 2
-              ? 4
-              : psychologicalDisability?.length === 2
-              ? 2
-              : psychologicalDisability?.length === 1
-              ? 1
-              : 0,
-          sensoryPWDScore:
-            sensoryDisability?.length > 2
-              ? 4
-              : sensoryDisability?.length === 2
-              ? 2
-              : sensoryDisability?.length === 1
-              ? 1
-              : 0,
-          medDepScore: healthCondition?.length > 0 ? 4 : 0,
-          locationRiskLevel: 1,
-          userID: user.id,
-        });
-
+        
         const { data: riskData, error: riskError } = await supabase
           .from("riskScore")
           .update({
-            // 60 - 69
             elderlyScore:
               age >= 90
-                ? 4 // 90+
+                ? 4 
                 : age >= 80
-                ? 3 // 80 - 89
+                ? 3 
                 : age >= 70
-                ? 2 // 70 - 79
+                ? 2 
                 : age >= 60
                 ? 2
                 : 0,
@@ -500,13 +454,12 @@ const Vulnerable = () => {
           .eq("userID", user.id)
           .select("*")
           .single();
+
         if (riskError) {
           console.error("Error creating riskscore list:", riskError);
           throw new Error("Failed to create riskscore list");
         }
-        console.log("riskscore list created:", riskData);
 
-        //ANCHOR - PRIO API CONNECTION
         const getPrioritization = async () => {
           try {
             const response = await fetch(
@@ -524,7 +477,6 @@ const Vulnerable = () => {
                     PsychPWDScore: riskData.psychPWDScore,
                     SensoryPWDScore: riskData.sensoryPWDScore,
                     MedicallyDependentScore: riskData.medDepScore,
-                    // hasGuardian: riskData.hasGuardian,
                     locationRiskLevel: riskData.locationRiskLevel,
                   },
                 }),
@@ -532,7 +484,6 @@ const Vulnerable = () => {
             );
 
             const result = await response.json();
-            console.log("Result: ", result.prediction);
             return result.prediction;
           } catch (error) {
             console.error("error in getting prioritization: ", error);
@@ -540,7 +491,7 @@ const Vulnerable = () => {
         };
 
         const priorityLevel = await getPrioritization();
-        // Create vulnerability record - with explicit userID
+        
         const { data: priorityData, error: prioError } = await supabase
           .from("priority")
           .update({
@@ -573,7 +524,6 @@ const Vulnerable = () => {
     }
   };
 
-  //renders vulnerability assessment form
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -607,7 +557,6 @@ const Vulnerable = () => {
             </TitleText>
           )}
           {
-            //NOTE - not applicable if edit profile
             from === "register" && (
               <>
                 <View style={styles.sectionHeader}>
@@ -615,45 +564,74 @@ const Vulnerable = () => {
                   <View style={styles.headerLine}></View>
                 </View>
 
-                {/*start of the form*/}
-                {/*Set guardian information
-                <RadioGroup
-                  label='Do you currently live with a guardian?'
-                  options={guardianOptions}
-                  selectedValue={hasGuardian}
-                  onValueChange={setHasGuardian}
-                /> */}
-
-                {/*Condition for asking the guardian information if the answer is yes*/}
-                {/* {hasGuardian === "yes" && ( */}
+                {/* Guardian Inputs with Validation */}
                 <>
                   <ThemedTextInput
                     style={{ width: "95%", marginBottom: 10 }}
                     placeholder='Guardian Name'
                     value={guardianName}
-                    onChangeText={setGuardianName}
+                    onChangeText={(text) => {
+                      setGuardianName(text);
+                      clearFieldError("guardianName");
+                    }}
                   />
+                  {formErrors.guardianName && (
+                    <Text style={styles.fieldError}>
+                      {formErrors.guardianName}
+                    </Text>
+                  )}
+
                   <ThemedTextInput
                     style={{ width: "95%", marginBottom: 10 }}
                     placeholder='Guardian Contact Number'
                     value={guardianContact}
-                    onChangeText={setGuardianContact}
+                    onChangeText={(text) => {
+                       // Only allow up to 11 digits
+                       const cleaned = text.replace(/[^0-9]/g, "");
+                       if (cleaned.length <= 11) {
+                         setGuardianContact(cleaned);
+                         clearFieldError("guardianContact");
+                       }
+                    }}
                     keyboardType='phone-pad'
+                    maxLength={11}
                   />
+                  {formErrors.guardianContact && (
+                    <Text style={styles.fieldError}>
+                      {formErrors.guardianContact}
+                    </Text>
+                  )}
+
                   <ThemedTextInput
                     style={{ width: "95%", marginBottom: 10 }}
                     placeholder='Relationship'
                     value={guardianRelation}
-                    onChangeText={setGuardianRelation}
+                    onChangeText={(text) => {
+                      setGuardianRelation(text);
+                      clearFieldError("guardianRelation");
+                    }}
                   />
+                  {formErrors.guardianRelation && (
+                    <Text style={styles.fieldError}>
+                      {formErrors.guardianRelation}
+                    </Text>
+                  )}
+
                   <ThemedTextInput
                     style={{ width: "95%", marginBottom: 10 }}
                     placeholder='Guardian Address'
                     value={guardianAddress}
-                    onChangeText={setGuardianAddress}
+                    onChangeText={(text) => {
+                      setGuardianAddress(text);
+                      clearFieldError("guardianAddress");
+                    }}
                   />
+                  {formErrors.guardianAddress && (
+                    <Text style={styles.fieldError}>
+                      {formErrors.guardianAddress}
+                    </Text>
+                  )}
                 </>
-                {/* )} */}
 
                 {/* Household count dropdown */}
                 <View style={styles.dropdownContainer}>
@@ -672,8 +650,14 @@ const Vulnerable = () => {
                     value={householdCount}
                     onChange={(item) => {
                       setHouseholdCount(item.value);
+                      clearFieldError("householdCount");
                     }}
                   />
+                  {formErrors.householdCount && (
+                    <Text style={styles.fieldError}>
+                      {formErrors.householdCount}
+                    </Text>
+                  )}
                 </View>
               </>
             )
@@ -694,24 +678,16 @@ const Vulnerable = () => {
               />
               {pregnancy === "yes" && (
                 <>
-                  {/* <ThemedTextInput
-                    style={{ width: "95%", marginBottom: 10 }}
-                    placeholder='Month Due Date'
-                    value={dueDate}
-                    onChangeText={setDueDate}
-                  /> */}
                   <DatePickerInput
                     value={dueDate}
                     onChange={(date) => {
                       setDueDate(date);
-                      // clearFieldError("duedate");
                     }}
                     minimumDate={new Date()}
                     maximumDate={new Date().setFullYear(
                       new Date().getFullYear() + 1
                     )}
                     placeholder='Due Date'
-                    // disabled={!isAgreed}
                   />
                   <Picker
                     selectedValue={trimester}
@@ -721,14 +697,14 @@ const Vulnerable = () => {
                       marginBottom: 10,
                       backgroundColor: "#f5f5f5",
                       borderRadius: 8,
-                      color: "#625f72", //  ensure visible text color
+                      color: "#625f72", 
                     }}
-                    dropdownIconColor='#625f72' //  color of the dropdown arrow (Android)
+                    dropdownIconColor='#625f72' 
                   >
                     <Picker.Item
                       label='Select trimester'
                       value=''
-                      color='#625f72' //  placeholder text color
+                      color='#625f72' 
                     />
                     <Picker.Item
                       label='1st Trimester (Week 0 - Week 12)'
@@ -771,7 +747,6 @@ const Vulnerable = () => {
           <Spacer height={5} />
           {showPhysicalDisabilityForm && (
             <View style={styles.vulnerabilityFormContainer}>
-              {/* This checkbox should still be full width */}
               <CheckboxComponent
                 label='Is your Physical Disability permanent?'
                 isChecked={isPDPermanent}
@@ -794,13 +769,7 @@ const Vulnerable = () => {
                 (e.g., uses wheelchair, saklay)
               </ThemedText>
 
-              {/* The two-column wrapper that holds the vertical items */}
               <View style={styles.checkboxColumns}>
-                {/* This is a single item in the two-column layout.
-                                    Its children are stacked vertically.
-                                */}
-
-                {/* The rest of the checkboxes are also single items in the layout */}
                 <CheckboxComponent
                   label='Amputee'
                   isChecked={physicalDisability.includes("Amputee")}

@@ -1,6 +1,5 @@
 // app/guestMap.jsx
-import { useEffect, useState } from "react";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useEffect, useState, useRef } from "react";
 import {
   View,
   Pressable,
@@ -8,58 +7,82 @@ import {
   ActivityIndicator,
   Alert,
 } from "react-native";
+import polyline from "@mapbox/polyline";
 import { Ionicons } from "@expo/vector-icons";
+import Constants from "expo-constants";
+import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from "react-native-maps";
 import * as Location from "expo-location";
-import RouteMapWebView from "../components/shared/RouteMapWebView";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useRealtime } from "../contexts/RealtimeProvider";
 
 export default function GuestMap() {
+  const apiKey = Constants.expoConfig.extra.googleMapsApiKey;
   const router = useRouter();
   const { evacId, pickupId } = useLocalSearchParams();
-  const { evacData, pickupData } = useRealtime(); // 👈 we'll use both
+  const { evacData, pickupData } = useRealtime();
+
   const [src, setSrc] = useState(null);
   const [dest, setDest] = useState(null);
   const [title, setTitle] = useState("");
   const [loading, setLoading] = useState(true);
+  const [routeCoords, setRouteCoords] = useState([]);
 
+  const mapRef = useRef(null);
+
+  const fetchDirections = async (origin, destination) => {
+    try {
+      const url = `https://maps.googleapis.com/maps/api/directions/json?origin=${origin.latitude},${origin.longitude}&destination=${destination.latitude},${destination.longitude}&mode=driving&key=${apiKey}`;
+      const response = await fetch(url);
+      const data = await response.json();
+
+      if (data.routes?.length) {
+        const points = polyline.decode(data.routes[0].overview_polyline.points);
+        const coords = points.map(([lat, lng]) => ({
+          latitude: lat,
+          longitude: lng,
+        }));
+        setRouteCoords(coords);
+      }
+    } catch (err) {
+      console.error("Directions error:", err);
+    }
+  };
+
+  // Get user location & destination
   useEffect(() => {
     const setupMap = async () => {
       try {
-        // 1️⃣ Ask for location permission
         const { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== "granted") {
           Alert.alert(
             "Location Required",
             "We need your location to show the route."
           );
-          setSrc([14.65, 121.1]); // fallback default location
+          setSrc({ latitude: 14.65, longitude: 121.1 }); // fallback
         } else {
           const location = await Location.getCurrentPositionAsync({});
-          setSrc([location.coords.latitude, location.coords.longitude]);
+          setSrc({
+            latitude: location.coords.latitude,
+            longitude: location.coords.longitude,
+          });
         }
 
-        // 2️⃣ Find the selected evacuation center OR pickup location
+        // Get destination
         if (evacId && evacData?.length) {
-          const selectedEvac = evacData.find(
-            (e) => String(e.id) === String(evacId)
-          );
-          if (selectedEvac?.evacGeolocation) {
-            const [lat, lng] = selectedEvac.evacGeolocation
-              .split(",")
-              .map((n) => Number(n.trim()));
-            setDest([lat, lng]);
-            setTitle(selectedEvac.evacName);
+          const item = evacData.find((e) => String(e.id) === String(evacId));
+          if (item?.evacGeolocation) {
+            const [lat, lng] = item.evacGeolocation.split(",").map(Number);
+            setDest({ latitude: lat, longitude: lng });
+            setTitle(item.evacName);
           }
         } else if (pickupId && pickupData?.length) {
-          const selectedPickup = pickupData.find(
+          const item = pickupData.find(
             (p) => String(p.id) === String(pickupId)
           );
-          if (selectedPickup?.pickupGeolocation) {
-            const [lat, lng] = selectedPickup.pickupGeolocation
-              .split(",")
-              .map((n) => Number(n.trim()));
-            setDest([lat, lng]);
-            setTitle(selectedPickup.pickupName);
+          if (item?.pickupGeolocation) {
+            const [lat, lng] = item.pickupGeolocation.split(",").map(Number);
+            setDest({ latitude: lat, longitude: lng });
+            setTitle(item.pickupName);
           }
         }
       } catch (err) {
@@ -72,6 +95,20 @@ export default function GuestMap() {
     setupMap();
   }, [evacId, pickupId, evacData, pickupData]);
 
+  // Auto-fit markers
+  useEffect(() => {
+    if (src && dest && mapRef.current) {
+      // Auto-fit markers
+      mapRef.current.fitToCoordinates([src, dest], {
+        edgePadding: { top: 80, right: 80, bottom: 80, left: 80 },
+        animated: true,
+      });
+
+      // Fetch route from Google Directions API
+      fetchDirections(src, dest);
+    }
+  }, [src, dest]);
+
   if (loading || !src || !dest) {
     return (
       <View style={styles.loaderContainer}>
@@ -82,10 +119,39 @@ export default function GuestMap() {
 
   return (
     <View style={{ flex: 1 }}>
+      {/* Close button */}
       <Pressable style={styles.closeButton} onPress={() => router.back()}>
         <Ionicons name='close' size={24} />
       </Pressable>
-      <RouteMapWebView src={src} dest={dest} safePopupTitle={title} />
+
+      {/* MapView */}
+      <MapView
+        ref={mapRef}
+        provider={PROVIDER_GOOGLE}
+        style={{ flex: 1 }}
+        initialRegion={{
+          latitude: src.latitude,
+          longitude: src.longitude,
+          latitudeDelta: 0.01,
+          longitudeDelta: 0.01,
+        }}
+        showsUserLocation={true}
+        showsMyLocationButton={true}
+      >
+        {/* User marker */}
+        <Marker coordinate={src} title='You are here' pinColor='#0060FF' />
+
+        {/* Destination marker */}
+        <Marker coordinate={dest} title={title} description='Destination' />
+
+        {routeCoords.length > 0 && (
+          <Polyline
+            coordinates={routeCoords}
+            strokeColor='#0060FF'
+            strokeWidth={4}
+          />
+        )}
+      </MapView>
     </View>
   );
 }

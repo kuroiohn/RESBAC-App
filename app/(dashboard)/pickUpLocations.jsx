@@ -20,7 +20,7 @@ import { useRealtime } from "../../contexts/RealtimeProvider";
 import { useUser } from "../../hooks/useUser";
 import { useLocalSearchParams } from "expo-router";
 import supabase from "../../contexts/supabaseClient";
-import RouteMapWebView from "../../components/shared/RouteMapWebView";
+import UserMap from "../../components/shared/UserMap";
 
 const { width, height } = Dimensions.get("window");
 
@@ -45,6 +45,7 @@ const PickUpLocation = () => {
       if (userError) {
         console.error("Error in user fetch: ", userError);
       }
+      
       setUserCoords(data[0]);
     };
     fetchUserCoords();
@@ -172,7 +173,9 @@ const PickUpLocation = () => {
   const src = userCoords?.geolocationCoords
     ? userCoords.geolocationCoords.split(",").map(Number)
     : [0, 0];
-  const dest = coords && coords.length === 2 ? coords : [0, 0]; // evacuation or pickup coords
+
+  const dest = coords && coords.length === 2 ? coords : [0, 0];
+  // evacuation or pickup coords
 
   return (
     <View style={{ flex: 1, backgroundColor: "#fff" }}>
@@ -306,10 +309,11 @@ const PickUpLocation = () => {
           >
             <Ionicons name='close' size={24} color='#000' />
           </Pressable>
-          <RouteMapWebView
+          <UserMap
             src={src}
             dest={dest}
-            safePopupTitle={safePopupTitle}
+            title={popupTitle}
+            onClose={() => setMapVisible(false)}
           />
         </View>
       </Modal>

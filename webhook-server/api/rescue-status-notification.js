@@ -8,13 +8,17 @@ export default async function handler(req, res) {
   try {
     const { record, old_record, reverted } = req.body;
 
+    console.log("Webhook received:", JSON.stringify(record)); // DEBUG LOG
+
     // Validate request data
     if (!record || !record.status) {
+      console.log("Skipping: No valid record or status");
       return res.status(200).json({ message: 'No valid record or status, skipping' });
     }
 
     // Skip if status didn't change
     if (old_record && record.status === old_record.status) {
+      console.log("Skipping: Status unchanged");
       return res.status(200).json({ message: 'Status unchanged, skipping' });
     }
 
@@ -23,12 +27,15 @@ export default async function handler(req, res) {
 
     // Skip if status not in range and not reverted
     if (!isReverted && (record.status < 1 || record.status > 3)) {
+      console.log("Skipping: Status not eligible (0 or >3)");
       return res.status(200).json({ message: 'Status not eligible for notification, skipping' });
     }
 
     // Get Supabase credentials
     const supabaseUrl = process.env.SUPABASE_URL;
     const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    console.log(`Fetching token for UserID: ${record.userID}`); // DEBUG LOG
 
     // Fetch user's push token
     const tokensResponse = await fetch(
@@ -42,8 +49,10 @@ export default async function handler(req, res) {
     );
 
     const tokens = await tokensResponse.json();
+    console.log(`Tokens found: ${JSON.stringify(tokens)}`); // DEBUG LOG
 
     if (!tokens || tokens.length === 0) {
+      console.error(`ERROR: No push token found for user ${record.userID}`);
       return res.status(200).json({ message: 'No push token found for this user' });
     }
 
@@ -116,6 +125,7 @@ export default async function handler(req, res) {
     });
 
     const result = await expoResponse.json();
+    console.log("Expo Result:", JSON.stringify(result)); // DEBUG LOG
 
     return res.status(200).json({
       success: true,

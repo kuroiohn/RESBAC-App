@@ -329,7 +329,7 @@ const Home = () => {
           `
         )
         .eq("userID", user.id)
-        .single()
+        .single();
 
       const {data: addressData} = await supabase
       .from('address')
@@ -341,15 +341,13 @@ const Home = () => {
       const phoneUrl = `tel:${contact.number}`;
       await Linking.openURL(phoneUrl);
 
-      const { error: logError } = await supabase
-      .from('activityLogs')
-      .insert({
+      const { error: logError } = await supabase.from("activityLogs").insert({
         activityType: "callBtn",
         userType: "user",
         log: {
           time: new Date(now.getTime() - now.getTimezoneOffset() * 60000)
-              .toISOString()
-              .slice(0, -1),
+            .toISOString()
+            .slice(0, -1),
           number: contact.number,
           streetName: addressData?.streetName,
           vulData: {
@@ -360,12 +358,12 @@ const Home = () => {
             psychPWD: !!vul?.vulnerabilityList?.psychPWD ? true : false,
             sensoryPWD: !!vul?.vulnerabilityList?.sensoryPWD ? true : false,
             medDep: !!vul?.vulnerabilityList?.medDep ? true : false,
-          }
-        } 
-      })
-      if(logError){
-        console.error("Error in logging activity: ", logError);        
-      } 
+          },
+        },
+      });
+      if (logError) {
+        console.error("Error in logging activity: ", logError);
+      }
 
       if (reqCallError) {
         console.error("Error updating call button: ", reqCallError);
@@ -476,76 +474,86 @@ const Home = () => {
               place to stay until rescue has arrived.
             </ThemedText>
 
-            {/* Chat area */}
-            {reqData?.map((r) => (
-              <ScrollView
-                key={r.id}
-                style={styles.chatScroll}
-                contentContainerStyle={{ paddingBottom: 100 }}
-              >
-                <View style={styles.statusCard}>
-                  {/* Loading Overlay */}
-                  {loading && (
-                    <View style={styles.loadingOverlay}>
-                      <ActivityIndicator size='large' color='#0060ff' />
-                    </View>
-                  )}
-                  <Text style={styles.statusLabel}>Current Status</Text>
-                  <View style={styles.statusLine} />
-                  <Text style={styles.statusMessage}>
-                    {r.status === 3 ? (
-                      "🚨 Rescuers are ON THEIR WAY. Please stay at a safe place and look out for incoming rescuers."
-                    ) : r.status === 2 ? (
-                      <Text>
-                        Rescue request shared with rescuers. {"\n"}Please wait
-                        while they prepare to get to you.
-                      </Text>
-                    ) : r.status === 1 ? (
-                      <Text>
-                        Admin received your rescue request. {"\n"}Please wait
-                        while they share your information {"\n"}with the
-                        rescuers.
-                      </Text>
-                    ) : (
-                      <Text>
-                        Rescue request sent to admin.{"\n"}Waiting for admin to
-                        see your request.
-                      </Text>
-                    )}
-                  </Text>
-                  <Text style={styles.timestamp}>
-                    Last updated:{" "}
-                    {new Date(r.updated_at).toLocaleTimeString([], {
-                      hour: "numeric",
-                      minute: "numeric",
-                    })}
-                  </Text>
+            <View style={{ flex: 1 }}>
+              {loading && (
+                <View style={styles.fullLoadingOverlay}>
+                  <ActivityIndicator size='large' color='#0060ff' />
+                  <Text style={{ marginTop: 10 }}>Loading...</Text>
                 </View>
+              )}
 
-                <View style={styles.messageCard}>
-                  {/* Loading Overlay */}
-                  {loading && (
-                    <View style={styles.loadingOverlay}>
-                      <ActivityIndicator size='large' color='#0060ff' />
-                    </View>
-                  )}
-                  <Text style={styles.messageLabel}>Your Message</Text>
-                  <View style={styles.statusLine} />
-                  <Text style={styles.userMessageText}>
-                    {r.message || "No message sent yet..."}
-                  </Text>
-                  {r.sent_at && (
+              {/* Chat area */}
+              {reqData?.map((r) => (
+                <ScrollView
+                  key={r.id}
+                  style={styles.chatScroll}
+                  contentContainerStyle={{ paddingBottom: 100 }}
+                >
+                  <View style={styles.statusCard}>
+                    {/* Loading Overlay */}
+                    {loading && (
+                      <View style={styles.loadingOverlay}>
+                        <ActivityIndicator size='large' color='#0060ff' />
+                      </View>
+                    )}
+                    <Text style={styles.statusLabel}>Current Status</Text>
+                    <View style={styles.statusLine} />
+                    <Text style={styles.statusMessage}>
+                      {r.status === 3 ? (
+                        "🚨 Rescuers are ON THEIR WAY. Please stay at a safe place and look out for incoming rescuers."
+                      ) : r.status === 2 ? (
+                        <Text>
+                          Rescue request shared with rescuers. {"\n"}Please wait
+                          while they prepare to get to you.
+                        </Text>
+                      ) : r.status === 1 ? (
+                        <Text>
+                          Admin received your rescue request. {"\n"}Please wait
+                          while they share your information {"\n"}with the
+                          rescuers.
+                        </Text>
+                      ) : (
+                        <Text>
+                          Rescue request sent to admin.{"\n"}Waiting for admin
+                          to see your request.
+                        </Text>
+                      )}
+                    </Text>
                     <Text style={styles.timestamp}>
-                      Sent at{" "}
-                      {new Date(r.sent_at).toLocaleTimeString([], {
+                      Last updated:{" "}
+                      {new Date(r.updated_at).toLocaleTimeString([], {
                         hour: "numeric",
                         minute: "numeric",
                       })}
                     </Text>
-                  )}
-                </View>
-              </ScrollView>
-            ))}
+                  </View>
+
+                  <View style={styles.messageCard}>
+                    {/* Loading Overlay */}
+                    {loading && (
+                      <View style={styles.loadingOverlay}>
+                        <ActivityIndicator size='large' color='#0060ff' />
+                      </View>
+                    )}
+                    <Text style={styles.messageLabel}>Your Message</Text>
+                    <View style={styles.statusLine} />
+                    <Text style={styles.userMessageText}>
+                      {r.message || "No message sent yet..."}
+                    </Text>
+                    {r.sent_at && (
+                      <Text style={styles.timestamp}>
+                        Sent at{" "}
+                        {new Date(r.sent_at).toLocaleTimeString([], {
+                          hour: "numeric",
+                          minute: "numeric",
+                        })}
+                      </Text>
+                    )}
+                  </View>
+                </ScrollView>
+              ))}
+            </View>
+
             {/* Top Row - Cancel + Send Message */}
             <View style={styles.topRow}>
               {!showInput && (
@@ -553,9 +561,7 @@ const Home = () => {
                   onPress={handleCancel}
                   style={styles.cancelRescueBtn}
                 >
-                  <Text style={styles.cancelRescueBtnText}>
-                    Cancel Request
-                  </Text>
+                  <Text style={styles.cancelRescueBtnText}>Cancel Request</Text>
                 </TouchableOpacity>
               )}
               {!showInput && (
@@ -1048,5 +1054,17 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 13,
     fontWeight: "600",
+  },
+
+  fullLoadingOverlay: {
+    position: "absolute",
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: "rgba(255,255,255,0.75)",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 999,
   },
 });

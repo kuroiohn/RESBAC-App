@@ -1,4 +1,4 @@
-import { API_ANONKEY } from "@env";
+import { EXPO_PUBLIC_SUPABASE_ANON_KEY } from "@env";
 
 const ENCRYPT_URL = "https://ubjzyfxedngrsewkaccy.supabase.co/functions/v1/encrypt";
 const DECRYPT_URL = "https://ubjzyfxedngrsewkaccy.supabase.co/functions/v1/decrypt";
@@ -9,7 +9,7 @@ export const encryptData = async (plainText) => {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "Authorization": `Bearer ${API_ANONKEY}`
+      "Authorization": `Bearer ${EXPO_PUBLIC_SUPABASE_ANON_KEY}`
     },
     body: JSON.stringify({ text: plainText })
   });
@@ -38,7 +38,7 @@ export const decryptData = async (payload) => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${API_ANONKEY}`
+        "Authorization": `Bearer ${EXPO_PUBLIC_SUPABASE_ANON_KEY}`
       },
       body: JSON.stringify({ salt, iv, ciphertext })
     });

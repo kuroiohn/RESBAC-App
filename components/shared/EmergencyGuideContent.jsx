@@ -94,7 +94,7 @@ const EmergencyGuideContent = () => {
           safePopupTitle='Evacuation Center'
         />
 
-        {/* iPhone-style "Send Alert via SMS" card */}
+        {/* iPhone-style "Send Alert via SMS" card
         {!session && (
           <TouchableOpacity
             activeOpacity={0.8}
@@ -124,9 +124,9 @@ const EmergencyGuideContent = () => {
               </View>
             </View>
           </TouchableOpacity>
-        )}
+        )} */}
 
-        <Spacer height={20} />
+        {/* <Spacer height={20} /> */}
 
         {/* What to Pack */}
         <ThemedText style={styles.textBlue}>

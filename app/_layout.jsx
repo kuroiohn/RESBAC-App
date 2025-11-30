@@ -59,62 +59,71 @@ export default function RootLayout() {
 
     // register for push notifications and save token to Supabase
     const registerForPushNotifications = async () => {
-    // 1️⃣ Check existing permission
-    const { status: existingStatus } = await Notifications.getPermissionsAsync();
-    let finalStatus = existingStatus;
+      // 1. Check existing permission
+      const { status: existingStatus } = await Notifications.getPermissionsAsync();
+      let finalStatus = existingStatus;
 
-    if (existingStatus !== "granted") {
-      // 2️⃣ Ask the user
-      finalStatus = await new Promise((resolve) => {
-        Alert.alert(
-          "Enable Notifications",
-          "RESBAC needs notification permission to send you important disaster alerts and emergency updates.",
-          [
-            {
-              text: "Enable",
-              onPress: async () => {
-                const { status } = await Notifications.requestPermissionsAsync();
-                resolve(status);
+      if (existingStatus !== "granted") {
+        // 2. Ask the user
+        finalStatus = await new Promise((resolve) => {
+          Alert.alert(
+            "Enable Notifications",
+            "RESBAC needs notification permission to send you important disaster alerts and emergency updates.",
+            [
+              {
+                text: "Enable",
+                onPress: async () => {
+                  const { status } = await Notifications.requestPermissionsAsync();
+                  resolve(status);
+                },
               },
-            },
-            {
-              text: "Not Now",
-              style: "cancel",
-              onPress: () => resolve("denied"),
-            },
-          ]
+              {
+                text: "Not Now",
+                style: "cancel",
+                onPress: () => resolve("denied"),
+              },
+            ]
+          );
+        });
+      }
+
+      // 3. Only proceed if granted
+      if (finalStatus !== "granted") return;
+
+      try {
+        const token = (await Notifications.getExpoPushTokenAsync()).data;
+        console.log("Expo push token:", token);
+
+        const { data: { session } } = await supabase.auth.getSession();
+        const deviceInfo = { platform: Platform.OS };
+
+        const { error } = await supabase.from("push_tokens").upsert(
+          {
+            user_id: session?.user?.id || null,
+            push_token: token,
+            device_info: deviceInfo,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: "push_token" }
         );
-      });
-    }
 
-    // 3️⃣ Only proceed if granted
-    if (finalStatus !== "granted") return;
+        if (error) console.error("Error saving push token:", error);
+        else console.log(session?.user ? "Token saved for user" : "Token saved for guest");
+      } catch (error) {
+        console.error("Error registering for push notifications:", error);
+      }
+    };
 
-    try {
-      const token = (await Notifications.getExpoPushTokenAsync()).data;
-      console.log("Expo push token:", token);
-
-      const { data: { session } } = await supabase.auth.getSession();
-      const deviceInfo = { platform: Platform.OS };
-
-      const { error } = await supabase.from("push_tokens").upsert(
-        {
-          user_id: session?.user?.id || null,
-          push_token: token,
-          device_info: deviceInfo,
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: "push_token" }
-      );
-
-      if (error) console.error("Error saving push token:", error);
-      else console.log(session?.user ? "Token saved for user" : "Token saved for guest");
-    } catch (error) {
-      console.error("Error registering for push notifications:", error);
-    }
-  };
-
+    // Run immediately on app start
     registerForPushNotifications();
+
+    // Listen for Login Events
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN') {
+        console.log("User signed in - refreshing push token...");
+        await registerForPushNotifications();
+      }
+    });
 
     // how notifications behave while app is foregrounded
     Notifications.setNotificationHandler({
@@ -141,11 +150,17 @@ export default function RootLayout() {
         router.replace("/(dashboard)/home")
       } else if (data.type === 'user_verification') {
         // Navigate to profile/account screen
-        router.push('/(dashboard)/account');
+        router.push('/(dashboard)/profile');
       } else if (data.type === 'mark_as_safe') {
         // Navigate to home screen to see safe status
         router.push('/(dashboard)/home');
-      } else if (data.screen) {
+      } 
+      else if (data.alertType) {
+        // Navigate to the alerts page when an alert notification is clicked
+        router.push('/(dashboard)/alerts');
+      }
+      // -----------------------------
+      else if (data.screen) {
         // Fallback to screen specified in notification data
         router.push(`/(dashboard)/${data.screen}`);
       }
@@ -159,6 +174,8 @@ export default function RootLayout() {
       if (responseListener.current) {
         responseListener.current.remove();
       }
+      // Unsubscribe from auth listener
+      authListener.subscription.unsubscribe();
     };
   }, []);
 

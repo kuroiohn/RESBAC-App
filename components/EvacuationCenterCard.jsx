@@ -153,9 +153,7 @@ const EvacuationCenterCard = () => {
                   />
 
                   {/* Status Tag */}
-                  <View style={styles.statusOverlay}>
-                    <Text style={styles.statusTag}>Open</Text>
-                  </View>
+                  <View style={styles.statusOverlay}></View>
                 </View>
 
                 {/* 📄 Content */}

@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   Linking,
+  Platform,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Phone } from "lucide-react-native";
@@ -15,29 +16,29 @@ import { useSQLiteContext } from "expo-sqlite";
 
 export default function HotlinesCard() {
   const { emerHData } = useRealtime();
-  const db = useSQLiteContext()
-  const [local,setLocal] = useState([])
+  const db = useSQLiteContext();
+  const [local, setLocal] = useState([]);
 
   const loadUsers = async () => {
     try {
       const results = await db.getAllAsync(`select * from hotlines`);
-      setLocal(results)
-    } catch (error){
+      setLocal(results);
+    } catch (error) {
       console.error("Error in fetching from local offline storage:", error);
     }
-  }
+  };
   console.log("SQLite DB instance:", db);
 
-  const deleteSqlite = async () =>{
-    await db.runAsync('delete from hotlines')
-  }
+  const deleteSqlite = async () => {
+    await db.runAsync("delete from hotlines");
+  };
 
   useEffect(() => {
     if (!db || !emerHData) return;
 
     const insertData = async () => {
       try {
-        await db.runAsync('delete from hotlines')
+        await db.runAsync("delete from hotlines");
 
         for (const item of emerHData) {
           // Check if the row exists
@@ -50,13 +51,23 @@ export default function HotlinesCard() {
             // Update existing row
             await db.runAsync(
               `UPDATE hotlines SET created_at = ?, emerHNumber = ?, emerHDescription = ? WHERE emerHName = ?`,
-              [item.created_at, item.emerHNumber, item.emerHDescription, item.emerHName]
+              [
+                item.created_at,
+                item.emerHNumber,
+                item.emerHDescription,
+                item.emerHName,
+              ]
             );
           } else {
             // Insert new row
             await db.runAsync(
               `INSERT INTO hotlines (emerHName, created_at, emerHNumber, emerHDescription) VALUES (?,?,?,?)`,
-              [item.emerHName, item.created_at, item.emerHNumber, item.emerHDescription]
+              [
+                item.emerHName,
+                item.created_at,
+                item.emerHNumber,
+                item.emerHDescription,
+              ]
             );
           }
         }
@@ -72,10 +83,10 @@ export default function HotlinesCard() {
     insertData();
   }, [db, emerHData]);
 
-  useEffect(()=> {
+  useEffect(() => {
     // deleteSqlite()
-    loadUsers()
-  },[])
+    loadUsers();
+  }, []);
 
   const renderData = emerHData?.length ? emerHData : local;
 
@@ -88,58 +99,77 @@ export default function HotlinesCard() {
   return (
     <>
       {renderData
-      ?.sort((a,b) => new Date(a.created_at) - new Date(b.created_at))
-      .map((emerH) => (
-        <View key={emerH.id} style={styles.borderWrapper}>
-          <LinearGradient
-            colors={["#0060FF", "rgba(0, 96, 255, 0)"]}
-            start={{ x: 0.5, y: 0 }}
-            end={{ x: 0.5, y: 1 }}
-            style={styles.gradient}
-          >
-            <View style={styles.card}>
-              {renderData === local &&
-                <Text>Local</Text>}
-              {/* Top Row: Image + Info */}
-              <View style={styles.topRow}>
-
-                <View style={styles.infoSection}>
-                  <Text
-                    style={styles.name}
-                    numberOfLines={1}
-                    ellipsizeMode='tail'
-                  >
-                    {emerH.emerHName}
-                  </Text>
-                  <Text style={styles.position}>
-                    {emerH.emerHDescription || "No role specified"}
-                  </Text>
-                </View>
-              </View>
-
-              {/* Bottom: Buttons (Same Row) */}
-              <View style={styles.buttonsRow}>
-                {/* 📞 Call Button with number */}
+        ?.sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+        .map((emerH) => (
+          <View key={emerH.id} style={styles.borderWrapper}>
+            <LinearGradient
+              colors={["#0060FF", "rgba(0, 96, 255, 0)"]}
+              start={{ x: 0.5, y: 0 }}
+              end={{ x: 0.5, y: 1 }}
+              style={styles.gradient}
+            >
+              <View style={styles.card}>
+                {renderData === local && <Text>Local</Text>}
+                {/*  Floating SMS Icon */}
                 <TouchableOpacity
-                  activeOpacity={0.8}
-                  onPress={() => handleContactBtn(emerH.emerHNumber)}
-                  style={[styles.callButton, { flex: 1 }]}
+                  style={styles.smsFloatingBtn}
+                  onPress={() => {
+                    const phoneNumber = emerH.emerHNumber || "161"; // use the hotline number
+                    const message = "This is an emergency. Please send help!";
+                    const url = `sms:${phoneNumber}${
+                      Platform.OS === "ios" ? "&" : "?"
+                    }body=${encodeURIComponent(message)}`;
+
+                    Linking.openURL(url).catch((err) => {
+                      console.error("Failed to open SMS app:", err);
+                    });
+                  }}
                 >
                   <Ionicons
-                    name='call'
-                    size={16}
-                    color='#fff'
-                    style={{ marginRight: 6 }}
+                    name='chatbubble-ellipses-outline'
+                    size={14}
+                    color='#0060FF'
                   />
-
-                  <Text style={styles.callText}>Call</Text>
                 </TouchableOpacity>
 
+                {/* Top Row: Image + Info */}
+                <View style={styles.topRow}>
+                  <View style={styles.infoSection}>
+                    <Text
+                      style={styles.name}
+                      numberOfLines={1}
+                      ellipsizeMode='tail'
+                    >
+                      {emerH.emerHName}
+                    </Text>
+                    <Text style={styles.position}>
+                      {emerH.emerHDescription || "No role specified"}
+                    </Text>
+                  </View>
+                </View>
+
+                {/* Bottom: Buttons (Same Row) */}
+                <View style={styles.buttonsRow}>
+                  {/* 📞 Call Button with number */}
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    onPress={() => handleContactBtn(emerH.emerHNumber)}
+                    style={[styles.callButton, { flex: 1 }]}
+                  >
+                    <Ionicons
+                      name='call'
+                      size={16}
+                      color='#fff'
+                      style={{ marginRight: 6 }}
+                    />
+
+                    <Text style={styles.callText}>Call</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
-            </View>
-          </LinearGradient>
-        </View>
-      ))}
+            </LinearGradient>
+          </View>
+        ))}
     </>
   );
 }
@@ -240,5 +270,24 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingHorizontal: 12,
     paddingBottom: 12,
+  },
+  smsFloatingBtn: {
+    position: "absolute",
+    top: 8,
+    right: 8,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: "#e8f0ff",
+    justifyContent: "center",
+    alignItems: "center",
+
+    // subtle shadow for iOS + Android
+    shadowColor: "#000",
+    shadowOpacity: 0.15,
+    shadowRadius: 2,
+    shadowOffset: { width: 0, height: 1 },
+    elevation: 3,
+    zIndex: 20,
   },
 });

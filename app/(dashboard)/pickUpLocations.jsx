@@ -21,6 +21,7 @@ import { useUser } from "../../hooks/useUser";
 import { useLocalSearchParams } from "expo-router";
 import supabase from "../../contexts/supabaseClient";
 import UserMap from "../../components/shared/UserMap";
+import { decryptData } from "../../utils/encryption";
 
 const { width, height } = Dimensions.get("window");
 
@@ -45,8 +46,12 @@ const PickUpLocation = () => {
       if (userError) {
         console.error("Error in user fetch: ", userError);
       }
-      
-      setUserCoords(data[0]);
+      const [
+        geolocationCoords
+      ] =  await Promise.all([
+        decryptData(data[0].geolocationCoords)
+      ])
+      setUserCoords(geolocationCoords);
     };
     fetchUserCoords();
   }, []);
@@ -170,8 +175,8 @@ const PickUpLocation = () => {
   // Escape quotes for safe JS injection
   const safePopupTitle = popupTitle.replace(/'/g, "\\'");
 
-  const src = userCoords?.geolocationCoords
-    ? userCoords.geolocationCoords.split(",").map(Number)
+  const src = userCoords
+    ? userCoords.split(",").map(Number)
     : [0, 0];
 
   const dest = coords && coords.length === 2 ? coords : [0, 0];

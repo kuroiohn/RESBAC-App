@@ -282,10 +282,6 @@ const Home = () => {
         );
       }
 
-      // open dialer
-      const phoneUrl = `tel:${contact.number}`;
-      await Linking.openURL(phoneUrl);
-
       // update state and DB after dialer opens
       setCallRequested(true);
       setCallstep(2);
@@ -340,6 +336,10 @@ const Home = () => {
       .select('streetName')
       .eq('userID', user.id)
       .single()
+
+      // open dialer
+      const phoneUrl = `tel:${contact.number}`;
+      await Linking.openURL(phoneUrl);
 
       const { error: logError } = await supabase
       .from('activityLogs')

@@ -6,7 +6,7 @@ import { Colors } from "../constants/Colors";
 
 const streets = [
   { label: "Ampalaya", value: "Ampalaya" },
-  { label: "Angel Santos / A. Santos", value: "Angel Santos / A. Santos" },
+  { label: "Angel Santos / A. Santos", value: "Angel Santos" },
   { label: "Apple", value: "Apple" },
   { label: "Bagong Farmers 1", value: "Bagong Farmers 1" },
   { label: "Bagong Farmers 2", value: "Bagong Farmers 2" },
@@ -14,6 +14,7 @@ const streets = [
   { label: "Brazil", value: "Brazil" },
   { label: "Bulalakaw", value: "Bulalakaw" },
   { label: "Bukang Liwayway", value: "Bukang Liwayway" },
+  { label: "Camia", value: "Camia" },
   { label: "Cattleya", value: "Cattleya" },
   { label: "Cherry", value: "Cherry" },
   { label: "Crescent", value: "Crescent" },

@@ -45,6 +45,7 @@ const Home = () => {
   const [locationData, setLocationData] = useState(null); // GPS location data
 
   const { reqData } = useRealtime();
+  const [dialing, setDialing] = useState(false);
 
   const [userMessage, setUserMessage] = useState("");
   const [message, setMessage] = useState("");
@@ -251,17 +252,23 @@ const Home = () => {
     // setShowCallPicker(false);
     // setCallstep(1); // now in "Calling for help..." state
     // setCallRequested(true);
-
     try {
-      setShowCallPicker(false); // close modal
+      // 🔵 SHOW LOADING *IMMEDIATELY*
+      setDialing(true);
+      setShowCallPicker(false);
       setSelectedContact(contact);
 
+      // Allow React to render the loading overlay
+      await new Promise((resolve) => setTimeout(resolve, 150));
+
+      // 🔵 REQUEST LOCATION PERMISSION
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") {
         Alert.alert(
           "Permission denied!",
           "Location access is required to proceed."
         );
+        setDialing(false);
         return;
       }
 
@@ -331,15 +338,22 @@ const Home = () => {
         .eq("userID", user.id)
         .single();
 
-      const {data: addressData} = await supabase
-      .from('address')
-      .select('streetName')
-      .eq('userID', user.id)
-      .single()
+      const { data: addressData } = await supabase
+        .from("address")
+        .select("streetName")
+        .eq("userID", user.id)
+        .single();
 
-      // open dialer
       const phoneUrl = `tel:${contact.number}`;
-      await Linking.openURL(phoneUrl);
+
+      try {
+        await Linking.openURL(phoneUrl);
+      } catch (err) {
+        console.error("Failed to open dialer:", err);
+      } finally {
+        // Remove loading AFTER dialer attempt
+        setDialing(false);
+      }
 
       const { error: logError } = await supabase.from("activityLogs").insert({
         activityType: "callBtn",
@@ -444,6 +458,15 @@ const Home = () => {
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
       <ThemedView style={styles.container}>
+        <Modal visible={dialing} transparent={true} animationType='fade'>
+          <View style={styles.dialingModalContainer}>
+            <View style={styles.dialingModalBox}>
+              <ActivityIndicator size='large' color='#0060ff' />
+              <Text style={styles.dialingModalText}>Loading Dialer...</Text>
+            </View>
+          </View>
+        </Modal>
+
         <ThemedText title={true} style={styles.heading}>
           {callRequested ? "Help is on the way" : "Request Rescue?"}
         </ThemedText>
@@ -1066,5 +1089,28 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     zIndex: 999,
+  },
+  dialingModalContainer: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  dialingModalBox: {
+    backgroundColor: "white",
+    paddingVertical: 30,
+    paddingHorizontal: 25,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    width: 220,
+  },
+
+  dialingModalText: {
+    marginTop: 15,
+    color: "#0060ff",
+    fontWeight: "600",
+    fontSize: 16,
   },
 });

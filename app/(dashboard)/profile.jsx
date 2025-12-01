@@ -42,18 +42,19 @@ import { MaterialIcons } from "@expo/vector-icons";
 import StreetDropdown from "../../components/StreetDropdown";
 import BarangayDropdown from "../../components/BarangayDropdown";
 import { decryptData, encryptData } from "../../utils/encryption";
+import { Colors } from "../../constants/Colors"; 
 
 const Profile = () => {
   const { user, logout } = useUser();
   const queryClient = useQueryClient();
   const router = useRouter();
-  // const [open, setOpen] = useState(false);
-  // const [openSex, setOpenSex] = useState(false);
-  // const [menuOpen, setMenuOpen] = useState(false);
   const [openDropdowns, setOpenDropdowns] = useState({}); // dynamic for multiple dropdowns
   const [dropdownValues, setDropdownValues] = useState({
-    sex: " ",
+    sex: null,
   });
+
+  // Validation State
+  const [formErrors, setFormErrors] = useState({});
 
   // added to remove header in profile tab
   const navigation = useNavigation();
@@ -120,100 +121,40 @@ const Profile = () => {
     dueDate: "",
     trimester: "",
   });
-  // const [userVulStatus, setUserVulStatus] = useState({
-  //   physicalStatus: [],
-  //   psychStatus: [],
-  //   sensoryStatus: [],
-  //   medDepStatus: [],
-  //   userID: "",
-  // });
+  
   const [isVerified, setIsVerified] = useState(false);
   const [loading, setLoading] = useState(true);
-  // no risk level 0 since no area is submerged during alert 1
-  const moderateStreets = [ // risk level 1
-    "Bagong Farmers Avenue 1", //
-    "Liwanag Street Area",
-    
-    // di ko alam saan lalagay tong mga to na hindi naman binanggit kaya nandito lang sila sa moderate?
-    "Banner Street", //
-    "Camia Street", //
-    "Cattleya Street", //
-    "Crescent Street", //
-    "Daisy Street", //
-    "Jasmin Street", //
-    "Jewelmark Street",  //
-    "Katipunan Street", //
-    "Lacewing Street", //
-    "Mil Flores Street", //
-    "Monarch Street", //
-    "Moscow Street", //
-    "Okra Street", //
-    "Silverdrop Street", //
-    "Sunkist Street", //
-    "Swallowtail Street", //
-
-    // missing from the orig list, from the updated street list from Mikai
-    "Apple",
-    "Brazil",
-    "Bulalakaw",
-    "Bukang Liwayway",
-    "Cherry",
-    "Damayan Alley",
-    "Del Rosario",
-    "Denmark",
-    // "Farmers Ave. 2", // ???????
-    "Iwahig",
-    "Kalamansi",
-    "Kalabasa",
-    "Kamias",
-    "Kislap",
-    "Kutitap",
-    "Malunggay",
-    "Monaco",
-    "Mustasa",
-    "Nova Scotia",
-    "Orange",
-    "Panganiban",
-    "Patola",
-    "Pechay",
-    "Piling Santos",
-    "Vergara"
-  ]
+  
+  // Street Lists
+  const moderateStreets = [
+    "Bagong Farmers Avenue 1", "Liwanag Street Area", "Banner Street", "Camia Street", 
+    "Cattleya Street", "Crescent Street", "Daisy Street", "Jasmin Street", "Jewelmark Street", 
+    "Katipunan Street", "Lacewing Street", "Mil Flores Street", "Monarch Street", "Moscow Street", 
+    "Okra Street", "Silverdrop Street", "Sunkist Street", "Swallowtail Street", "Apple", "Brazil", 
+    "Bulalakaw", "Bukang Liwayway", "Cherry", "Damayan Alley", "Del Rosario", "Denmark", 
+    "Iwahig", "Kalamansi", "Kalabasa", "Kamias", "Kislap", "Kutitap", "Malunggay", "Monaco", 
+    "Mustasa", "Nova Scotia", "Orange", "Panganiban", "Patola", "Pechay", "Piling Santos", "Vergara",
+  ];
   const highStreets = [
-    "Ampalaya Street", //
-    "Kangkong Street", //
-    "Labanos Street", //
-    "Road Dike",
-    "Upo Street", //
-    "Bagong Farmers Avenue 2", //
-    "Mais Street", //
-    "Road 1",
-    "Road 2",
-    "Road 3",
-    "Road 4",
-    "Road 5",
-    "Singkamas Street", //
-    "Talong Street", //
-  ]
+    "Ampalaya Street", "Kangkong Street", "Labanos Street", "Road Dike", "Upo Street", 
+    "Bagong Farmers Avenue 2", "Mais Street", "Road 1", "Road 2", "Road 3", "Road 4", 
+    "Road 5", "Singkamas Street", "Talong Street",
+  ];
   const criticalStreets = [
-    "Angel Santos Street", //
-    "Ilaw Street", //
-    "Palay Street", //
-    "Pipino Street", //
-    "Kangkong Street", //
-    "Labanos Street", //
-    "Upo Street", //
-  ]
+    "Angel Santos Street", "Ilaw Street", "Palay Street", "Pipino Street", "Kangkong Street", 
+    "Labanos Street", "Upo Street",
+  ];
 
-  // const [isEditing, setIsEditing] = useState(false);
   const [editingSections, setEditingSections] = useState({
     userData: false,
     address: false,
     guardian: false,
     vulnerability: false,
   });
-  // added helper
+
   const toggleSectionEdit = (section) => {
+    // Clear errors when toggling sections
+    setFormErrors({}); 
     setEditingSections((prev) => ({
       ...prev,
       [section]: !prev[section],
@@ -246,18 +187,11 @@ const Profile = () => {
   const toJPEG = async (uri) => {
     try {
       const context = await ImageManipulator.manipulate(uri);
-
-      //resize if needed
-      // context.resize({ width: 800 });
-
-      // render async
       const imageRef = await context.renderAsync();
-
       const result = await imageRef.saveAsync({
         compress: 0.9,
         format: SaveFormat.JPEG,
       });
-
       return result.uri;
     } catch (error) {
       Alert.alert(
@@ -273,7 +207,6 @@ const Profile = () => {
       if (!user?.id) throw new Error("No user id!");
 
       const ext = uri.split(".").pop();
-      // const filename = `users/${user.id}_profile.${ext}`
       const filename = `users/${user.id}_profile.jpeg`;
 
       const jpegUri = await toJPEG(uri);
@@ -281,10 +214,7 @@ const Profile = () => {
         encoding: FileSystem.EncodingType.Base64,
       });
 
-      // convert to binary
       const imgBlob = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
-
-      // const contentType = mime.getType(uri) || "image/jpeg"
       const contentType = "image/jpeg";
 
       const { error } = await supabase.storage
@@ -334,21 +264,13 @@ const Profile = () => {
       .select();
   };
 
-  // TODO tih pacheck here if okay lang na di k ginamit to
-  //FIXME -  not used
-  const [editedUser, setEditedUser] = useState({
-    userData: { ...userData },
-    userAddress: { ...userAddress },
-    userGuardian: { ...userGuardian },
-    userVul: { ...userVul },
-  });
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showMpinModal, setShowMpinModal] = useState(false);
 
   //reads from supabase
 
   const fetchUserData = async () => {
-    setLoading(true)
+    setLoading(true);
     // Get the current logged in user
     const { error: userError } = await supabase.auth.getUser();
     if (userError || !user) {
@@ -362,8 +284,6 @@ const Profile = () => {
       .eq("userID", user.id)
       .single();
 
-    console.log("encrypted:", data);  
-
     //ANCHOR - decryption here
     const [
       decFirstName,
@@ -371,25 +291,36 @@ const Profile = () => {
       decSurname,
       decUserNumber,
       decDob,
-      decAge
+      decAge,
     ] = await Promise.all([
       decryptData(data.firstName),
       data?.middleName ? decryptData(data?.middleName) : Promise.resolve(""),
       decryptData(data.surname),
       decryptData(data.userNumber),
       decryptData(data.dateOfBirth),
-      decryptData(data.age)
+      decryptData(data.age),
     ]);
 
-    setUserData({
+    const decryptedUser = {
+      ...data,
       firstName: decFirstName || "",
       middleName: decMiddleName || "",
       surname: decSurname || "",
-      dob: decDob || "",
+      dateOfBirth: decDob || "",
       age: decAge || 0,
-      sex: data.sex || "",
-      mpin: data.mpin || "",
+      sex: data.sex || null,
       userNumber: decUserNumber || "",
+    };
+
+    setUserData({
+      firstName: decryptedUser.firstName,
+      middleName: decryptedUser.middleName,
+      surname: decryptedUser.surname,
+      dob: decryptedUser.dateOfBirth,
+      age: decryptedUser.age,
+      sex: decryptedUser.sex,
+      mpin: data.mpin || "",
+      userNumber: decryptedUser.userNumber,
       householdSize: data.householdSize || 0,
       addressID: data.addressID || 0,
       hasGuardian: data.hasGuardian || false,
@@ -400,12 +331,12 @@ const Profile = () => {
       email: user.email,
       profilePic: data.profilePic || profilePic,
     });
+
     if (error) {
       console.error("Fetch error in user table: ", error);
     }
-    // console.log("Successful fetch", data);
-    setLoading(false)
-    return data;
+    setLoading(false);
+    return decryptedUser; // RETURN DECRYPTED DATA
   };
 
   const {
@@ -413,7 +344,7 @@ const Profile = () => {
     isPending,
     isError,
     error,
-    refetch,
+    refetch: refetchUser,
   } = useQuery({
     queryKey: ["user", user?.id],
     queryFn: fetchUserData,
@@ -422,12 +353,12 @@ const Profile = () => {
   if (error) {
     console.error("Error in fetching user table: ", error);
   }
-  // console.log("profiledata email ", profileData?.email);
 
   // checks if session exists thru isPending
   useEffect(() => {
     setLoading(isPending);
   }, [isPending]);
+  
   // assigns values from profileData to useState
   useEffect(() => {
     if (profileData) {
@@ -437,7 +368,7 @@ const Profile = () => {
         surname: profileData.surname || "",
         dob: profileData.dateOfBirth || "",
         age: profileData.age || 0,
-        sex: profileData.sex || "None",
+        sex: profileData.sex || null,
         mpin: profileData.mpin || "",
         userNumber: profileData.userNumber || "",
         householdSize: profileData.householdSize || 0,
@@ -448,11 +379,11 @@ const Profile = () => {
         verificationID: profileData.verificationID || 0,
         userID: profileData.userID || "",
         email: profileData.email,
+        profilePic: profileData.profilePic || profilePic,
       });
     }
-  }, [user]);
+  }, [profileData]);
 
-  // console.log("USerdata email", userData.email);
 
   const fetchAddressData = async () => {
     // Get the current logged in user
@@ -473,32 +404,40 @@ const Profile = () => {
       dstreetName,
       dbrgyName,
       dcityName,
-      dgeolocationCoords
+      dgeolocationCoords,
     ] = await Promise.all([
       decryptData(data.houseInfo),
       decryptData(data.streetName),
       decryptData(data.brgyName),
       decryptData(data.cityName),
-      decryptData(data.geolocationCoords)
-    ])
+      decryptData(data.geolocationCoords),
+    ]);
 
-    //ANCHOR -  decryption address
-    setUserAddress({
+    const decryptedAddress = {
+      ...data,
       houseInfo: dhouseInfo || "",
       streetName: dstreetName || "",
       brgyName: dbrgyName || "",
       cityName: dcityName || "",
       geolocationCoords: dgeolocationCoords || "",
+    };
+
+    //ANCHOR -  decryption address
+    setUserAddress({
+      houseInfo: decryptedAddress.houseInfo,
+      streetName: decryptedAddress.streetName,
+      brgyName: decryptedAddress.brgyName,
+      cityName: decryptedAddress.cityName,
+      geolocationCoords: decryptedAddress.geolocationCoords,
       userID: data.userID || "",
     });
 
     if (error) {
       console.error("Fetch error in address table: ", error);
     }
-    // console.log("Successful fetch", data);
-    return data;
+    return decryptedAddress;
   };
-  const { data: addressData, error: addressError } = useQuery({
+  const { data: addressData, error: addressError, refetch: refetchAddress } = useQuery({
     queryKey: ["address"],
     queryFn: fetchAddressData,
   });
@@ -508,6 +447,7 @@ const Profile = () => {
   useEffect(() => {
     if (addressData) {
       setUserAddress({
+        houseInfo: addressData.houseInfo || "",
         streetName: addressData.streetName || "",
         brgyName: addressData.brgyName || "",
         cityName: addressData.cityName || "",
@@ -515,11 +455,10 @@ const Profile = () => {
         userID: addressData.userID || "",
       });
     }
-  }, [user]);
-  // console.log("hasGuardian: ", profileData?.hasGuardian);
+  }, [addressData]);
 
   const fetchGuardianData = async () => {
-    setLoading(true)
+    setLoading(true);
     // Get the current logged in user
     const { error: userError } = await supabase.auth.getUser();
     if (userError || !user) {
@@ -537,33 +476,39 @@ const Profile = () => {
       decFullName,
       decRelationship,
       decGuardianContact,
-      decGuardianAddress
+      decGuardianAddress,
     ] = await Promise.all([
       decryptData(data.fullName),
       decryptData(data.relationship),
       decryptData(data.guardianContact),
       decryptData(data.guardianAddress),
+    ]);
 
-    ])
-    setUserGuardian({
+    const decryptedGuardian = {
+      ...data,
       fullName: decFullName || "",
       relationship: decRelationship || "",
       guardianContact: decGuardianContact || "",
       guardianAddress: decGuardianAddress || "",
+    };
+
+    setUserGuardian({
+      fullName: decryptedGuardian.fullName,
+      relationship: decryptedGuardian.relationship,
+      guardianContact: decryptedGuardian.guardianContact,
+      guardianAddress: decryptedGuardian.guardianAddress,
       userID: data.userID || "",
     });
 
     if (error) {
       console.error("Fetch error in guardian table: ", error);
     }
-    // console.log("Successful fetch", data);
-    setLoading(false)
-    return data;
+    setLoading(false);
+    return decryptedGuardian;
   };
-  const { data: guardianData, error: guardianError } = useQuery({
+  const { data: guardianData, error: guardianError, refetch: refetchGuardian } = useQuery({
     queryKey: ["guardian", profileData?.userID],
     queryFn: fetchGuardianData,
-    // enabled: !!profileData?.hasGuardian === true,
   });
   if (guardianError) {
     console.error("Error in fetching guardian table: ", addressError);
@@ -578,7 +523,7 @@ const Profile = () => {
         userID: guardianData.userID || "",
       });
     }
-  }, [user]);
+  }, [guardianData]);
 
   const fetchVulData = async () => {
     // Get the current logged in user
@@ -608,7 +553,6 @@ const Profile = () => {
     if (error) {
       console.error("Fetch error in vulList table: ", error);
     }
-    // console.log("Successful fetch", data);
     return data;
   };
   const { data: vulListData, error: vulListError } = useQuery({
@@ -633,7 +577,6 @@ const Profile = () => {
     }
   }, [user]);
 
-  // console.log(userVul);
 
   const fetchVerif = async () => {
     // Get the current logged in user
@@ -654,7 +597,6 @@ const Profile = () => {
     if (error) {
       console.error("Fetch error in verif table: ", error);
     }
-    // console.log("Successful fetch", data);
     return data;
   };
   const { data: verifData, error: verifError } = useQuery({
@@ -692,7 +634,6 @@ const Profile = () => {
     if (error) {
       console.error("Fetch error in pregnant table: ", error);
     }
-    // console.log("Successful fetch", data);
     return data;
   };
   const { data: pregnantData, error: pregnantError } = useQuery({
@@ -756,14 +697,11 @@ const Profile = () => {
           filter: `userID=eq.${user.id}`,
         },
         (payload) => {
-          // console.log("Realtime USER update:", payload);
           setUserData((prev) => ({
             ...prev,
             ...payload.new,
             dob: payload.new.dateOfBirth ?? prev.dob,
           }));
-          // Re-fetch with react-query
-          // refetch();
         }
       )
       .subscribe();
@@ -780,12 +718,10 @@ const Profile = () => {
           filter: `userID=eq.${user.id}`,
         },
         (payload) => {
-          // console.log("Realtime ADDRESS update:", payload);
           setUserAddress((prev) => ({
             ...prev,
             ...payload.new,
           }));
-          // trigger react-query refetch for address
           queryClient.invalidateQueries(["address"]);
         }
       )
@@ -803,12 +739,10 @@ const Profile = () => {
           filter: `userID=eq.${user.id}`,
         },
         (payload) => {
-          // console.log("Realtime GUARDIAN update:", payload);
           setUserGuardian((prev) => ({
             ...prev,
             ...payload.new,
           }));
-
           queryClient.invalidateQueries(["guardian", user.id]);
         }
       )
@@ -826,7 +760,6 @@ const Profile = () => {
           filter: `userID=eq.${user.id}`,
         },
         (payload) => {
-          // console.log("Realtime VUL update:", payload);
           setUserVul((prev) => ({
             ...prev,
             ...payload.new,
@@ -883,27 +816,6 @@ const Profile = () => {
     };
   }, [user?.id]);
 
-  // console.log("realtime verif: ", isVerified);
-
-  //NOTE - never tinawag
-  const toggleEdit = () => {
-    if (editingSections) {
-      Alert.alert("Save Changes?", "Do you want to save your changes?", [
-        {
-          text: "Cancel",
-          // onPress: () => setEditedUser(userData),
-          style: "cancel",
-        },
-        {
-          text: "Save",
-          onPress: saveChanges,
-        },
-      ]);
-    } else {
-      // setEditedUser(userData);
-    }
-    setEditingSections(!editingSections);
-  };
 
   //ANCHOR - invalidates for refetch and get new data
   useEffect(() => {
@@ -914,9 +826,99 @@ const Profile = () => {
     queryClient.invalidateQueries(["verification"]);
   }, []);
 
+  // Handle Cancel Logic - profile update
+  const handleCancel = (section) => {
+    // 1. Reset Errors
+    setFormErrors({});
+    
+    // 2. Close edit mode for the section
+    setEditingSections((prev) => ({
+      ...prev,
+      [section]: false,
+    }));
+
+    // 3. Re-fetch data to revert changes
+    if (section === "userData") {
+      refetchUser();
+    } else if (section === "address") {
+      refetchAddress();
+    } else if (section === "guardian") {
+      refetchGuardian();
+    }
+  };
+
+  // Validation function
+  const validateForm = () => {
+    const errors = {};
+    
+    // Validate Personal Info if editing
+    if (editingSections.userData) {
+      if (!userData.firstName || !userData.firstName.trim()) {
+        errors.firstName = "First Name is required";
+      }
+      if (!userData.surname || !userData.surname.trim()) {
+        errors.surname = "Surname is required";
+      }
+      // Check for null, empty string, or "None"
+      if (!userData.sex || userData.sex === "None" || userData.sex.trim() === "") {
+        errors.sex = "Sex is required";
+      }
+      if (!userData.dob) {
+        errors.dob = "Date of Birth is required";
+      }
+      if (!userData.userNumber || !userData.userNumber.trim()) {
+        errors.userNumber = "Contact Number is required";
+      }
+      if (!userData.householdSize) {
+        errors.householdSize = "Household Size is required";
+      }
+    }
+
+    // Validate Address if editing
+    if (editingSections.address) {
+      if (!userAddress.houseInfo || !userAddress.houseInfo.trim()) {
+        errors.houseInfo = "House Info is required";
+      }
+      if (!userAddress.streetName || !userAddress.streetName.trim()) {
+        errors.streetName = "Street is required";
+      }
+      if (!userAddress.brgyName || !userAddress.brgyName.trim()) {
+        errors.brgyName = "Barangay is required";
+      }
+      if (!userAddress.cityName || !userAddress.cityName.trim()) {
+        errors.cityName = "City is required";
+      }
+    }
+
+    // Validate Guardian if editing
+    if (editingSections.guardian) {
+      if (!userGuardian.fullName || !userGuardian.fullName.trim()) {
+        errors.fullName = "Name is required";
+      }
+      if (!userGuardian.relationship || !userGuardian.relationship.trim()) {
+        errors.relationship = "Relationship is required";
+      }
+      if (!userGuardian.guardianContact || !userGuardian.guardianContact.trim()) {
+        errors.guardianContact = "Contact is required";
+      }
+      if (!userGuardian.guardianAddress || !userGuardian.guardianAddress.trim()) {
+        errors.guardianAddress = "Address is required";
+      }
+    }
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   //ANCHOR - update tables here
   const saveChanges = async () => {
     try {
+      // 1. Run Validation
+      if (!validateForm()) {
+        
+        return; 
+      }
+
       const newAge = differenceInYears(new Date(), new Date(userData.dob));
 
       //ANCHOR - encryption for update
@@ -937,7 +939,7 @@ const Profile = () => {
         efullName,
         erelationship,
         eguardianContact,
-        eguardianAddress
+        eguardianAddress,
       ] = await Promise.all([
         encryptData(userData.firstName),
         userData?.middleName ? encryptData(userData?.middleName) : null,
@@ -955,8 +957,8 @@ const Profile = () => {
         encryptData(userGuardian.fullName),
         encryptData(userGuardian.relationship),
         encryptData(userGuardian.guardianContact),
-        encryptData(userGuardian.guardianAddress)
-      ])
+        encryptData(userGuardian.guardianAddress),
+      ]);
 
       await supabase
         .from("user")
@@ -987,15 +989,15 @@ const Profile = () => {
         .eq("userID", user.id);
 
       // Update guardian table (if exists) ##############################
-        await supabase
-          .from("guardian")
-          .update({
-            fullName: efullName,
-            relationship: erelationship,
-            guardianContact: eguardianContact,
-            guardianAddress: eguardianAddress,
-          })
-          .eq("userID", user.id);
+      await supabase
+        .from("guardian")
+        .update({
+          fullName: efullName,
+          relationship: erelationship,
+          guardianContact: eguardianContact,
+          guardianAddress: eguardianAddress,
+        })
+        .eq("userID", user.id);
 
       // Update vulnerability table ###################################
       await supabase
@@ -1049,24 +1051,27 @@ const Profile = () => {
       //ANCHOR - PRIO API CONNECTION
       const getPrioritization = async () => {
         try {
-          const response = await fetch("https://ffxzuvjivql5sbw3zahbv4qi2q0tgwxj.lambda-url.ap-southeast-1.on.aws/predict", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              values: {
-                ElderlyScore: riskData.elderlyScore,
-                PregnantOrInfantScore: riskData.pregnantInfantScore,
-                PhysicalPWDScore: riskData.physicalPWDScore,
-                PsychPWDScore: riskData.psychPWDScore,
-                SensoryPWDScore: riskData.sensoryPWDScore,
-                MedicallyDependentScore: riskData.medDepScore,
-                // hasGuardian: riskData.hasGuardian,
-                locationRiskLevel: riskData.locationRiskLevel,
+          const response = await fetch(
+            "https://ffxzuvjivql5sbw3zahbv4qi2q0tgwxj.lambda-url.ap-southeast-1.on.aws/predict",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
               },
-            }),
-          });
+              body: JSON.stringify({
+                values: {
+                  ElderlyScore: riskData.elderlyScore,
+                  PregnantOrInfantScore: riskData.pregnantInfantScore,
+                  PhysicalPWDScore: riskData.physicalPWDScore,
+                  PsychPWDScore: riskData.psychPWDScore,
+                  SensoryPWDScore: riskData.sensoryPWDScore,
+                  MedicallyDependentScore: riskData.medDepScore,
+                  // hasGuardian: riskData.hasGuardian,
+                  locationRiskLevel: riskData.locationRiskLevel,
+                },
+              }),
+            }
+          );
 
           const result = await response.json();
           // console.log("Result: ", result.prediction);
@@ -1101,7 +1106,9 @@ const Profile = () => {
         guardian: false,
         vulnerability: false,
       });
-
+      // Clear errors on success
+      setFormErrors({});
+      
     } catch (error) {
       console.error("Error updating profile:", error);
       Alert.alert("Error", "Failed to update profile. Please try again.");
@@ -1109,6 +1116,7 @@ const Profile = () => {
   };
 
   const updateField = (section, field, value) => {
+    // 1. Update the data
     if (section === "userData") {
       setUserData((prev) => ({ ...prev, [field]: value }));
     } else if (section === "guardian") {
@@ -1131,6 +1139,15 @@ const Profile = () => {
         return { ...prev, [field]: value };
       });
     }
+
+    // 2. Clear validation errors
+    if (formErrors[field]) {
+      setFormErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
+    }
   };
 
   const renderField = (
@@ -1143,39 +1160,29 @@ const Profile = () => {
     dropdownItems = null // optional: array of {label, value}
   ) => {
     const isEditing = editingSections[section] && editable;
+    const errorMessage = formErrors[field];
+
+    let content = null;
 
     if (field === "streetName" && isEditing) {
-      return (
-        <View style={styles.rowItem}>
-          <Text style={styles.label}>{label}</Text>
+      content = (
           <StreetDropdown
             value={value}
             onChange={(newValue) => updateField(section, field, newValue)}
             disabled={false}
           />
-        </View>
       );
-    }
-    if (field === "brgyName" && isEditing) {
-      return (
-        <View style={styles.rowItem}>
-          <Text style={styles.label}>{label}</Text>
+    } else if (field === "brgyName" && isEditing) {
+      content = (
           <BarangayDropdown
             value={value}
             onChange={(newValue) => updateField(section, field, newValue)}
             disabled={false}
           />
-        </View>
       );
-    }
-
-    // Dropdown case
-    if (dropdownItems && isEditing) {
-      // console.log("Dropdown items for", field, ":", dropdownItems);
-
-      return (
-        <View style={[styles.rowItem, { zIndex: 3000 }]}>
-          <Text style={styles.label}>{label}</Text>
+    } else if (dropdownItems && isEditing) {
+      content = (
+        <View style={{ zIndex: 3000 }}>
           <DropDownPicker
             open={openDropdowns[field] || false}
             value={dropdownValues[field] ?? value} // controlled value
@@ -1192,35 +1199,35 @@ const Profile = () => {
               });
             }}
             placeholder={`Select ${label}`}
-            style={[styles.dropdown, styles.editableInput]}
+            style={[styles.dropdown, styles.editableInput, errorMessage && styles.inputErrorBorder]}
             dropDownContainerStyle={styles.dropdownContainer}
             zIndex={2000}
             zIndexInverse={1000}
           />
         </View>
       );
-    }
-
-    // Text input case
-    if (isEditing) {
-      return (
-        <View style={styles.rowItem}>
-          <Text style={styles.label}>{label}</Text>
+    } else if (isEditing) {
+      // Standard Text Input
+      content = (
           <TextInput
-            style={[styles.input, styles.editableInput]}
+            style={[styles.input, styles.editableInput, errorMessage && styles.inputErrorBorder]}
             value={value}
             onChangeText={(text) => updateField(section, field, text)}
             keyboardType={keyboardType}
           />
-        </View>
       );
+    } else {
+      // Read Only
+      content = <Text style={styles.valueText}>{value || "—"}</Text>;
     }
 
-    // Read-only case
     return (
       <View style={styles.rowItem}>
         <Text style={styles.label}>{label}</Text>
-        <Text style={styles.valueText}>{value || "—"}</Text>
+        {content}
+        {isEditing && errorMessage && (
+          <Text style={styles.fieldError}>{errorMessage}</Text>
+        )}
       </View>
     );
   };
@@ -1356,7 +1363,7 @@ const Profile = () => {
               {/* Cancel Button */}
               <TouchableOpacity
                 style={[styles.saveButton, { backgroundColor: "#aaa" }]}
-                onPress={() => toggleSectionEdit("userData")} // close edit mode
+                onPress={() => handleCancel("userData")} // Use handleCancel
               >
                 <Feather name='x' size={18} color='#fff' />
                 <Text style={styles.saveButtonText}>Cancel</Text>
@@ -1430,25 +1437,32 @@ const Profile = () => {
         <View style={styles.rowItem}>
           <Text style={styles.label}>Date of Birth</Text>
           {editingSections.userData ? (
-            <DOBField
-              value={userData.dob ? new Date(userData.dob) : null}
-              onChange={(date) => {
-                if (date) {
-                  updateField(
-                    "userData",
-                    "dob",
-                    date.toISOString().split("T")[0]
-                  );
-                }
-              }}
-              editable={true}
-            />
+            <>
+              <DOBField
+                value={userData.dob ? new Date(userData.dob) : null}
+                onChange={(date) => {
+                  if (date) {
+                    updateField(
+                      "userData",
+                      "dob",
+                      date.toISOString().split("T")[0]
+                    );
+                  }
+                }}
+                editable={true}
+              />
+              {formErrors.dob && (
+                <Text style={styles.fieldError}>{formErrors.dob}</Text>
+              )}
+            </>
           ) : (
-            <Text style={styles.valueText}>{new Date(userData.dob).toLocaleDateString("en-us",{
-              "month":"short",
-              "day":"2-digit",
-              "year":"numeric"
-            }) || "—"}</Text>
+            <Text style={styles.valueText}>
+              {new Date(userData.dob).toLocaleDateString("en-us", {
+                month: "short",
+                day: "2-digit",
+                year: "numeric",
+              }) || "—"}
+            </Text>
           )}
         </View>
 
@@ -1461,9 +1475,7 @@ const Profile = () => {
               editable={false} // optional: could be read-only
             />
           ) : (
-            <Text style={styles.valueText}>
-              {userData.age || "—"}
-            </Text>
+            <Text style={styles.valueText}>{userData.age || "—"}</Text>
           )}
         </View>
       </View>
@@ -1487,8 +1499,8 @@ const Profile = () => {
               style={[styles.input, styles.disabledInput]}
               value={userData.email || ""}
               editable={false}
-              keyboardType='email-address'
-              autoCapitalize='none'
+              keyboardType="email-address"
+              autoCapitalize="none"
             />
           ) : (
             <Text style={styles.valueText}>{userData.email || "-"}</Text>
@@ -1525,7 +1537,7 @@ const Profile = () => {
                 {/* Cancel Button */}
                 <TouchableOpacity
                   style={[styles.saveButton, { backgroundColor: "#aaa" }]}
-                  onPress={() => toggleSectionEdit("address")} // close edit mode
+                  onPress={() => handleCancel("address")} // Use handleCancel
                 >
                   <Feather name='x' size={18} color='#fff' />
                   <Text style={styles.saveButtonText}>Cancel</Text>
@@ -1617,7 +1629,7 @@ const Profile = () => {
               {/* Cancel Button */}
               <TouchableOpacity
                 style={[styles.saveButton, { backgroundColor: "#aaa" }]}
-                onPress={() => toggleSectionEdit("guardian")} // close edit mode
+                onPress={() => handleCancel("guardian")} // Use handleCancel
               >
                 <Feather name='x' size={18} color='#fff' />
                 <Text style={styles.saveButtonText}>Cancel</Text>
@@ -2049,6 +2061,11 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     justifyContent: "center",
   },
+  
+  inputErrorBorder: {
+    borderColor: Colors.warning,
+    borderWidth: 1.5,
+  },
 
   editableInput: {
     backgroundColor: "#e6f0ff",
@@ -2058,6 +2075,13 @@ const styles = StyleSheet.create({
   disabledInput: {
     backgroundColor: "#f0f0f0",
     color: "#555",
+  },
+  
+  fieldError: {
+    color: Colors.warning || "red",
+    fontSize: 12, 
+    marginTop: 4,
+    marginLeft: 2
   },
 
   buttonRow: {

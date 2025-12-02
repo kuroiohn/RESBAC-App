@@ -141,12 +141,14 @@ const Profile = () => {
     "MilFlores",
     "Monarch",
     "Moscow",
+    "Sitaw",
     "Okra",
     "Silverdrop",
     "Sunkist",
     "Swallowtail",
-    "Sitaw",
     "Apple",
+    "Doña Petra",
+    "Farmers 2",
     "Brazil",
     "Bulalakaw",
     "Bukang Liwayway",
@@ -162,6 +164,7 @@ const Profile = () => {
     "Kutitap",
     "Malunggay",
     "Monaco",
+    "Monggo",
     "Mustasa",
     "Nova Scotia",
     "Orange",
@@ -170,6 +173,9 @@ const Profile = () => {
     "Pechay",
     "Piling Santos",
     "Vergara",
+    "Sinag",
+    "Sinagtala",
+    "Waterlily",
   ];
 
   const highStreets = [

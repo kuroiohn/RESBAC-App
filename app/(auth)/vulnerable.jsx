@@ -128,36 +128,6 @@ const Vulnerable = () => {
   const [pregnancyError, setPregnancyError] = useState("");
   const [infantError, setInfantError] = useState("");
 
-  const validatePregnancy = () => {
-    let valid = true;
-
-    // Validate pregnancy selection
-    if (!pregnancy) {
-      setPregnancyError("Please select yes or no.");
-      valid = false;
-    } else {
-      setPregnancyError("");
-    }
-
-    // Validate due date
-    if (pregnancy === "yes" && !dueDate) {
-      setDueDateError("Due date is required when pregnant.");
-      valid = false;
-    } else {
-      setDueDateError("");
-    }
-
-    // Validate trimester
-    if (pregnancy === "yes" && trimester === "") {
-      setTrimesterError("Please select a trimester.");
-      valid = false;
-    } else {
-      setTrimesterError("");
-    }
-
-    return valid;
-  };
-
   useEffect(() => {
     if (!sensoryTrigger) {
       setOtherSensoryDisability("");
@@ -300,12 +270,24 @@ const Vulnerable = () => {
         errors.householdCount = "Household count is required";
       }
 
-      // Validate infant question
+      // Infant Question
       if (!hasInfant) {
-        setInfantError("Please select yes or no.");
-        valid = false;
-      } else {
-        setInfantError("");
+        errors.hasInfant = "Please select yes or no.";
+      }
+
+      // Pregnancy Question
+      if (!pregnancy) {
+        errors.pregnancy = "Please select yes or no.";
+      }
+
+      // Due Date (only if pregnant)
+      if (pregnancy === "yes" && !dueDate) {
+        errors.dueDate = "Due date is required when pregnant.";
+      }
+
+      // Trimester (only if pregnant)
+      if (pregnancy === "yes" && !trimester) {
+        errors.trimester = "Please select a trimester.";
       }
     }
 
@@ -315,8 +297,6 @@ const Vulnerable = () => {
 
   const handleNext = async () => {
     console.log("Collecting vulnerability data...");
-
-    if (!validatePregnancy()) return;
 
     // Validate Form First
     if (!validateForm()) {
@@ -714,10 +694,9 @@ const Vulnerable = () => {
                   setPregnancyError(""); // Clear error when user selects
                 }}
               />
-              {pregnancyError !== "" && (
-                <Text style={{ color: "red", marginTop: 2 }}>
-                  {pregnancyError}
-                </Text>
+
+              {formErrors.pregnancy && (
+                <Text style={styles.fieldError}>{formErrors.pregnancy}</Text>
               )}
               {pregnancy === "yes" && (
                 <>
@@ -732,9 +711,9 @@ const Vulnerable = () => {
                     )}
                     placeholder='Due Date'
                   />
-                  {dueDateError !== "" && (
-                    <Text style={{ color: "red", marginTop: 2 }}>
-                      {dueDateError}
+                  {formErrors?.dueDate && (
+                    <Text style={{ color: "red", marginTop: -5 }}>
+                      {formErrors.dueDate}
                     </Text>
                   )}
                   <Picker
@@ -770,9 +749,9 @@ const Vulnerable = () => {
                       color='#000'
                     />
                   </Picker>
-                  {trimesterError !== "" && (
-                    <Text style={{ color: "red", marginBottom: 0 }}>
-                      {trimesterError}
+                  {formErrors?.trimester && (
+                    <Text style={{ color: "red", marginTop: -5 }}>
+                      {formErrors.trimester}
                     </Text>
                   )}
                 </>
@@ -789,9 +768,10 @@ const Vulnerable = () => {
               setInfantError(""); // clear error when answered
             }}
           />
-          {infantError !== "" && (
-            <Text style={{ color: "red", marginTop: 2 }}>{infantError}</Text>
+          {formErrors.hasInfant && (
+            <Text style={styles.fieldError}>{formErrors.hasInfant}</Text>
           )}
+
           {/* Physical Disabilities */}
           <View style={styles.sectionHeader}>
             <TitleText type='title5'>Physical Disability</TitleText>

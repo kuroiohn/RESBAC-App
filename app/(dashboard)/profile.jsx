@@ -145,6 +145,7 @@ const Profile = () => {
     "Silverdrop",
     "Sunkist",
     "Swallowtail",
+    "Sitaw",
     "Apple",
     "Brazil",
     "Bulalakaw",

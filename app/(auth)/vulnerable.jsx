@@ -123,6 +123,31 @@ const Vulnerable = () => {
   const [sensoryTrigger, setSensoryTrigger] = useState(false);
   const [medDepTrigger, setMedDepTrigger] = useState(false);
 
+  const [dueDateError, setDueDateError] = useState("");
+  const [trimesterError, setTrimesterError] = useState("");
+
+  const validatePregnancy = () => {
+    let valid = true;
+
+    // Validate due date
+    if (pregnancy === "yes" && !dueDate) {
+      setDueDateError("Due date is required when pregnant.");
+      valid = false;
+    } else {
+      setDueDateError("");
+    }
+
+    // Validate trimester
+    if (pregnancy === "yes" && trimester === "") {
+      setTrimesterError("Please select a trimester.");
+      valid = false;
+    } else {
+      setTrimesterError("");
+    }
+
+    return valid;
+  };
+
   useEffect(() => {
     if (!sensoryTrigger) {
       setOtherSensoryDisability("");
@@ -273,10 +298,12 @@ const Vulnerable = () => {
   const handleNext = async () => {
     console.log("Collecting vulnerability data...");
 
+    if (!validatePregnancy()) return;
+
     // Validate Form First
     if (!validateForm()) {
-        // Optional: Scroll to top or show a general error toast if needed
-        return;
+      // Optional: Scroll to top or show a general error toast if needed
+      return;
     }
 
     // Get sex from userData (should be available from register screen)
@@ -405,20 +432,12 @@ const Vulnerable = () => {
 
         // Calculate Risk Scores
         const age = differenceInYears(new Date(), new Date(data.dateOfBirth));
-        
+
         const { data: riskData, error: riskError } = await supabase
           .from("riskScore")
           .update({
             elderlyScore:
-              age >= 90
-                ? 4 
-                : age >= 80
-                ? 3 
-                : age >= 70
-                ? 2 
-                : age >= 60
-                ? 2
-                : 0,
+              age >= 90 ? 4 : age >= 80 ? 3 : age >= 70 ? 2 : age >= 60 ? 2 : 0,
             pregnantInfantScore:
               pregnancy === "yes" && hasInfant === "yes"
                 ? 4
@@ -491,7 +510,7 @@ const Vulnerable = () => {
         };
 
         const priorityLevel = await getPrioritization();
-        
+
         const { data: priorityData, error: prioError } = await supabase
           .from("priority")
           .update({
@@ -556,112 +575,110 @@ const Vulnerable = () => {
               Data for: {existingUserData.name}
             </TitleText>
           )}
-          {
-            from === "register" && (
+          {from === "register" && (
+            <>
+              <View style={styles.sectionHeader}>
+                <TitleText type='title5'>Presence of Guardian</TitleText>
+                <View style={styles.headerLine}></View>
+              </View>
+
+              {/* Guardian Inputs with Validation */}
               <>
-                <View style={styles.sectionHeader}>
-                  <TitleText type='title5'>Presence of Guardian</TitleText>
-                  <View style={styles.headerLine}></View>
-                </View>
+                <ThemedTextInput
+                  style={{ width: "95%", marginBottom: 10 }}
+                  placeholder='Guardian Name'
+                  value={guardianName}
+                  onChangeText={(text) => {
+                    setGuardianName(text);
+                    clearFieldError("guardianName");
+                  }}
+                />
+                {formErrors.guardianName && (
+                  <Text style={styles.fieldError}>
+                    {formErrors.guardianName}
+                  </Text>
+                )}
 
-                {/* Guardian Inputs with Validation */}
-                <>
-                  <ThemedTextInput
-                    style={{ width: "95%", marginBottom: 10 }}
-                    placeholder='Guardian Name'
-                    value={guardianName}
-                    onChangeText={(text) => {
-                      setGuardianName(text);
-                      clearFieldError("guardianName");
-                    }}
-                  />
-                  {formErrors.guardianName && (
-                    <Text style={styles.fieldError}>
-                      {formErrors.guardianName}
-                    </Text>
-                  )}
+                <ThemedTextInput
+                  style={{ width: "95%", marginBottom: 10 }}
+                  placeholder='Guardian Contact Number'
+                  value={guardianContact}
+                  onChangeText={(text) => {
+                    // Only allow up to 11 digits
+                    const cleaned = text.replace(/[^0-9]/g, "");
+                    if (cleaned.length <= 11) {
+                      setGuardianContact(cleaned);
+                      clearFieldError("guardianContact");
+                    }
+                  }}
+                  keyboardType='phone-pad'
+                  maxLength={11}
+                />
+                {formErrors.guardianContact && (
+                  <Text style={styles.fieldError}>
+                    {formErrors.guardianContact}
+                  </Text>
+                )}
 
-                  <ThemedTextInput
-                    style={{ width: "95%", marginBottom: 10 }}
-                    placeholder='Guardian Contact Number'
-                    value={guardianContact}
-                    onChangeText={(text) => {
-                       // Only allow up to 11 digits
-                       const cleaned = text.replace(/[^0-9]/g, "");
-                       if (cleaned.length <= 11) {
-                         setGuardianContact(cleaned);
-                         clearFieldError("guardianContact");
-                       }
-                    }}
-                    keyboardType='phone-pad'
-                    maxLength={11}
-                  />
-                  {formErrors.guardianContact && (
-                    <Text style={styles.fieldError}>
-                      {formErrors.guardianContact}
-                    </Text>
-                  )}
+                <ThemedTextInput
+                  style={{ width: "95%", marginBottom: 10 }}
+                  placeholder='Relationship'
+                  value={guardianRelation}
+                  onChangeText={(text) => {
+                    setGuardianRelation(text);
+                    clearFieldError("guardianRelation");
+                  }}
+                />
+                {formErrors.guardianRelation && (
+                  <Text style={styles.fieldError}>
+                    {formErrors.guardianRelation}
+                  </Text>
+                )}
 
-                  <ThemedTextInput
-                    style={{ width: "95%", marginBottom: 10 }}
-                    placeholder='Relationship'
-                    value={guardianRelation}
-                    onChangeText={(text) => {
-                      setGuardianRelation(text);
-                      clearFieldError("guardianRelation");
-                    }}
-                  />
-                  {formErrors.guardianRelation && (
-                    <Text style={styles.fieldError}>
-                      {formErrors.guardianRelation}
-                    </Text>
-                  )}
-
-                  <ThemedTextInput
-                    style={{ width: "95%", marginBottom: 10 }}
-                    placeholder='Guardian Address'
-                    value={guardianAddress}
-                    onChangeText={(text) => {
-                      setGuardianAddress(text);
-                      clearFieldError("guardianAddress");
-                    }}
-                  />
-                  {formErrors.guardianAddress && (
-                    <Text style={styles.fieldError}>
-                      {formErrors.guardianAddress}
-                    </Text>
-                  )}
-                </>
-
-                {/* Household count dropdown */}
-                <View style={styles.dropdownContainer}>
-                  <TitleText type='title3' style={{ marginBottom: 5 }}>
-                    How many people live in the same household?
-                  </TitleText>
-                  <Dropdown
-                    style={styles.dropdown}
-                    placeholderStyle={styles.dropdownPlaceholder}
-                    selectedTextStyle={styles.dropdownSelectedText}
-                    data={householdData}
-                    maxHeight={200}
-                    labelField='label'
-                    valueField='value'
-                    placeholder='Select count'
-                    value={householdCount}
-                    onChange={(item) => {
-                      setHouseholdCount(item.value);
-                      clearFieldError("householdCount");
-                    }}
-                  />
-                  {formErrors.householdCount && (
-                    <Text style={styles.fieldError}>
-                      {formErrors.householdCount}
-                    </Text>
-                  )}
-                </View>
+                <ThemedTextInput
+                  style={{ width: "95%", marginBottom: 10 }}
+                  placeholder='Guardian Address'
+                  value={guardianAddress}
+                  onChangeText={(text) => {
+                    setGuardianAddress(text);
+                    clearFieldError("guardianAddress");
+                  }}
+                />
+                {formErrors.guardianAddress && (
+                  <Text style={styles.fieldError}>
+                    {formErrors.guardianAddress}
+                  </Text>
+                )}
               </>
-            )
-          }
+
+              {/* Household count dropdown */}
+              <View style={styles.dropdownContainer}>
+                <TitleText type='title3' style={{ marginBottom: 5 }}>
+                  How many people live in the same household?
+                </TitleText>
+                <Dropdown
+                  style={styles.dropdown}
+                  placeholderStyle={styles.dropdownPlaceholder}
+                  selectedTextStyle={styles.dropdownSelectedText}
+                  data={householdData}
+                  maxHeight={200}
+                  labelField='label'
+                  valueField='value'
+                  placeholder='Select count'
+                  value={householdCount}
+                  onChange={(item) => {
+                    setHouseholdCount(item.value);
+                    clearFieldError("householdCount");
+                  }}
+                />
+                {formErrors.householdCount && (
+                  <Text style={styles.fieldError}>
+                    {formErrors.householdCount}
+                  </Text>
+                )}
+              </View>
+            </>
+          )}
           {/* Pregnancy - should only appear if sex selected is female */}
           {(existingUserData.sex?.toLowerCase() === "female" ||
             userSex?.toLowerCase() === "female") && (
@@ -689,6 +706,11 @@ const Vulnerable = () => {
                     )}
                     placeholder='Due Date'
                   />
+                  {dueDateError !== "" && (
+                    <Text style={{ color: "red", marginTop: 2 }}>
+                      {dueDateError}
+                    </Text>
+                  )}
                   <Picker
                     selectedValue={trimester}
                     onValueChange={(itemValue) => setTrimester(itemValue)}
@@ -697,14 +719,14 @@ const Vulnerable = () => {
                       marginBottom: 10,
                       backgroundColor: "#f5f5f5",
                       borderRadius: 8,
-                      color: "#625f72", 
+                      color: "#625f72",
                     }}
-                    dropdownIconColor='#625f72' 
+                    dropdownIconColor='#625f72'
                   >
                     <Picker.Item
                       label='Select trimester'
                       value=''
-                      color='#625f72' 
+                      color='#625f72'
                     />
                     <Picker.Item
                       label='1st Trimester (Week 0 - Week 12)'
@@ -722,6 +744,11 @@ const Vulnerable = () => {
                       color='#000'
                     />
                   </Picker>
+                  {trimesterError !== "" && (
+                    <Text style={{ color: "red", marginBottom: 0 }}>
+                      {trimesterError}
+                    </Text>
+                  )}
                 </>
               )}
               <Spacer height={10} />

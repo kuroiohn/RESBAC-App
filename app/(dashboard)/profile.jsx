@@ -1360,15 +1360,17 @@ const Profile = () => {
             )}
           </Text>
           <Text style={styles.fullName}>
-            {userData.firstName.charAt(0).toUpperCase() +
-              userData.firstName.slice(1) +
-              " "}
+            {userData.firstName
+                .split(' ')
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                .join(' ') + " "} 
             {userData.middleName !== "" &&
               userData.middleName.charAt(0).toUpperCase() +
                 userData.middleName.slice(1) +
                 " "}
-            {userData.surname.charAt(0).toUpperCase() +
-              userData.surname.slice(1)}
+            {userData.surname.split(' ')
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                .join(' ')}
           </Text>
 
           <View style={styles.addressRow}>
@@ -1441,8 +1443,10 @@ const Profile = () => {
                 "userData",
                 "firstName",
                 "First Name",
-                userData.firstName,
-                true
+                userData.firstName
+                .split(' ')
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                .join(' ')
               )}
             </View>
             <View style={styles.row}>

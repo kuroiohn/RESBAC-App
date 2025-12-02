@@ -38,28 +38,24 @@ export default function uploadID() {
   const [isUploading, setIsUploading] = useState(false);
   // no risk level 0 since no area is submerged during alert 1
   const moderateStreets = [ // risk level 1
-    "Bagong Farmers Avenue 1", //
-    "Liwanag Street Area",
-    
-    // di ko alam saan lalagay tong mga to na hindi naman binanggit kaya nandito lang sila sa moderate?
-    "Banner Street", //
-    "Camia Street", //
-    "Cattleya Street", //
-    "Crescent Street", //
-    "Daisy Street", //
-    "Jasmin Street", //
-    "Jewelmark Street",  //
-    "Katipunan Street", //
-    "Lacewing Street", //
-    "Mil Flores Street", //
-    "Monarch Street", //
-    "Moscow Street", //
-    "Okra Street", //
-    "Silverdrop Street", //
-    "Sunkist Street", //
-    "Swallowtail Street", //
-
-    // missing from the orig list, from the updated street list from Mikai
+    "Bagong Farmers 1",
+    "Liwanag",
+    "Banner",
+    "Camia",
+    "Cattleya",
+    "Crescent",
+    "Daisy",
+    "Jasmin",
+    "Jewelmark",
+    "Katipunan",
+    "Lacewing",
+    "MilFlores",
+    "Monarch",
+    "Moscow",
+    "Okra",
+    "Silverdrop",
+    "Sunkist",
+    "Swallowtail",
     "Apple",
     "Brazil",
     "Bulalakaw",
@@ -68,7 +64,6 @@ export default function uploadID() {
     "Damayan Alley",
     "Del Rosario",
     "Denmark",
-    // "Farmers Ave. 2", // ???????
     "Iwahig",
     "Kalamansi",
     "Kalabasa",
@@ -84,32 +79,32 @@ export default function uploadID() {
     "Patola",
     "Pechay",
     "Piling Santos",
-    "Vergara"
+    "Vergara",
   ]
   const highStreets = [
-    "Ampalaya Street", //
-    "Kangkong Street", //
-    "Labanos Street", //
+    "Ampalaya",
+    "Kangkong",
+    "Labanos",
     "Road Dike",
-    "Upo Street", //
-    "Bagong Farmers Avenue 2", //
-    "Mais Street", //
+    "Upo",
+    "Bagong Farmers 2",
+    "Mais",
     "Road 1",
     "Road 2",
     "Road 3",
     "Road 4",
     "Road 5",
-    "Singkamas Street", //
-    "Talong Street", //
+    "Singkamas",
+    "Talong",
   ]
   const criticalStreets = [
-    "Angel Santos Street", //
-    "Ilaw Street", //
-    "Palay Street", //
-    "Pipino Street", //
-    "Kangkong Street", //
-    "Labanos Street", //
-    "Upo Street", //
+    "Angel Santos",
+    "Ilaw",
+    "Palay",
+    "Pipino",
+    "Kangkong",
+    "Labanos",
+    "Upo",
   ]
 
   // Parse all the collected user data

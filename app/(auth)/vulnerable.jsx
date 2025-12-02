@@ -125,9 +125,19 @@ const Vulnerable = () => {
 
   const [dueDateError, setDueDateError] = useState("");
   const [trimesterError, setTrimesterError] = useState("");
+  const [pregnancyError, setPregnancyError] = useState("");
+  const [infantError, setInfantError] = useState("");
 
   const validatePregnancy = () => {
     let valid = true;
+
+    // Validate pregnancy selection
+    if (!pregnancy) {
+      setPregnancyError("Please select yes or no.");
+      valid = false;
+    } else {
+      setPregnancyError("");
+    }
 
     // Validate due date
     if (pregnancy === "yes" && !dueDate) {
@@ -288,6 +298,14 @@ const Vulnerable = () => {
       // Household Count
       if (!householdCount) {
         errors.householdCount = "Household count is required";
+      }
+
+      // Validate infant question
+      if (!hasInfant) {
+        setInfantError("Please select yes or no.");
+        valid = false;
+      } else {
+        setInfantError("");
       }
     }
 
@@ -691,8 +709,16 @@ const Vulnerable = () => {
                 label='Are you currently pregnant?'
                 options={pregnancyOptions}
                 selectedValue={pregnancy}
-                onValueChange={setPregnancy}
+                onValueChange={(value) => {
+                  setPregnancy(value);
+                  setPregnancyError(""); // Clear error when user selects
+                }}
               />
+              {pregnancyError !== "" && (
+                <Text style={{ color: "red", marginTop: 2 }}>
+                  {pregnancyError}
+                </Text>
+              )}
               {pregnancy === "yes" && (
                 <>
                   <DatePickerInput
@@ -758,8 +784,14 @@ const Vulnerable = () => {
             label='Do you have an infant? [0-60months old]?'
             options={infantOptions}
             selectedValue={hasInfant}
-            onValueChange={setHasInfant}
+            onValueChange={(value) => {
+              setHasInfant(value);
+              setInfantError(""); // clear error when answered
+            }}
           />
+          {infantError !== "" && (
+            <Text style={{ color: "red", marginTop: 2 }}>{infantError}</Text>
+          )}
           {/* Physical Disabilities */}
           <View style={styles.sectionHeader}>
             <TitleText type='title5'>Physical Disability</TitleText>

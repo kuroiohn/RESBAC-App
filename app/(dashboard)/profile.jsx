@@ -1452,7 +1452,8 @@ const Profile = () => {
                 userData.firstName
                 .split(' ')
                 .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-                .join(' ')
+                .join(' '),
+                true
               )}
             </View>
             <View style={styles.row}>

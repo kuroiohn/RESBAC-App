@@ -289,6 +289,26 @@ const Vulnerable = () => {
       if (pregnancy === "yes" && !trimester) {
         errors.trimester = "Please select a trimester.";
       }
+    } else if (from === "profile"){
+      // Infant Question
+      if (!hasInfant) {
+        errors.hasInfant = "Please select yes or no.";
+      }
+
+      // Pregnancy Question
+      if (!pregnancy) {
+        errors.pregnancy = "Please select yes or no.";
+      }
+
+      // Due Date (only if pregnant)
+      if (pregnancy === "yes" && !dueDate) {
+        errors.dueDate = "Due date is required when pregnant.";
+      }
+
+      // Trimester (only if pregnant)
+      if (pregnancy === "yes" && !trimester) {
+        errors.trimester = "Please select a trimester.";
+      }
     }
 
     setFormErrors(errors);

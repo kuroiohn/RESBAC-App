@@ -159,7 +159,6 @@ const Profile = () => {
     "Iwahig",
     "Kalamansi",
     "Kalabasa",
-    "Kamias",
     "Kislap",
     "Kutitap",
     "Malunggay",

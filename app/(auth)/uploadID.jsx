@@ -70,7 +70,6 @@ export default function uploadID() {
     "Iwahig",
     "Kalamansi",
     "Kalabasa",
-    "Kamias",
     "Kislap",
     "Kutitap",
     "Malunggay",

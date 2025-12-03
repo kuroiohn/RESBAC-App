@@ -270,47 +270,50 @@ const Vulnerable = () => {
         errors.householdCount = "Household count is required";
       }
 
-      // Infant Question
+      // Infant Question (required for all)
       if (!hasInfant) {
         errors.hasInfant = "Please select yes or no.";
       }
 
-      // Pregnancy Question
-      if (!pregnancy) {
-        errors.pregnancy = "Please select yes or no.";
-      }
+      // Pregnancy Question (only for females)
+      if (
+        existingUserData.sex?.toLowerCase() === "female" ||
+        userSex?.toLowerCase() === "female"
+      ) {
+        if (!pregnancy) {
+          errors.pregnancy = "Please select yes or no.";
+        }
 
-      // Due Date (only if pregnant)
-      if (pregnancy === "yes" && !dueDate) {
-        errors.dueDate = "Due date is required when pregnant.";
-      }
+        // Due Date (only if pregnant)
+        if (pregnancy === "yes" && !dueDate) {
+          errors.dueDate = "Due date is required when pregnant.";
+        }
 
-      // Trimester (only if pregnant)
-      if (pregnancy === "yes" && !trimester) {
-        errors.trimester = "Please select a trimester.";
+        // Trimester (only if pregnant)
+        if (pregnancy === "yes" && !trimester) {
+          errors.trimester = "Please select a trimester.";
+        }
       }
-    } else if (from === "profile"){
-      // Infant Question
+    } else if (from === "profile") {
+      // Similar logic for profile
       if (!hasInfant) {
         errors.hasInfant = "Please select yes or no.";
       }
 
-      // Pregnancy Question
-      if (!pregnancy) {
-        errors.pregnancy = "Please select yes or no.";
-      }
+      if (userSex?.toLowerCase() === "female") {
+        if (!pregnancy) {
+          errors.pregnancy = "Please select yes or no.";
+        }
 
-      // Due Date (only if pregnant)
-      if (pregnancy === "yes" && !dueDate) {
-        errors.dueDate = "Due date is required when pregnant.";
-      }
+        if (pregnancy === "yes" && !dueDate) {
+          errors.dueDate = "Due date is required when pregnant.";
+        }
 
-      // Trimester (only if pregnant)
-      if (pregnancy === "yes" && !trimester) {
-        errors.trimester = "Please select a trimester.";
+        if (pregnancy === "yes" && !trimester) {
+          errors.trimester = "Please select a trimester.";
+        }
       }
     }
-
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };

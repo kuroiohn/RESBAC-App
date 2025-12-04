@@ -1901,7 +1901,7 @@ const Profile = () => {
           {renderField(
             "vulnerability",
             "pregnantInfant",
-            "Infant",
+            "With Infant",
             userVul.pregnantInfant[1] === "yes" ? "Yes" : "No" || "",
             true
           )}

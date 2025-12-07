@@ -1973,7 +1973,12 @@ const Profile = () => {
           "medDep",
           "Medically Dependent",
           Array.isArray(userVul.medDep)
-            ? userVul.medDep.join(", ")
+            ? userVul.medDep?.map(
+              word => word
+              .replace(/([A-Z])/g, " $1")
+              .replace(/^./, c => c.toUpperCase())
+            )
+            .join(",\n")
             : userVul.medDep?.toString() || "",
           true
         )}

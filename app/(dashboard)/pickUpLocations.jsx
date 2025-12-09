@@ -22,6 +22,8 @@ import { useLocalSearchParams } from "expo-router";
 import supabase from "../../contexts/supabaseClient";
 import UserMap from "../../components/shared/UserMap";
 import { decryptData } from "../../utils/encryption";
+import { parseJSON } from "date-fns";
+import { parseMaybeJSON } from "../../utils/parseMaybeJson";
 
 const { width, height } = Dimensions.get("window");
 
@@ -46,11 +48,14 @@ const PickUpLocation = () => {
       if (userError) {
         console.error("Error in user fetch: ", userError);
       }
-      const [
-        geolocationCoords
-      ] =  await Promise.all([
-        decryptData(data[0].geolocationCoords)
-      ])
+      console.log("geolocation: ", data[0].geolocationCoords);
+      
+      const encryptedPayload = {
+        geolocationCoords: parseMaybeJSON(data[0].geolocationCoords)
+      }
+      const decryptedList = await decryptData([encryptedPayload])
+      const decrypted = decryptedList[0]
+      const geolocationCoords = decrypted.geolocationCoords || null;
       setUserCoords(geolocationCoords);
     };
     fetchUserCoords();

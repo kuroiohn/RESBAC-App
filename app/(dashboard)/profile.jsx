@@ -19,7 +19,7 @@ import supabase from "../../contexts/supabaseClient";
 import profilePic from "../../assets/sohee.jpg";
 import Spacer from "../../components/Spacer";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { differenceInYears } from "date-fns";
+import { differenceInYears, parseJSON } from "date-fns";
 import ThemedLoader from "../../components/ThemedLoader";
 import DatePickerInput from "../../components/DatePickerInput";
 import DateTimePicker from "@react-native-community/datetimepicker";
@@ -43,6 +43,7 @@ import StreetDropdown from "../../components/StreetDropdown";
 import BarangayDropdown from "../../components/BarangayDropdown";
 import { decryptData, encryptData } from "../../utils/encryption";
 import { Colors } from "../../constants/Colors"; 
+import { parseMaybeJSON } from "../../utils/parseMaybeJson";
 
 const Profile = () => {
   const { user, logout } = useUser();
@@ -343,21 +344,26 @@ const Profile = () => {
       .single();
 
     //ANCHOR - decryption here
-    const [
-      decFirstName,
-      decMiddleName,
-      decSurname,
-      decUserNumber,
-      decDob,
-      decAge,
-    ] = await Promise.all([
-      decryptData(data.firstName),
-      data?.middleName ? decryptData(data?.middleName) : Promise.resolve(""),
-      decryptData(data.surname),
-      decryptData(data.userNumber),
-      decryptData(data.dateOfBirth),
-      decryptData(data.age),
-    ]);
+    const encryptedPayload = {
+      firstName: parseMaybeJSON(data.firstName),
+      middleName: parseMaybeJSON(data.middleName) || null,
+      surname: parseMaybeJSON(data.surname),
+      userNumber: parseMaybeJSON(data.userNumber),
+      dateOfBirth: parseMaybeJSON(data.dateOfBirth),
+      age: parseMaybeJSON(data.age),
+    };
+
+    const decryptedList = await decryptData([encryptedPayload]);
+    const decrypted = decryptedList[0];
+
+    const {
+      firstName: decFirstName,
+      middleName: decMiddleName,
+      surname: decSurname,
+      userNumber: decUserNumber,
+      dateOfBirth: decDob,
+      age: decAge,
+    } = decrypted;
 
     const decryptedUser = {
       ...data,
@@ -416,7 +422,7 @@ const Profile = () => {
   useEffect(() => {
     setLoading(isPending);
   }, [isPending]);
-  
+
   // assigns values from profileData to useState
   useEffect(() => {
     if (profileData) {
@@ -442,7 +448,6 @@ const Profile = () => {
     }
   }, [profileData]);
 
-
   const fetchAddressData = async () => {
     // Get the current logged in user
     const { error: userError } = await supabase.auth.getUser();
@@ -457,19 +462,39 @@ const Profile = () => {
       .eq("userID", user.id)
       .single();
 
-    const [
-      dhouseInfo,
-      dstreetName,
-      dbrgyName,
-      dcityName,
-      dgeolocationCoords,
-    ] = await Promise.all([
-      decryptData(data.houseInfo),
-      decryptData(data.streetName),
-      decryptData(data.brgyName),
-      decryptData(data.cityName),
-      decryptData(data.geolocationCoords),
-    ]);
+    //ANCHOR -  decryption address  
+    // const [
+    //   dhouseInfo,
+    //   dstreetName,
+    //   dbrgyName,
+    //   dcityName,
+    //   dgeolocationCoords,
+    // ] = await Promise.all([
+    //   decryptData(data.houseInfo),
+    //   decryptData(data.streetName),
+    //   decryptData(data.brgyName),
+    //   decryptData(data.cityName),
+    //   decryptData(data.geolocationCoords),
+    // ]);
+
+    const encryptedPayload = {
+      houseInfo: parseMaybeJSON(data.houseInfo),
+      streetName: parseMaybeJSON(data.streetName),
+      brgyName: parseMaybeJSON(data.brgyName),
+      cityName: parseMaybeJSON(data.cityName),
+      geolocationCoords: parseMaybeJSON(data.geolocationCoords),
+    }
+    console.log("Encrypted Payload Being Sent:", encryptedPayload);
+    const decryptedList = await decryptData([encryptedPayload]);
+    const decrypted = decryptedList[0];
+
+    const {
+      houseInfo: dhouseInfo,
+      streetName: dstreetName,
+      brgyName: dbrgyName,
+      cityName: dcityName,
+      geolocationCoords: dgeolocationCoords,
+    } = decrypted;
 
     const decryptedAddress = {
       ...data,
@@ -480,7 +505,6 @@ const Profile = () => {
       geolocationCoords: dgeolocationCoords || "",
     };
 
-    //ANCHOR -  decryption address
     setUserAddress({
       houseInfo: decryptedAddress.houseInfo,
       streetName: decryptedAddress.streetName,
@@ -530,24 +554,40 @@ const Profile = () => {
       .eq("userID", user.id)
       .single();
 
-    const [
-      decFullName,
-      decRelationship,
-      decGuardianContact,
-      decGuardianAddress,
-    ] = await Promise.all([
-      decryptData(data.fullName),
-      decryptData(data.relationship),
-      decryptData(data.guardianContact),
-      decryptData(data.guardianAddress),
-    ]);
+      //ANCHOR - decrypt guardian
+    // const [
+    //   decFullName,
+    //   decRelationship,
+    //   decGuardianContact,
+    //   decGuardianAddress,
+    // ] = await Promise.all([
+    //   decryptData(data.fullName),
+    //   decryptData(data.relationship),
+    //   decryptData(data.guardianContact),
+    //   decryptData(data.guardianAddress),
+    // ]);
+
+    const encryptedPayload = {
+      fullName: parseMaybeJSON(data.fullName),
+      relationship: parseMaybeJSON(data.relationship),
+      guardianContact: parseMaybeJSON(data.guardianContact),
+      guardianAddress: parseMaybeJSON(data.guardianAddress),
+    }
+    const decryptedList = await decryptData([encryptedPayload]);
+    const decrypted = decryptedList[0];
+    const {
+      fullName: dfullName,
+      relationship: drelationship,
+      guardianContact: dguardianContact,
+      guardianAddress: dguardianAddress,
+    } = decrypted
 
     const decryptedGuardian = {
       ...data,
-      fullName: decFullName || "",
-      relationship: decRelationship || "",
-      guardianContact: decGuardianContact || "",
-      guardianAddress: decGuardianAddress || "",
+      fullName: dfullName || "",
+      relationship: drelationship || "",
+      guardianContact: dguardianContact || "",
+      guardianAddress: dguardianAddress || "",
     };
 
     setUserGuardian({

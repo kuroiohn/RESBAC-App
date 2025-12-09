@@ -19,41 +19,31 @@ export const encryptData = async (plainText) => {
 };
 
 export const decryptData = async (payload) => {
-    // If payload is null or undefined, return empty string
-  if (!payload) return "";
+   if (!Array.isArray(payload)) {
+    console.error("decryptData expects an array");
+    return [];
+  }
 
   try {
-    // Parse payload if it's a JSON string
-    const { salt, iv, ciphertext } =
-      typeof payload === "string" ? JSON.parse(payload) : payload;
-
-    // Check if all required fields exist
-    if (!salt || !iv || !ciphertext) {
-      console.error("Invalid payload for decryption:", payload);
-      return "";
-    }
-
-    // Call your Edge function to decrypt
-    const decryptRes = await fetch(DECRYPT_URL, {
+    const res = await fetch(DECRYPT_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${EXPO_PUBLIC_SUPABASE_ANON_KEY}`
       },
-      body: JSON.stringify({ salt, iv, ciphertext })
+      body: JSON.stringify({ items: payload })
     });
 
-    const decrypted = await decryptRes.json();
+    const json = await res.json();
 
-    // Ensure the response has plaintext
-    if (!decrypted?.plaintext) {
-      console.error("Decryption failed, invalid response:", decrypted);
-      return "";
+    if (!json?.data) {
+      console.error("Invalid decrypt response:", json);
+      return [];
     }
 
-    return decrypted.plaintext;
+    return json.data; // array of decrypted results
   } catch (err) {
-    console.error("Decryption error:", err, "Payload:", payload);
-    return "";
+    console.error("decrypt error:", err);
+    return [];
   }
 };

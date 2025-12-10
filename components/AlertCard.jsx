@@ -110,7 +110,7 @@ const AlertCard = ({ alertLevel = 1 }) => {
     return date.toLocaleDateString("en-US", {
       month: "2-digit",
       day: "2-digit",
-      year: "numeric",
+      year: "2-digit",
     });
   };
 
@@ -168,11 +168,11 @@ const AlertCard = ({ alertLevel = 1 }) => {
                   style={styles.borderWrapper}
                 >
                   <View style={styles.innerCard}>
-                    {renderData === local && <Text>Local</Text>}
+                    {renderData === local && <Text>Offline Data</Text>}
                     {/* Top right date + icon */}
                     <View style={styles.dateRow}>
                       <Text style={styles.dateText}>
-                        {formattedDate(alert.created_at)}
+                        {formattedDate(alert.activatedat)}
                       </Text>
                       <Ionicons
                         name='calendar-outline'
@@ -206,7 +206,8 @@ const AlertCard = ({ alertLevel = 1 }) => {
 
                         {/*<Text style={styles.timeText}>{formattedTime}</Text>*/}
                         <Text style={styles.timeText}>
-                          {formattedTime(alert.created_at)}
+                          {formattedTime(alert.activatedat)}
+                          {/* {formattedTime(alert.created_at)} */}
                         </Text>
                         {alert.alertType === "fire" && alert.alertLocation && (
                           <Text style={styles.meterText}>

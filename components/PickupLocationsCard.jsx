@@ -143,9 +143,9 @@ const PickupLocationsCard = () => {
                     style={styles.image}
                     resizeMode='cover'
                   />
-                  <View style={styles.statusOverlay}>
+                  {/* <View style={styles.statusOverlay}>
                     <Text style={styles.statusTag}>Available</Text>
-                  </View>
+                  </View> */}
                 </View>
 
                 {/* Content */}

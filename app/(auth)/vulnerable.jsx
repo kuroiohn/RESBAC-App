@@ -677,6 +677,20 @@ const Vulnerable = () => {
                 <TitleText type='title3' style={{ marginBottom: 5 }}>
                   How many people live in the same household?
                 </TitleText>
+
+                <ThemedTextInput
+                  style={styles.textInput}
+                  placeholder='Enter household count'
+                  keyboardType='numeric'
+                  value={householdCount ? String(householdCount) : ""}
+                  onChangeText={(text) => {
+                    // allow numbers lang
+                    const numericValue = text.replace(/[^0-9]/g, "");
+                    setHouseholdCount(numericValue);
+                    clearFieldError("householdCount");
+                  }}
+                />
+                {/*
                 <Dropdown
                   style={styles.dropdown}
                   placeholderStyle={styles.dropdownPlaceholder}
@@ -691,7 +705,7 @@ const Vulnerable = () => {
                     setHouseholdCount(item.value);
                     clearFieldError("householdCount");
                   }}
-                />
+                /> */}
                 {formErrors.householdCount && (
                   <Text style={styles.fieldError}>
                     {formErrors.householdCount}

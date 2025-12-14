@@ -30,7 +30,7 @@ const EvacuationCenterCard = () => {
       );
     }
   };
-  console.log("SQLite DB instance:", db);
+  // console.log("SQLite DB instance:", db);
 
   const deleteSqlite = async () => {
     await db.runAsync("delete from evac");
@@ -41,57 +41,38 @@ const EvacuationCenterCard = () => {
   const isGuest = role === "guest";
 
   useEffect(() => {
-    if (!db || !evacData) return;
+    if (!db) return;
 
-    const insertData = async () => {
+    // ❗ Do not touch SQLite if remote is empty
+    if (!evacData || evacData.length === 0) return;
+
+    const syncFromRemote = async () => {
       try {
-        await db.runAsync("delete from evac");
+        await db.runAsync("DELETE FROM evac");
 
         for (const item of evacData) {
-          // Check if the row exists
-          const existing = await db.getAllAsync(
-            `SELECT id FROM evac WHERE evacName = ?`,
-            [item.evacName]
+          await db.runAsync(
+            `INSERT INTO evac (created_at, evacAddress, evacGeolocation, evacImage, evacContact, evacName)
+             VALUES (?,?,?,?,?,?)`,
+            [
+              item.created_at,
+              item.evacAddress,
+              item.evacGeolocation,
+              item.evacImage,
+              item.evacContact,
+              item.evacName,
+            ]
           );
-
-          if (existing.length > 0) {
-            // Update existing row
-            await db.runAsync(
-              `UPDATE evac SET created_at = ?, evacAddress = ?, evacGeolocation = ?, evacImage = ?, evacContact=? WHERE evacName = ?`,
-              [
-                item.created_at,
-                item.evacAddress,
-                item.evacGeolocation,
-                item.evacImage,
-                item.evacContact,
-                item.evacName,
-              ]
-            );
-          } else {
-            // Insert new row
-            await db.runAsync(
-              `INSERT INTO evac (created_at, evacAddress, evacGeolocation, evacImage, evacContact, evacName) VALUES (?,?,?,?,?,?)`,
-              [
-                item.created_at,
-                item.evacAddress,
-                item.evacGeolocation,
-                item.evacImage,
-                item.evacContact,
-                item.evacName,
-              ]
-            );
-          }
         }
 
-        const results = await db.getAllAsync(`SELECT * FROM evac`);
-        console.log("Local DB rows:", results);
+        const results = await db.getAllAsync("SELECT * FROM evac");
         setLocal(results);
       } catch (error) {
-        console.error("SQLite insert error:", error);
+        console.error("SQLite sync error (evac):", error);
       }
     };
 
-    insertData();
+    syncFromRemote();
   }, [db, evacData]);
 
   useEffect(() => {
@@ -99,7 +80,13 @@ const EvacuationCenterCard = () => {
     loadUsers();
   }, []);
 
-  const renderData = evacData?.length ? evacData : local;
+  const renderData =
+    evacData && evacData.length > 0
+      ? evacData
+      : local.length > 0
+      ? local
+      : [];
+  // const renderData = evacData?.length ? evacData : local;
 
   const handleCall = (phoneNumber) => {
     if (phoneNumber) {
@@ -115,6 +102,8 @@ const EvacuationCenterCard = () => {
       Linking.openURL(url);
     }
   };
+
+  const usingLocal = !evacData || evacData.length === 0;
 
   return (
     <>
@@ -143,7 +132,7 @@ const EvacuationCenterCard = () => {
               style={styles.borderWrapper}
             >
               <View style={styles.card}>
-                {renderData === local && <Text>Local</Text>}
+                {usingLocal && <Text>Offline Local Data</Text>}
                 {/* 🖼 Image */}
                 <View style={styles.imageWrapper}>
                   <Image

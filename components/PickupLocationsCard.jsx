@@ -31,7 +31,7 @@ const PickupLocationsCard = () => {
       );
     }
   };
-  console.log("SQLite DB instance:", db);
+  // console.log("SQLite DB instance:", db);
 
   const deleteSqlite = async () => {
     await db.runAsync("delete from pickup");
@@ -41,57 +41,40 @@ const PickupLocationsCard = () => {
   const isGuest = role === "guest";
 
   useEffect(() => {
-    if (!db || !pickupData) return;
+    if (!db) return;
 
-    const insertData = async () => {
+    // ❗ DO NOT TOUCH SQLITE IF REMOTE IS EMPTY (offline-safe)
+    if (!pickupData || pickupData.length === 0) return;
+
+    const syncFromRemote = async () => {
       try {
-        await db.runAsync("delete from pickup");
+        // Replace local cache with latest realtime snapshot
+        await db.runAsync("DELETE FROM pickup");
 
         for (const item of pickupData) {
-          // Check if the row exists
-          const existing = await db.getAllAsync(
-            `SELECT id FROM pickup WHERE pickupName = ?`,
-            [item.pickupName]
+          await db.runAsync(
+            `INSERT INTO pickup 
+            (created_at, pickupAddress, pickupGeolocation, pickupImage, pickupContact, pickupName)
+            VALUES (?,?,?,?,?,?)`,
+            [
+              item.created_at,
+              item.pickupAddress,
+              item.pickupGeolocation,
+              item.pickupImage,
+              item.pickupContact,
+              item.pickupName,
+            ]
           );
-
-          if (existing.length > 0) {
-            // Update existing row
-            await db.runAsync(
-              `UPDATE pickup SET created_at = ?, pickupAddress = ?, pickupGeolocation = ?, pickupImage = ?, pickupContact=? WHERE pickupName = ?`,
-              [
-                item.created_at,
-                item.pickupAddress,
-                item.pickupGeolocation,
-                item.pickupImage,
-                item.pickupContact,
-                item.pickupName,
-              ]
-            );
-          } else {
-            // Insert new row
-            await db.runAsync(
-              `INSERT INTO pickup (created_at, pickupAddress, pickupGeolocation, pickupImage, pickupContact,pickupName) VALUES (?,?,?,?,?,?)`,
-              [
-                item.created_at,
-                item.pickupAddress,
-                item.pickupGeolocation,
-                item.pickupImage,
-                item.pickupContact,
-                item.pickupName,
-              ]
-            );
-          }
         }
 
-        const results = await db.getAllAsync(`SELECT * FROM pickup`);
-        console.log("Local DB rows:", results);
+        const results = await db.getAllAsync("SELECT * FROM pickup");
         setLocal(results);
       } catch (error) {
-        console.error("SQLite insert error:", error);
+        console.error("SQLite sync error (pickup):", error);
       }
     };
 
-    insertData();
+    syncFromRemote();
   }, [db, pickupData]);
 
   useEffect(() => {
@@ -99,13 +82,21 @@ const PickupLocationsCard = () => {
     loadUsers();
   }, []);
 
-  const renderData = pickupData?.length ? pickupData : local;
+  const renderData =
+  pickupData && pickupData.length > 0
+    ? pickupData
+    : local.length > 0
+    ? local
+    : [];
+  // const renderData = pickupData?.length ? pickupData : local;
 
   const handleCall = (phoneNumber) => {
     if (phoneNumber) {
       Linking.openURL(`tel:${phoneNumber}`);
     }
   };
+
+  const usingLocal = !pickupData || pickupData.length === 0;
 
   return (
     <>
@@ -135,7 +126,7 @@ const PickupLocationsCard = () => {
               style={styles.borderWrapper}
             >
               <View style={styles.card}>
-                {renderData === local && <Text>Local</Text>}
+                {usingLocal && <Text>Offline Local Data</Text>}
                 {/* Image + status overlay */}
                 <View style={styles.imageWrapper}>
                   <Image

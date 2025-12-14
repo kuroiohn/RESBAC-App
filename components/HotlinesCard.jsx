@@ -27,60 +27,48 @@ export default function HotlinesCard() {
       console.error("Error in fetching from local offline storage:", error);
     }
   };
-  console.log("SQLite DB instance:", db);
+  // console.log("SQLite DB instance:", db);
 
   const deleteSqlite = async () => {
     await db.runAsync("delete from hotlines");
   };
 
   useEffect(() => {
-    if (!db || !emerHData) return;
+    if (!db) return;
 
-    const insertData = async () => {
+    // ❗ VERY IMPORTANT GUARD
+    if (!emerHData || emerHData.length === 0) {
+      // No remote data → DO NOT TOUCH SQLITE
+      return;
+    }
+
+    const syncFromRemote = async () => {
       try {
-        await db.runAsync("delete from hotlines");
+        // Only now is it safe to clear + reinsert
+        await db.runAsync("DELETE FROM hotlines");
 
         for (const item of emerHData) {
-          // Check if the row exists
-          const existing = await db.getAllAsync(
-            `SELECT id FROM hotlines WHERE emerHName = ?`,
-            [item.emerHName]
+          await db.runAsync(
+            `INSERT INTO hotlines 
+            (emerHName, created_at, emerHNumber, emerHDescription) 
+            VALUES (?,?,?,?)`,
+            [
+              item.emerHName,
+              item.created_at,
+              item.emerHNumber,
+              item.emerHDescription,
+            ]
           );
-
-          if (existing.length > 0) {
-            // Update existing row
-            await db.runAsync(
-              `UPDATE hotlines SET created_at = ?, emerHNumber = ?, emerHDescription = ? WHERE emerHName = ?`,
-              [
-                item.created_at,
-                item.emerHNumber,
-                item.emerHDescription,
-                item.emerHName,
-              ]
-            );
-          } else {
-            // Insert new row
-            await db.runAsync(
-              `INSERT INTO hotlines (emerHName, created_at, emerHNumber, emerHDescription) VALUES (?,?,?,?)`,
-              [
-                item.emerHName,
-                item.created_at,
-                item.emerHNumber,
-                item.emerHDescription,
-              ]
-            );
-          }
         }
 
         const results = await db.getAllAsync(`SELECT * FROM hotlines`);
-        console.log("Local DB rows:", results);
         setLocal(results);
       } catch (error) {
-        console.error("SQLite insert error:", error);
+        console.error("SQLite sync error:", error);
       }
     };
 
-    insertData();
+    syncFromRemote();
   }, [db, emerHData]);
 
   useEffect(() => {
@@ -88,13 +76,21 @@ export default function HotlinesCard() {
     loadUsers();
   }, []);
 
-  const renderData = emerHData?.length ? emerHData : local;
+  const renderData =
+    emerHData && emerHData.length > 0
+      ? emerHData
+      : local.length > 0
+      ? local
+      : [];
+  // const renderData = emerHData?.length ? emerHData : local;
 
   const handleContactBtn = async (number) => {
     if (number) {
       await Linking.openURL(`tel:${number}`);
     }
   };
+
+  const usingLocal = !emerHData || emerHData.length === 0;
 
   return (
     <>
@@ -109,7 +105,7 @@ export default function HotlinesCard() {
               style={styles.gradient}
             >
               <View style={styles.card}>
-                {renderData === local && <Text>Local</Text>}
+                {usingLocal && <Text>Offline Local Data</Text>}
                 {/*  Floating SMS Icon */}
                 <TouchableOpacity
                   style={styles.smsFloatingBtn}

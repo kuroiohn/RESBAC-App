@@ -38,19 +38,25 @@ const AlertCard = ({ alertLevel = 1 }) => {
   };
 
   useEffect(() => {
-    if (!db || !alertsData) return;
+    if (!db) return;
 
-    const insertData = async () => {
+    // ❗ DO NOT TOUCH SQLITE IF REMOTE IS EMPTY
+    if (!alertsData || alertsData.length === 0) return;
+
+    const syncFromRemote = async () => {
       try {
-        await db.runAsync("delete from alerts");
+        await db.runAsync("DELETE FROM alerts");
 
         for (const item of alertsData) {
           const activeInt = item.isActive ? 1 : 0;
+
           await db.runAsync(
-            `INSERT INTO alerts (alertTitle, created_at, alertDescription, isActive, alertLocation, alertType, riverLevel, alertLink) VALUES (?,?,?,?,?,?,?,?)`,
+            `INSERT INTO alerts 
+            (alertTitle, activatedat, alertDescription, isActive, alertLocation, alertType, riverLevel, alertLink) 
+            VALUES (?,?,?,?,?,?,?,?)`,
             [
               item.alertTitle,
-              item.created_at,
+              item.activatedat,
               item.alertDescription,
               activeInt,
               item.alertLocation,
@@ -62,7 +68,6 @@ const AlertCard = ({ alertLevel = 1 }) => {
         }
 
         const results = await db.getAllAsync(`SELECT * FROM alerts`);
-        console.log("Local DB rows:", results);
         setLocal(
           results.map((row) => ({
             ...row,
@@ -70,11 +75,11 @@ const AlertCard = ({ alertLevel = 1 }) => {
           }))
         );
       } catch (error) {
-        console.error("SQLite insert error:", error);
+        console.error("SQLite sync error:", error);
       }
     };
 
-    insertData();
+    syncFromRemote();
   }, [db, alertsData]);
 
   useEffect(() => {
@@ -82,7 +87,13 @@ const AlertCard = ({ alertLevel = 1 }) => {
     loadUsers();
   }, []);
 
-  const renderData = alertsData?.length ? alertsData : local;
+  const renderData =
+    alertsData && alertsData.length > 0
+      ? alertsData
+      : local.length > 0
+      ? local
+      : [];
+  // const renderData = alertsData?.length ? alertsData : local;
 
   // Update clock every second
   useEffect(() => {
@@ -91,21 +102,21 @@ const AlertCard = ({ alertLevel = 1 }) => {
   }, []);
 
   const formattedTime = (timestamp) => {
-    const cleanDate = timestamp.substring(0, 19).replace(" ", "T");
+    if (!timestamp) return "—";
     const date = new Date(timestamp);
+    if (isNaN(date)) return "—";
 
-    if (!timestamp || isNaN(date)) return "No time!";
     return date.toLocaleTimeString([], {
       hour: "2-digit",
       minute: "2-digit",
       hour12: true,
-      //timeZone: 'UTC'
     });
   };
 
   const formattedDate = (timestamp) => {
-    const cleanDate = timestamp.substring(0, 19).replace(" ", "T");
+    if (!timestamp) return "—";
     const date = new Date(timestamp);
+    if (isNaN(date)) return "—";
 
     return date.toLocaleDateString("en-US", {
       month: "2-digit",
@@ -152,11 +163,13 @@ const AlertCard = ({ alertLevel = 1 }) => {
     }
   };
 
+  const usingLocal = !alertsData || alertsData.length === 0;
+
   return (
     <>
       {renderData?.some((alert) => alert.isActive) ? (
         renderData
-          ?.sort((a, b) => new Date(b.activatedat) - new Date(a.activatedat))
+          ?.sort((a, b) => new Date(b.activatedat || 0) - new Date(a.activatedat || 0))
           .map(
             (alert) =>
               alert.isActive && (
@@ -168,7 +181,7 @@ const AlertCard = ({ alertLevel = 1 }) => {
                   style={styles.borderWrapper}
                 >
                   <View style={styles.innerCard}>
-                    {renderData === local && <Text>Offline Data</Text>}
+                    {usingLocal && <Text>Offline Local Data</Text>}
                     {/* Top right date + icon */}
                     <View style={styles.dateRow}>
                       <Text style={styles.dateText}>

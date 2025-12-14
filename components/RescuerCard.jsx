@@ -30,66 +30,47 @@ export default function RescuerCard() {
       );
     }
   };
-  console.log("SQLite DB instance:", db);
+  // console.log("SQLite DB instance:", db);
 
   const deleteSqlite = async () => {
     await db.runAsync("delete from rescuers");
   };
 
   useEffect(() => {
-    if (!db || !emerPData) return;
+    if (!db) return;
 
-    const insertData = async () => {
+    // ❗ DO NOT TOUCH SQLITE IF REMOTE IS EMPTY
+    if (!emerPData || emerPData.length === 0) return;
+
+    const syncFromRemote = async () => {
       try {
-        await db.runAsync("delete from rescuers");
+        await db.runAsync("DELETE FROM rescuers");
 
         for (const item of emerPData) {
-          // Check if the row exists
-          const existing = await db.getAllAsync(
-            `SELECT id FROM rescuers WHERE emerPName = ?`,
-            [item.emerPName]
+          await db.runAsync(
+            `INSERT INTO rescuers
+            (emerPName, created_at, emerPNumber, emerPRole, emerPBrgy, emerPMessLink, emerPImage)
+            VALUES (?,?,?,?,?,?,?)`,
+            [
+              item.emerPName,
+              item.created_at,
+              item.emerPNumber,
+              item.emerPRole,
+              item.emerPBrgy,
+              item.emerPMessLink,
+              item.emerPImage,
+            ]
           );
-
-          if (existing.length > 0) {
-            // Update existing row
-            await db.runAsync(
-              `UPDATE rescuers SET created_at = ?, emerPNumber = ?, emerPRole = ?, emerPBrgy = ?, emerPMessLink = ?, emerPImage = ?  WHERE emerPName = ?`,
-              [
-                item.emerPName,
-                item.created_at,
-                item.emerPNumber,
-                item.emerPRole,
-                item.emerPBrgy,
-                item.emerPMessLink,
-                item.emerPImage,
-              ]
-            );
-          } else {
-            // Insert new row
-            await db.runAsync(
-              `INSERT INTO rescuers (emerPName, created_at, emerPNumber, emerPRole, emerPBrgy, emerPMessLink, emerPImage) VALUES (?,?,?,?,?,?,?)`,
-              [
-                item.emerPName,
-                item.created_at,
-                item.emerPNumber,
-                item.emerPRole,
-                item.emerPBrgy,
-                item.emerPMessLink,
-                item.emerPImage,
-              ]
-            );
-          }
         }
 
         const results = await db.getAllAsync(`SELECT * FROM rescuers`);
-        console.log("Local DB rows:", results);
         setLocal(results);
       } catch (error) {
-        console.error("SQLite insert error:", error);
+        console.error("SQLite sync error:", error);
       }
     };
 
-    insertData();
+    syncFromRemote();
   }, [db, emerPData]);
 
   useEffect(() => {
@@ -111,7 +92,15 @@ export default function RescuerCard() {
     }
   };
 
-  const renderData = emerPData?.length ? emerPData : local;
+  const renderData =
+    emerPData && emerPData.length > 0
+      ? emerPData
+      : local.length > 0
+      ? local
+      : [];
+  // const renderData = emerPData?.length ? emerPData : local;
+
+  const usingLocal = !emerPData || emerPData.length === 0;
 
   return (
     <>
@@ -142,7 +131,7 @@ export default function RescuerCard() {
                   color='#0060FF'
                 />
               </TouchableOpacity>
-              {renderData === local && <Text>Local</Text>}
+              {usingLocal && <Text>Offline Local Data</Text>}
               {/* Top Row: Image + Info */}
               <View style={styles.topRow}>
                 <Image

@@ -12,13 +12,17 @@ export const RealtimeProvider = ({ children }) => {
   //ANCHOR - ALERTS
   // reads from supabase
   const fetchAlertsData = async () => {
-    const { data, error } = await supabase.from("alerts").select('*');
-
-    if (error) {
-      console.error("Fetch error in supabase alert card: ", error);
+    try {
+      const { data, error } = await supabase.from("alerts").select("*");
+      if (error) {
+        console.error("Fetch error in supabase alert card: ", error);
+        return [];
+      }
+      return data ?? [];
+    } catch (err) {
+      console.error("Unexpected error fetching alerts:", err);
+      return [];
     }
-    // console.log("Successful fetch", data);
-    return data;
   };
   const { data: alertsData, error: alertsError } = useQuery({
     queryKey: ["alerts"],
@@ -30,13 +34,17 @@ export const RealtimeProvider = ({ children }) => {
 
   //ANCHOR - RESCUERS
   const fetchContact = async () => {
-    const { data, error } = await supabase.from("emergencyPersons").select();
-
-    if (error) {
-      console.error("Fetch error in supabase emerP: ", error);
+    try {
+      const { data, error } = await supabase.from("emergencyPersons").select();
+      if (error) {
+        console.error("Fetch error in supabase emerP: ", error);
+        return [];
+      }
+      return data ?? [];
+    } catch (err) {
+      console.error("Unexpected error fetching emergencyPersons:", err);
+      return [];
     }
-    // console.log("Successful fetch", data);
-    return data;
   };
   // use data here to map the values and read
   const { data: emerPData, error: emerPError } = useQuery({
@@ -48,13 +56,17 @@ export const RealtimeProvider = ({ children }) => {
   }
   
   const fetchHotlines = async () => {
-    const { data, error } = await supabase.from("emergencyHotlines").select();
-
-    if (error) {
-      console.error("Fetch error in supabase emerH: ", error);
+    try {
+      const { data, error } = await supabase.from("emergencyHotlines").select();
+      if (error) {
+        console.error("Fetch error in supabase emerH: ", error);
+        return [];
+      }
+      return data ?? [];
+    } catch (err) {
+      console.error("Unexpected error fetching emergencyHotlines:", err);
+      return [];
     }
-    // console.log("Successful fetch", data);
-    return data;
   };
   const { data: emerHData, error: emerHError } = useQuery({
     queryKey: ["emergencyHotlines"],
@@ -66,13 +78,17 @@ export const RealtimeProvider = ({ children }) => {
 
   //ANCHOR - EVAC CARD
   const fetchEvacData = async () => {
-    const { data, error } = await supabase.from("evacuationCenter").select();
-
-    if (error) {
-      console.error("Fetch error in supabase evac: ", error);
+    try {
+      const { data, error } = await supabase.from("evacuationCenter").select();
+      if (error) {
+        console.error("Fetch error in supabase evac: ", error);
+        return [];
+      }
+      return data ?? [];
+    } catch (err) {
+      console.error("Unexpected error fetching evacuationCenter:", err);
+      return [];
     }
-    // console.log("Successful fetch", data);
-    return data;
   };
   // use data here to map the values and read
   const { data: evacData, error: evacError } = useQuery({
@@ -82,13 +98,17 @@ export const RealtimeProvider = ({ children }) => {
 
   //ANCHOR - PICKUP CARD
   const fetchPickupData = async () => {
-    const { data, error } = await supabase.from("pickupLocations").select();
-
-    if (error) {
-      console.error("Fetch error in supabase pickup: ", error);
+    try {
+      const { data, error } = await supabase.from("pickupLocations").select();
+      if (error) {
+        console.error("Fetch error in supabase pickup: ", error);
+        return [];
+      }
+      return data ?? [];
+    } catch (err) {
+      console.error("Unexpected error fetching pickupLocations:", err);
+      return [];
     }
-    // console.log("Successful fetch", data);
-    return data;
   };
   // use data here to map the values and read
   const { data: pickupData, error: pickupError } = useQuery({
@@ -98,21 +118,30 @@ export const RealtimeProvider = ({ children }) => {
   
   //ANCHOR - REQ
   const fetchReqStatus = async () => {
-    const { data, error } = await supabase
-    .from("requestStatus")
-    .select()
-    .eq("userID",user.id);
+    // If there's no logged-in user, return an empty array instead of querying
+    if (!user) return [];
+    try {
+      const { data, error } = await supabase
+        .from("requestStatus")
+        .select()
+        .eq("userID", user.id);
 
-    if (error) {
-      console.error("Fetch error in supabase reqStatus: ", error);
+      if (error) {
+        console.error("Fetch error in supabase reqStatus: ", error);
+        return [];
+      }
+      return data ?? [];
+    } catch (err) {
+      console.error("Unexpected error fetching requestStatus:", err);
+      return [];
     }
-    // console.log("Successful fetch", data);
-    return data;
   };
   // use data here to map the values and read
   const { data: reqData, error: reqError } = useQuery({
-    queryKey: ["requestStatus"],
+    queryKey: ["requestStatus", user?.id],
     queryFn: fetchReqStatus,
+    // only run this query when we have a valid user
+    enabled: !!user,
   });
 
   // Subscribe to realtime changes
